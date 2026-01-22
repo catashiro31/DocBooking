@@ -134,3 +134,6 @@ Frontend/
 └── vite.config.js (hoặc package.json cấu hình script start)
 
 ```
+### 3. Workflow
+**Đặc điểm:** Quy trình làm việc giữa Frontend và Backend trong DocBooking.
+![Workflow](Docs/workflow.jpg)
