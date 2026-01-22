@@ -136,4 +136,4 @@ Frontend/
 ```
 ### 3. Workflow
 **Đặc điểm:** Quy trình làm việc giữa Frontend và Backend trong DocBooking.
-![Workflow](Docs/workflow.jpg)
+![Workflow](Docs/workFlow.jpg)
