@@ -9,8 +9,8 @@
 
 ### 1. Backend (Server)
 * **Kiến trúc:** Layered Architecture
-* **Ngôn ngữ:** Java 17
-* **Framework:** Spring Boot 3.2.2
+* **Ngôn ngữ:** Java 17 (JDK 17)
+* **Framework:** Spring Boot 4.0.2
 * **Database:** PostgreSQL 18
 * **ORM:** Hibernate / Spring Data JPA
 * **Security:** Spring Security + JWT (JSON Web Token)
