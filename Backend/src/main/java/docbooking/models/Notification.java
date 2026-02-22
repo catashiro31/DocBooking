@@ -1,4 +1,39 @@
 package docbooking.models;
 
-public class NOTIFICATIONS {
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter @Setter
+@Table(name = "NOTIFICATIONS")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+
+public class Notification {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "notification_id")
+    private Integer notification_id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(name = "title", length = 100)
+    private String title;
+
+    @Lob
+    @Column(name = "message")
+    private String message;
+
+    @Column(name = "is_read")
+    private Boolean is_read;
+
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime created_at;
 }

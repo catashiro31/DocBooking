@@ -1,4 +1,61 @@
 package docbooking.models;
 
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDate;
+import java.util.List;
+
+@Entity
+@Getter
+@Setter
+@Table(name = "DOCTOR_SCHEDULES")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+
 public class DoctorSchedule {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "schedule_id")
+    private Integer schedule_id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_id")
+    private DoctorDetail doctor;
+
+    @Column(name = "date_working")
+    private LocalDate date_working;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "time_slot")
+    private TimeSlot time_slot;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "slot_status")
+    private SlotStatus slot_status;
+
+    @Getter
+    public enum TimeSlot {
+        SLOT_09_00("09:00"),
+        SLOT_10_00("10:00"),
+        SLOT_11_00("11:00"),
+        SLOT_14_00("14:00"),
+        SLOT_15_00("15:00"),
+        SLOT_16_00("16:00"),
+        SLOT_17_00("17:00");
+
+        private final String displayValue;
+
+        TimeSlot(String displayValue) {
+            this.displayValue = displayValue;
+        }
+
+    }
+
+    public enum SlotStatus {
+        AVAILABLE, BOOKED, CLOSED
+    }
+
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Appointment> appointments;
 }
