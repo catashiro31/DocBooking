@@ -17,7 +17,7 @@ public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notification_id")
-    private Integer notification_id;
+    private Integer notificationId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -31,9 +31,9 @@ public class Notification {
     private String message;
 
     @Column(name = "is_read")
-    private Boolean is_read;
+    private Boolean isRead;
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 }

@@ -17,7 +17,7 @@ public class DoctorDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "doctor_id")
-    private Integer doctor_id;
+    private Integer doctorId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", unique = true)
@@ -39,32 +39,32 @@ public class DoctorDetail {
     private String degree;
 
     @Column(name = "experience_years")
-    private Integer experience_years;
+    private Integer experienceYears;
 
     @Column(name = "price", precision = 15, scale = 2)
     private BigDecimal price;
 
     @Column(name = "id_card_url")
-    private String id_card_url;
+    private String idCardUrl;
 
     @Column(name = "certificate_url")
-    private String certificate_url;
+    private String certificateUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_status")
-    private VerificationStatus verification_status;
+    private VerificationStatus verificationStatus;
 
     @Column(name = "rating_average", precision = 2, scale = 1)
-    private BigDecimal rating_average;
+    private BigDecimal ratingAverage;
 
     @Column(name = "review_count")
-    private Integer review_count;
+    private Integer reviewCount;
 
     public enum VerificationStatus {
         PENDING, APPROVED, REJECTED
     }
 
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<DoctorSchedule> doctor_schedules;
+    private List<DoctorSchedule> doctorSchedules;
 
 }

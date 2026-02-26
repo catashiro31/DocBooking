@@ -17,22 +17,22 @@ public class DoctorSchedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "schedule_id")
-    private Integer schedule_id;
+    private Integer scheduleId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id")
     private DoctorDetail doctor;
 
     @Column(name = "date_working")
-    private LocalDate date_working;
+    private LocalDate dateWorking;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "time_slot")
-    private TimeSlot time_slot;
+    private TimeSlot timeSlot;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "slot_status")
-    private SlotStatus slot_status;
+    private SlotStatus slotStatus;
 
     @Getter
     public enum TimeSlot {

@@ -17,10 +17,10 @@ public class Facility {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "facility_id")
-    private Integer facility_id;
+    private Integer facilityId;
 
     @Column(name = "facility_name")
-    private String facility_name;
+    private String facilityName;
 
     @Column(name = "address")
     private String address;
@@ -30,8 +30,8 @@ public class Facility {
     private String description;
 
     @Column(name = "image_url")
-    private String image_url;
+    private String imageUrl;
 
     @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<DoctorDetail> doctor_details;
+    private List<DoctorDetail> doctorDetails;
 }

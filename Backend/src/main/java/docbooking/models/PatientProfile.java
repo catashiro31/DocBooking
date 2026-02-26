@@ -17,24 +17,24 @@ public class PatientProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "patient_id")
-    private Integer patient_id;
+    private Integer patientId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "full_name")
-    private String full_name;
+    private String fullName;
 
     @Column(name = "date_of_birth")
-    private LocalDate date_of_birth;
+    private LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private GenderStatus gender;
 
     @Column(name = "phone_number", length = 10)
-    private String phone_number;
+    private String phoneNumber;
 
     @Column(name = "address")
     private String address;

@@ -19,37 +19,37 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Integer user_id;
+    private Integer userId;
 
     @Column(name = "email", nullable = false)
     private String email;
 
     @Column(name = "password_hash")
-    private String password_hash;
+    private String passwordHash;
 
     @Column(name = "full_name", length = 100)
-    private String full_name;
+    private String fullName;
 
     @Column(name = "phone_number", length = 10)
-    private String phone_number;
+    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private RoleStatus role;
 
     @Column(name = "is_active")
-    private Boolean is_active;
+    private Boolean isActive;
 
     @Column(name = "avatar_url")
-    private String avatar_url;
+    private String avatarUrl;
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private LocalDateTime updated_at;
+    private LocalDateTime updatedAt;
 
     public enum RoleStatus {
         ADMIN, DOCTOR, PATIENT

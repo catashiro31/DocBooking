@@ -17,7 +17,7 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "review_id")
-    private Integer review_id;
+    private Integer reviewId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id", referencedColumnName = "appointment_id", unique = true)
@@ -31,5 +31,5 @@ public class Review {
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 }
