@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
-@Table(name = "MEDICAL_RESULTS")
+@Table(name = "medical_results")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,15 +23,13 @@ public class MedicalResult {
     @JoinColumn(name = "appointment_id", referencedColumnName = "appointment_id", unique = true)
     private Appointment appointment;
 
-    @Lob
-    @Column(name = "diagnosis")
+    @Column(name = "diagnosis", columnDefinition = "TEXT")
     private String diagnosis;
 
     @Column(name = "prescription_url")
     private String prescriptionUrl;
 
-    @Lob
-    @Column(name = "doctor_notes")
+    @Column(name = "doctorNotes", columnDefinition = "TEXT")
     private String doctorNotes;
 
     @CreationTimestamp

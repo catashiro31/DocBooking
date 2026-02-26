@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
-@Table(name = "NOTIFICATIONS")
+@Table(name = "notifications")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,8 +26,7 @@ public class Notification {
     @Column(name = "title", length = 100)
     private String title;
 
-    @Lob
-    @Column(name = "message")
+    @Column(name = "message", columnDefinition = "TEXT")
     private String message;
 
     @Column(name = "is_read")
