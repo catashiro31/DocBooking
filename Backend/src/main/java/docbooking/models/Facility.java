@@ -8,7 +8,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "FACILITIES")
+@Table(name = "facilities")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -25,8 +25,7 @@ public class Facility {
     @Column(name = "address")
     private String address;
 
-    @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "image_url")

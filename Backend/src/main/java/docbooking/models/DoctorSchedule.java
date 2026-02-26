@@ -8,7 +8,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "DOCTOR_SCHEDULES")
+@Table(name = "doctor_schedules")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

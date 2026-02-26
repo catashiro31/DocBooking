@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
-@Table(name = "APPOINTMENTS")
+@Table(name = "appointments")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,8 +29,7 @@ public class Appointment {
     @JoinColumn(name = "schedule_id", nullable = false)
     private DoctorSchedule schedule;
 
-    @Lob
-    @Column(name = "reason")
+    @Column(name = "reason", columnDefinition = "TEXT")
     private String reason;
 
     @Enumerated(EnumType.STRING)

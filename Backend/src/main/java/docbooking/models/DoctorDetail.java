@@ -8,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Getter @Setter
-@Table(name = "DOCTOR_DETAILS")
+@Table(name = "doctor_details")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -31,8 +31,7 @@ public class DoctorDetail {
     @JoinColumn(name = "facility_id", nullable = false)
     private Facility facility;
 
-    @Lob
-    @Column(name = "bio")
+    @Column(name = "bio", columnDefinition = "TEXT")
     private String bio;
 
     @Column(name = "degree", length = 50)
