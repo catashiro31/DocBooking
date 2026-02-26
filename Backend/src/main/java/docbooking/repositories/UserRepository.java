@@ -15,8 +15,11 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     // Kiểm tra tài khoản có tồn tại không (Chuyển đến mục đăng kí)
     boolean existsByEmail(String email);
 
+    boolean existsByPhoneNumber(String phoneNumber);
+
     // Tìm danh sách theo vai trò (Lọc bác sĩ / bệnh nhân)
     List<User> findByRole(User.RoleStatus role);
 
     List<User> findByIsActive(boolean isActive);
+
 }
