@@ -36,10 +36,10 @@ public class AuthController {
     @PostMapping("/signin")
     public ResponseEntity<?> signIn(@RequestBody SignInRequestDTO req) {
         try {
-            // 1. Thử nhờ Sếp kiểm tra (Nếu sai pass, Sếp sẽ ném lỗi văng thẳng xuống phần catch)
+            // 1. Kiểm tra thông tin đăng nhập
             User signInUser = authService.signIn(req);
 
-            // 2. Nếu Sếp gật đầu (đi qua được dòng trên), tiến hành in thẻ
+            // 2. Sinh token
             String jwtToken = jwtUtils.generateToken(signInUser);
 
             // 3. Đóng gói Thẻ và Lời nhắn báo thành công
@@ -48,22 +48,19 @@ public class AuthController {
                     jwtUtils.getJwtExpiration(),
                     "Đăng nhập thành công! Chào mừng bạn quay lại."
             );
-
             return ResponseEntity.ok(responseDTO);
 
         } catch (BadCredentialsException e) {
-            // Sếp báo: Khách này nhập sai Email hoặc Mật khẩu rồi!
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai email hoặc mật khẩu. Vui lòng thử lại!");
 
         } catch (DisabledException e) {
-            // Sếp báo: Khách này đúng pass nhưng tài khoản đang bị khóa (isActive = false)
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email để xác thực!");
 
         } catch (LockedException e) {
             return ResponseEntity.status(HttpStatus.LOCKED).body("Tài khoản của bạn đã bị khóa, không thể đăng nhập!");
         } catch (Exception e) {
             e.printStackTrace();
-            // Các lỗi râu ria khác (Ví dụ không kết nối được Database)
+            // Các lỗi khác
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Đăng nhập thất bại: Lỗi hệ thống!");
         }
     }
