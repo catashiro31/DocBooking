@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "31102006" # Nên để trong ngoặc kép vì là chuỗi số
+      POSTGRES_DB: docbooking
+    ports:
+      - "5436:5432" # Máy thật dùng 5436 để tránh trùng nếu máy bạn đã cài Postgres sẵn
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80" # Bây giờ bạn có thể vào localhost:8080 bằng trình duyệt
+
+volumes:
+  postgres_data:
