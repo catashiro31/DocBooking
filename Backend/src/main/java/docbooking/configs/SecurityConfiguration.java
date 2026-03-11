@@ -1,12 +1,14 @@
 package docbooking.configs;
 
 import docbooking.security.JwtAuthenticationFilter;
+import docbooking.services.LogoutService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -20,13 +22,15 @@ import java.util.List;
 public class SecurityConfiguration {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final LogoutService logoutService;
 
     public SecurityConfiguration(
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            AuthenticationProvider authenticationProvider
+            AuthenticationProvider authenticationProvider, LogoutService logoutService
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.authenticationProvider = authenticationProvider;
+        this.logoutService = logoutService;
     }
 
     @Bean
@@ -39,15 +43,25 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/auth/**", "/error").permitAll()
                         .anyRequest().authenticated()
                 )
+
                 // Không lưu State để tiết kiệm Ram
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 // Cấp quyền xác minh
                 .authenticationProvider(authenticationProvider)
                 // Thiết lập điều hướng trước
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
+                // Đăng xuất
+                .logout(logout -> logout
+                    .logoutUrl("/api/v1/auth/logout")
+                    .addLogoutHandler(logoutService)
+                    .logoutSuccessHandler((request, response, authentication) ->
+                            SecurityContextHolder.clearContext()
+                    )
+                );
         return http.build();
     }
 

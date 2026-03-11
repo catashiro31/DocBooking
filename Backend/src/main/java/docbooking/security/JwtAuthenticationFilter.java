@@ -1,5 +1,6 @@
 package docbooking.security;
 
+import docbooking.services.RedisTokenService;
 import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,14 +25,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
 
+    private final RedisTokenService redisTokenService;
+
     public JwtAuthenticationFilter(
             JwtUtils jwtUtils,
             UserDetailsService userDetailsService,
-            HandlerExceptionResolver handlerExceptionResolver
-    ) {
+            HandlerExceptionResolver handlerExceptionResolver,
+            RedisTokenService redisTokenService
+            ) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
         this.handlerExceptionResolver = handlerExceptionResolver;
+        this.redisTokenService = redisTokenService;
     }
 
     @Override
@@ -51,6 +56,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Bắt lỗi
         try {
             final String jwt = authHeader.substring(7);
+
+            if (redisTokenService.isTokenBlackListed(jwt)) {
+                handlerExceptionResolver.resolveException(request, response, null,
+                        new RuntimeException("Token đã đăng xuất"));
+            }
             // Tìm email từ token
             final String userEmail = jwtUtils.extractUsername(jwt);
 
