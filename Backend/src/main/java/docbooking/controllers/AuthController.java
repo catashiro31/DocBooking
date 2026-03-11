@@ -6,25 +6,28 @@ import docbooking.dtos.SignUpRequestDTO;
 import docbooking.models.User;
 import docbooking.security.JwtUtils;
 import docbooking.services.AuthService;
+import docbooking.services.RedisTokenService;
+import docbooking.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
     private final JwtUtils jwtUtils;
     private final AuthService authService;
+    private final RedisTokenService redisTokenService;
 
-    public  AuthController(JwtUtils jwtUtils, AuthService authService) {
+    public  AuthController(JwtUtils jwtUtils, AuthService authService, RedisTokenService redisTokenService) {
         this.jwtUtils = jwtUtils;
         this.authService = authService;
+        this.redisTokenService = redisTokenService;
     }
 
     @PostMapping("/signup")
@@ -63,5 +66,20 @@ public class AuthController {
             // Các lỗi khác
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Đăng nhập thất bại: Lỗi hệ thống!");
         }
+    }
+
+    @PostMapping("/signout")
+    public ResponseEntity<?> signOut(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+
+            // Đảm bảo tên hàm trong jwtUtils phải khớp (getRemainingTime hoặc getRemainingExpiration)
+            long remainingTime = jwtUtils.getRemainingExpiration(token);
+            redisTokenService.blackListToken(token, remainingTime);
+
+            // Trả về một Map để có định dạng JSON { "message": "..." }
+            return ResponseEntity.ok(Map.of("message", "Đăng xuất thành công"));
+        }
+        return ResponseEntity.badRequest().body(Map.of("error", "Token không khả dụng"));
     }
 }

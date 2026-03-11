@@ -74,6 +74,22 @@ public class JwtUtils {
         return extractExpiration(token).before(new Date());
     }
 
+    public long getRemainingExpiration(String token) {
+        try {
+            // Sử dụng hàm extractExpiration bạn đã viết ở trên
+            Date expiration = extractExpiration(token);
+
+            // Tính toán khoảng cách thời gian (miliseconds)
+            long remainingTime = expiration.getTime() - System.currentTimeMillis();
+
+            // Trả về số milis còn lại, nếu đã hết hạn thì trả về 0
+            return Math.max(remainingTime, 0);
+        } catch (Exception e) {
+            // Nếu token lỗi hoặc không thể giải mã, coi như hết hạn
+            return 0;
+        }
+    }
+
     // Giải mã con dấu
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
