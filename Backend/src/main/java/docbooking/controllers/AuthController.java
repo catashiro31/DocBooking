@@ -2,13 +2,15 @@ package docbooking.controllers;
 
 import docbooking.dtos.SignInRequestDTO;
 import docbooking.dtos.SignInResponseDTO;
+import docbooking.dtos.SignOutRequestDTO;
 import docbooking.dtos.SignUpRequestDTO;
 import docbooking.models.User;
 import docbooking.security.JwtUtils;
 import docbooking.services.AuthService;
 import docbooking.services.RedisTokenService;
-import docbooking.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -69,17 +71,20 @@ public class AuthController {
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<?> signOut(@RequestHeader(value = "Authorization", required = false) String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+    public ResponseEntity<?> signOut(@RequestBody SignOutRequestDTO req) {
+        // Lấy trực tiếp từ HTTP Request
+        String auth = req.getToken();
 
-            // Đảm bảo tên hàm trong jwtUtils phải khớp (getRemainingTime hoặc getRemainingExpiration)
+        if (auth != null && auth.startsWith("Bearer ")) {
+            String token = auth.substring(7);
+
             long remainingTime = jwtUtils.getRemainingExpiration(token);
             redisTokenService.blackListToken(token, remainingTime);
 
-            // Trả về một Map để có định dạng JSON { "message": "..." }
-            return ResponseEntity.ok(Map.of("message", "Đăng xuất thành công"));
+            return ResponseEntity.ok()
+                    .body(Map.of("message", "Đăng xuất thành công"));
         }
+
         return ResponseEntity.badRequest().body(Map.of("error", "Token không khả dụng"));
     }
 }
