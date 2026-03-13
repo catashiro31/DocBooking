@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: "31102006" # Nên để trong ngoặc kép vì là chuỗi số
       POSTGRES_DB: docbooking
     ports:
-      - "5436:5432" # Máy thật dùng 5436 để tránh trùng nếu máy bạn đã cài Postgres sẵn
+      - "5439:5432" # Máy thật dùng 5439 để tránh trùng nếu máy bạn đã cài Postgres sẵn
     volumes:
       - postgres_data:/var/lib/postgresql/data
       
