@@ -4,9 +4,11 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -64,10 +66,15 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PatientProfile> patientProfiles;
 
+    @Enumerated(EnumType.STRING)
+    private RoleStatus roleStatus;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        if (this.roleStatus == null) {
+            return new ArrayList<>();
+        }
+        return List.of(new SimpleGrantedAuthority("ROLE_" + this.roleStatus.name()));
     }
 
     @Override
