@@ -11,6 +11,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SignInRequestDTO {
     private String email;
-
     private String password;
 }
