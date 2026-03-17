@@ -1,8 +1,8 @@
 package docbooking.controllers;
 
-import docbooking.dtos.SignInRequestDTO;
-import docbooking.dtos.SignInResponseDTO;
-import docbooking.dtos.SignUpRequestDTO;
+import docbooking.dtos.requests.SignInRequestDTO;
+import docbooking.dtos.responses.SignInResponseDTO;
+import docbooking.dtos.requests.SignUpRequestDTO;
 import docbooking.models.User;
 import docbooking.security.JwtTokenProvider;
 import docbooking.services.AuthService;

@@ -1,7 +1,5 @@
 package docbooking.controllers;
 
-import docbooking.dtos.ProfileResponseDTO;
-import docbooking.models.User;
 import docbooking.services.UserService;
 import lombok.Builder;
 import org.springframework.http.ResponseEntity;

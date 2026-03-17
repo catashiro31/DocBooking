@@ -1,6 +1,5 @@
-package docbooking.dtos;
+package docbooking.dtos.responses;
 
-import docbooking.models.User;
 import lombok.*;
 
 @Getter

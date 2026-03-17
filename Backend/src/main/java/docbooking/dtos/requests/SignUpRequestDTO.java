@@ -1,4 +1,4 @@
-package docbooking.dtos;
+package docbooking.dtos.requests;
 
 import docbooking.models.User;
 import lombok.*;

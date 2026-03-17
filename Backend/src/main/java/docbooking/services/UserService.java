@@ -1,6 +1,6 @@
 package docbooking.services;
 
-import docbooking.dtos.ProfileResponseDTO;
+import docbooking.dtos.responses.ProfileResponseDTO;
 import docbooking.models.User;
 import docbooking.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -1,6 +1,6 @@
 package docbooking.services;
 
-import docbooking.dtos.SignUpRequestDTO;
+import docbooking.dtos.requests.SignUpRequestDTO;
 import docbooking.models.User;
 import docbooking.repositories.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
