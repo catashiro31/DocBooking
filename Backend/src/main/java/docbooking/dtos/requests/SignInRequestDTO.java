@@ -1,4 +1,4 @@
-package docbooking.dtos;
+package docbooking.dtos.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +11,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class SignInRequestDTO {
     private String email;
-
     private String password;
 }

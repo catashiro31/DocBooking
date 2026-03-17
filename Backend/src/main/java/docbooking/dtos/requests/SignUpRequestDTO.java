@@ -1,4 +1,4 @@
-package docbooking.dtos;
+package docbooking.dtos.requests;
 
 import docbooking.models.User;
 import lombok.*;
@@ -10,10 +10,7 @@ import lombok.*;
 @Builder
 public class SignUpRequestDTO {
     private String email;
-
     private String password;
-
     private String fullName;
-
     private User.RoleStatus role;
 }

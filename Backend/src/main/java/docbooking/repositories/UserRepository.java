@@ -21,5 +21,4 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<User> findByRole(User.RoleStatus role);
 
     List<User> findByIsActive(boolean isActive);
-
 }
