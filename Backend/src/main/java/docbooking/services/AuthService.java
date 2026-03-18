@@ -29,7 +29,16 @@ public class AuthService {
 
         newUser.setPasswordHash(passwordEncoder.encode(req.getPassword()));
 
-        newUser.setRoleStatus(req.getRole());
+        User.RoleStatus userRole = User.RoleStatus.PATIENT;
+
+        if (req.getRole() != null && !req.getRole().isEmpty()) {
+            try {
+                userRole = User.RoleStatus.valueOf(req.getRole().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                userRole = User.RoleStatus.PATIENT;
+            }
+        }
+        newUser.setRole(userRole);
         return userRepository.save(newUser);
     }
 }
