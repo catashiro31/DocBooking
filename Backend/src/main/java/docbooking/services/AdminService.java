@@ -3,11 +3,12 @@ package docbooking.services;
 import docbooking.dtos.responses.StatResponseDTO;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
-import docbooking.models.PatientProfile;
 import docbooking.repositories.AppointmentRepository;
 import docbooking.repositories.DoctorDetailRepository;
 import docbooking.repositories.PatientProfileRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AdminService {
@@ -28,5 +29,9 @@ public class AdminService {
                 .numberOfPendingAppointments(appointment.countByBookingStatus(Appointment.BookingStatus.PENDING))
                 .numberOfFailingAppointments(appointment.countByBookingStatus(Appointment.BookingStatus.CANCELLED))
                 .build();
+    }
+
+    public List<DoctorDetail> getPendingDoctors() {
+        return doctorDetail.findDoctorDetailByVerificationStatus(DoctorDetail.VerificationStatus.PENDING);
     }
 }
