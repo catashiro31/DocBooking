@@ -1,7 +1,9 @@
 import { useState } from "react"
-import { register } from "../services/authService"
-import bg from "../images/backgroud_LoginAndRegister.png"
+import { register, login } from "../services/authService"
 import { useNavigate } from "react-router-dom"
+import bg from "../images/bg.png"
+import { Link } from "react-router-dom"
+import "../styles/Login.css"
 
 function RegisterPage() {
 
@@ -25,79 +27,34 @@ function RegisterPage() {
         try {
             await register(email, password, fullName, confirm, phone, role)
             alert("Đăng ký thành công")
+
             const res = await login(email, password)
-            const userRole = res.data.role
-            if (userRole === "DOCTOR") 
+            const userRole = res.role
+
+            if (userRole === "DOCTOR")
                 navigate("/doctor-dashboard")
-            else 
+            else
                 navigate("/booking")
-            } 
-            catch (error) {
+
+        } catch (error) {
             console.error("Không thể đăng ký", error)
         }
     }
 
     return (
-        <div style={{
-            display: "flex",
-            height: "70vh",
-            padding: "90px"
-        }}>
+        <div className="login_container">
 
-            <div style={{
-                flex: 6,
-                backgroundImage: `url(${bg})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                borderTopLeftRadius: "15px",
-                borderBottomLeftRadius: "15px"
-            }}>
-            </div>
+            <div className="login_left">
+                <form className="form" onSubmit={handleSubmitRegister}>
 
-            <div style={{
-                flex: 4,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "#f5f5f5",
-                borderTopRightRadius: "15px",
-                borderBottomRightRadius: "15px"
-            }}>
-
-                <form
-                    onSubmit={handleSubmitRegister}
-                    style={{
-                        background: "#e8eef1",
-                        padding: "30px",
-                        borderRadius: "8px",
-                        boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-                        width: "350px",
-                        textAlign: "center"
-                    }}
-                >
-
-                    <h2 style={{
-                        marginBottom: "20px",
-                        fontFamily: "Arial",
-                        fontSize: "24px",
-                        color: "#333"
-                    }}>
-                        Register
-                    </h2>
+                    <h2>Create Account</h2>
+                    <p>Please Sign up to book appointment</p>
 
                     <input
                         type="email"
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        style={{
-                            display: "block",
-                            marginBottom: "15px",
-                            padding: "10px",
-                            width: "100%",
-                            borderRadius: "6px",
-                            border: "1px solid #ccc"
-                        }}
                     />
 
                     <input
@@ -105,14 +62,6 @@ function RegisterPage() {
                         placeholder="Họ và tên"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        style={{
-                            display: "block",
-                            marginBottom: "15px",
-                            padding: "10px",
-                            width: "100%",
-                            borderRadius: "6px",
-                            border: "1px solid #ccc"
-                        }}
                     />
 
                     <input
@@ -120,14 +69,6 @@ function RegisterPage() {
                         placeholder="Mật khẩu"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        style={{
-                            display: "block",
-                            marginBottom: "15px",
-                            padding: "10px",
-                            width: "100%",
-                            borderRadius: "6px",
-                            border: "1px solid #ccc"
-                        }}
                     />
 
                     <input
@@ -135,14 +76,6 @@ function RegisterPage() {
                         placeholder="Xác nhận mật khẩu"
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
-                        style={{
-                            display: "block",
-                            marginBottom: "15px",
-                            padding: "10px",
-                            width: "100%",
-                            borderRadius: "6px",
-                            border: "1px solid #ccc"
-                        }}
                     />
 
                     <input
@@ -150,57 +83,52 @@ function RegisterPage() {
                         placeholder="Số điện thoại"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        style={{
-                            display: "block",
-                            marginBottom: "20px",
-                            padding: "10px",
-                            width: "100%",
-                            borderRadius: "6px",
-                            border: "1px solid #ccc"
-                        }}
                     />
+                    <select
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        style={{
+                            padding: "10px",
+                            width: "40%",
+                            color: role ? "#000" : "#888",
+                            borderRadius: "5px",
+                            marginRight: "20px"
+                        }}
+                    >
+                        <option value="" disabled hidden> Đăng ký với </option>
+                        <option value="PATIENT">Bệnh nhân</option>
+                        <option value="DOCTOR">Bác sĩ</option>
+                    </select>
+                    <button
+                        type="submit"
+                        style={{
+                            padding: "10px",
+                            backgroundColor: "#007bff",
+                            color: "white",
+                            border: "none",
+                            cursor: "pointer",
+                            width: "40%",
+                            borderRadius: "5px"
+                        }}
+                    >
+                        Register
+                    </button>
 
-                    <div style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center"
-                    }}>
-
-                        <select
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            style={{
-                                padding: "10px",
-                                width: "40%",
-                                color: role ? "#000" : "#888",
-                                borderRadius: "5px"
-                            }}
-                        >
-                            <option value="" disabled hidden> Đăng ký với </option>
-                            <option value="PATIENT">Bệnh nhân</option>
-                            <option value="DOCTOR">Bác sĩ</option>
-                        </select>
-
-                        <button
-                            type="submit"
-                            style={{
-                                padding: "10px",
-                                backgroundColor: "#007bff",
-                                color: "white",
-                                border: "none",
-                                cursor: "pointer",
-                                width: "40%",
-                                borderRadius: "5px"
-                            }}
-                        >
-                            Đăng ký
-                        </button>
-
+                    <div className="switch_page">
+                        <p>You already have an account?</p>
+                        <Link className="link" to="/login">Login here</Link>
                     </div>
+
                 </form>
             </div>
+
+            <div className="login_right">
+                <img src={bg} alt="register" />
+            </div>
+
         </div>
     )
 }
 
 export default RegisterPage
+

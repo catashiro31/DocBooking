@@ -3,28 +3,51 @@ import Header from '../components/Header';
 import DoctorCard from '../components/DoctorCard';
 import SpecialtyFilter from '../components/SpecialtyFilter';
 import { doctorService } from '../services/doctorService'
-import '../styles/Doctors.css'; 
+import { useSearchParams } from 'react-router-dom'; //thêm
+import '../styles/Doctors.css';
+import Footer from '../components/footer';
 
 export default function Doctors() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSpecialty, setSelectedSpecialty] = useState(null);
   const [search, setSearch] = useState('');
-
+  //Thêm ----------
+  const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
-    setLoading(true);
-    doctorService
-    .getDoctors({ specialty: selectedSpecialty})
-    .then(data => {
+    const specialtyFromUrl = searchParams.get('specialty');
+    setSelectedSpecialty(specialtyFromUrl || null);
+  }, [searchParams]);
+  //-----------
+
+  //lấy bác sĩ 1 lần
+  useEffect(() => {
+  setLoading(true);
+  doctorService
+    .getDoctors() //bỏ { specialty: selectedSpecialty } trong ngoặc đi
+    .then((data) => {
       setDoctors(data);
       setLoading(false);
     })
-  }, [selectedSpecialty])
-  
-  const filtered = doctors.filter(d =>
-      d.name.toLowerCase().includes(search.toLowerCase()) ||
-      d.specialty.toLowerCase().includes(search.toLowerCase())
-  );
+    //sử lý lỗi
+    .catch((error) => {
+      console.error("Lỗi lấy bác sĩ:", error);
+      setLoading(false);
+    });
+}, []); //không truyền j hết
+
+//lọc ở frontend bằng filtered
+const filtered = doctors.filter((d) => {
+  const matchSpecialty =
+    !selectedSpecialty ||
+    d.specialty?.trim().toLowerCase() === selectedSpecialty?.trim().toLowerCase();
+
+  const matchSearch =
+    d.name.toLowerCase().includes(search.toLowerCase()) ||
+    d.specialty.toLowerCase().includes(search.toLowerCase());
+
+  return matchSpecialty && matchSearch;
+});
 
   return (
     <div className="page">
@@ -45,7 +68,15 @@ export default function Doctors() {
       <div className="main">
         <SpecialtyFilter
           selected={selectedSpecialty}
-          onSelect={setSelectedSpecialty}
+          //onSelect={setSelectedSpecialty}
+          onSelect={(spec) => {
+            setSelectedSpecialty(spec);
+            if (spec) {
+              setSearchParams({ specialty: spec });
+            } else {
+              setSearchParams({});
+            }
+          }}
         />
 
         <section className="grid">
@@ -54,10 +85,11 @@ export default function Doctors() {
           ) : filtered.length === 0 ? (
             <div className='empty'>No doctors found</div>
           ) : (
-            filtered.map(doc => <DoctorCard key={doc.id} doctor={doc}/>)
+            filtered.map(doc => <DoctorCard key={doc.id} doctor={doc} />)
           )}
         </section>
       </div>
+      <Footer />
     </div>
   );
 }

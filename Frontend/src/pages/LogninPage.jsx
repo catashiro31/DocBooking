@@ -1,7 +1,9 @@
 import { useState } from "react"
 import { login } from "../services/authService"
-import bg from "../images/backgroud_LoginAndRegister.png"
+import bg from "../images/bg.png"
 import { useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
+import "../styles/Login.css"
 
 function LogninPage() {
     const [email, setEmail] = useState("")
@@ -14,6 +16,7 @@ function LogninPage() {
         try {
             const res = await login(email, password)
             console.log(res)
+            navigate("/")
         }
         catch (error) {
             console.error(error)
@@ -21,66 +24,17 @@ function LogninPage() {
     }
 
     return (
-        <div style={{
-            display: "flex",
-            height: "70vh",
-            padding: "90px",
-        }}>
+        <div className="login_container">
 
-            <div style={{
-                flex: 6,
-                backgroundImage: `url(${bg})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                borderTopLeftRadius: "15px",
-                borderBottomLeftRadius: "15px"
-            }}>
-            </div>
-
-            <div style={{
-                flex: 4,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "#f5f5f5",
-                borderTopRightRadius: "15px",
-                borderBottomRightRadius: "15px"
-            }}>
-
-                <form onSubmit={handleSubmitLogin}
-                    style={{
-                        background: "#e8eef1",
-                        padding: "20px",
-                        borderRadius: "8px",
-                        boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-                        width: "450px",
-                        height: "400px",
-                        textAlign: "center",
-                        marginTop: "40px",
-                        marginLeft: "20px"
-                    }}>
-
-                    <h2 style={{
-                        marginBottom: "20px",
-                        fontFamily: "Arial",
-                        fontSize: "24px",
-                        color: "#333",
-
-                    }}>
-                        Login
-                    </h2>
+            <div className="login_left">
+                <form className="form" onSubmit={handleSubmitLogin}>
+                    <h2>Account Login</h2>
 
                     <input
                         type="email"
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        style={{
-                            display: "block",
-                            marginBottom: "25px",
-                            padding: "10px",
-                            width: "95%",
-                        }}
                     />
 
                     <input
@@ -88,34 +42,18 @@ function LogninPage() {
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        style={{
-                            display: "block",
-                            marginBottom: "20px",
-                            padding: "10px",
-                            width: "95%"
-                        }}
                     />
 
-                    <div>
-                        <button
-                            type="submit"
-                            style={{
-                                padding: "10px",
-                                backgroundColor: "#007bff",
-                                color: "white",
-                                border: "none",
-                                cursor: "pointer",
-                                width: "40%",
-                                borderRadius: "5px"
-                            }}
-                        >
-                            Đăng nhập
-                        </button>
+                    <button type="submit">Login</button>
+                    <div className="switch_page">
+                        <p>Do you have an account yet?</p>
+                        <Link className="link" to="/register">Register here</Link>
                     </div>
-
                 </form>
+            </div>
 
-
+            <div className="login_right">
+                <img src={bg} alt="login" />
             </div>
 
         </div>
