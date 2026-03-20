@@ -40,8 +40,8 @@ public class DoctorDetail {
     @Column(name = "experience_years")
     private Integer experienceYears;
 
-    @Column(name = "price", precision = 15, scale = 2)
-    private BigDecimal price;
+    @Column(name = "price")
+    private Double price;
 
     @Column(name = "id_card_url")
     private String idCardUrl;
@@ -53,8 +53,8 @@ public class DoctorDetail {
     @Column(name = "verification_status")
     private VerificationStatus verificationStatus;
 
-    @Column(name = "rating_average", precision = 2, scale = 1)
-    private BigDecimal ratingAverage;
+    @Column(name = "rating_average")
+    private Double ratingAverage;
 
     @Column(name = "review_count")
     private Integer reviewCount;
