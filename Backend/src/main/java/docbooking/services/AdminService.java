@@ -34,4 +34,19 @@ public class AdminService {
     public List<DoctorDetail> getPendingDoctors() {
         return doctorDetail.findDoctorDetailByVerificationStatus(DoctorDetail.VerificationStatus.PENDING);
     }
+
+    public DoctorDetail approveDoctor(long doctorId) {
+        DoctorDetail doctor = doctorDetail.findByDoctorId(doctorId);
+        doctor.setVerificationStatus(DoctorDetail.VerificationStatus.APPROVED);
+        doctorDetail.save(doctor);
+        return doctor;
+    }
+
+    public DoctorDetail rejectDoctor(long doctorId, String reason) {
+        DoctorDetail doctor = doctorDetail.findByDoctorId(doctorId);
+        doctor.setVerificationStatus(DoctorDetail.VerificationStatus.REJECTED);
+        doctor.setReasonReject(reason);
+        doctorDetail.save(doctor);
+        return doctor;
+    }
 }

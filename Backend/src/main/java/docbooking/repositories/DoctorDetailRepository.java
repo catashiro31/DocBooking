@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface DoctorDetailRepository  extends JpaRepository<DoctorDetail, Integer> {
     List<DoctorDetail> findDoctorDetailByVerificationStatus(DoctorDetail.VerificationStatus status);
+
+    DoctorDetail findByDoctorId(long doctorId);
 }

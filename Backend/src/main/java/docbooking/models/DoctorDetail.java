@@ -1,5 +1,6 @@
 package docbooking.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,14 +19,17 @@ public class DoctorDetail {
     @Column(name = "doctor_id")
     private Integer doctorId;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", unique = true)
     private User user;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialty_id", nullable = false)
     private Specialty specialty;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facility_id", nullable = false)
     private Facility facility;
@@ -57,6 +61,9 @@ public class DoctorDetail {
 
     @Column(name = "review_count")
     private Integer reviewCount;
+
+    @Column(name = "reason_reject")
+    private String reasonReject;
 
     public enum VerificationStatus {
         PENDING, APPROVED, REJECTED
