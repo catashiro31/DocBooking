@@ -11,6 +11,7 @@ import docbooking.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AdminService {
@@ -57,5 +58,12 @@ public class AdminService {
 
     public List<User> getAllUsers() {
         return userRepository.getAllUsers();
+    }
+
+    public User setBlockedUser(long userId) {
+        User user = userRepository.findByUserId(userId);
+        user.setIsActive(false);
+        userRepository.save(user);
+        return user;
     }
 }

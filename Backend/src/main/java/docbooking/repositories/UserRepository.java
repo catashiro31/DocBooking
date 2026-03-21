@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     // Kiểm tra tài khoản có tồn tại không (Chuyển đến mục đăng kí)
     boolean existsByEmail(String email);
+
+    User findByUserId(long userId);
 }
