@@ -31,21 +31,21 @@ public class DoctorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getDoctorDetail(@PathVariable Integer id) {
-        DoctorDetailDTO respon = doctorService.getDoctorById(id);
-        return ResponseEntity.ok(respon);
+        DoctorDetailDTO response = doctorService.getDoctorById(id);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<?> getDoctorReviews(@PathVariable Integer id){
-        List<ReviewDTO> respon = doctorService.getReviewsByDoctorId(id);
-        return ResponseEntity.ok(respon);
+        List<ReviewDTO> response = doctorService.getReviewsByDoctorId(id);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}/slots")
     public ResponseEntity<?> getDoctorSlots(
             @PathVariable Integer id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
-        List<SlotResponDTO> respon = doctorService.getAvailableSlots(id, date);
-        return ResponseEntity.ok(respon);
+        List<SlotResponDTO> response = doctorService.getAvailableSlots(id, date);
+        return ResponseEntity.ok(response);
     }
 }
