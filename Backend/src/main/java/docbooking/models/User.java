@@ -60,6 +60,9 @@ public class User implements UserDetails {
         ADMIN, DOCTOR, PATIENT
     }
 
+    @Column(name = "reason_banned")
+    private String reasonBanned;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Notification> notifications;
 

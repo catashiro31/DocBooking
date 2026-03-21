@@ -74,7 +74,7 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{id}/block")
-    public ResponseEntity<?> setBlocked(@PathVariable long id) {
+    public ResponseEntity<?> setBlocked(@PathVariable long id, @RequestParam String reason) {
         User currentUser = SecurityUtils.getCurrentUser();
         if (currentUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bạn chưa đăng nhập!");
@@ -82,6 +82,6 @@ public class AdminController {
         if (!currentUser.getRole().toString().equals("ADMIN")) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền quản trị viên!");
         }
-        return ResponseEntity.ok().body(adminService.setBlockedUser(id));
+        return ResponseEntity.ok().body(adminService.setBlockedUser(id,reason));
     }
 }

@@ -60,9 +60,10 @@ public class AdminService {
         return userRepository.getAllUsers();
     }
 
-    public User setBlockedUser(long userId) {
+    public User setBlockedUser(long userId, String reason) {
         User user = userRepository.findByUserId(userId);
         user.setIsActive(false);
+        user.setReasonBanned(reason);
         userRepository.save(user);
         return user;
     }
