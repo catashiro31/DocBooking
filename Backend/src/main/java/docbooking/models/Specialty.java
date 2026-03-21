@@ -19,7 +19,7 @@ public class Specialty {
     private Integer specialtyId;
 
     @Column(name = "specialty_name", length = 100, nullable = false)
-    private String specialName;
+    private String specialityName;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
