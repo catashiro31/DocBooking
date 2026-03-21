@@ -52,4 +52,23 @@ public class PatientProfileService {
                 .map(this::mapToResponseDTO)
                 .toList();
     }
+    public RelativeResponseDTO updateRelative(Integer id, User user, RelativeRequestDTO req) {
+        PatientProfile profile = patientProfileRepository.findByPatientIdAndUser(id, user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người thân hoặc bạn không có quyền xem hồ sơ này!"));
+
+        String newName = (req.getFullName() != null) ? req.getFullName() : profile.getFullName();
+        String newNumber = (req.getPhoneNumber() != null) ? req.getPhoneNumber() : profile.getPhoneNumber();
+        if (patientProfileRepository.existsByFullNameAndPhoneNumberAndUserAndPatientIdNot(
+                newName, newNumber, user, id)) {
+            throw new RuntimeException("Thông tin này bị trùng với một người thân khác trong danh sách của bạn, đổi thông tin thất bại");
+        }
+        if (req.getFullName() != null) profile.setFullName(req.getFullName());
+        if (req.getDateOfBirth() != null) profile.setDateOfBirth(req.getDateOfBirth());
+        if (req.getGender() != null) profile.setGender(req.getGender());
+        if (req.getPhoneNumber() != null) profile.setPhoneNumber(req.getPhoneNumber());
+        if (req.getAddress() != null) profile.setAddress(req.getAddress());
+        if (req.getRelationship() != null) profile.setRelationship(req.getRelationship());
+
+        return mapToResponseDTO(patientProfileRepository.save(profile));
+    }
 }
