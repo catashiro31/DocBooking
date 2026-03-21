@@ -8,6 +8,8 @@ import docbooking.repositories.PatientProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PatientProfileService {
@@ -38,5 +40,16 @@ public class PatientProfileService {
                 .address(p.getAddress())
                 .relationship(p.getRelationship())
                 .build();
+    }
+    public RelativeResponseDTO getRelativeById(Integer id, User user) {
+        PatientProfile profile = patientProfileRepository.findByPatientIdAndUser(id, user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người thân hoặc bạn không có quyền xem hồ sơ này!"));
+        return mapToResponseDTO(profile);
+    }
+    public List<RelativeResponseDTO> getMyRelatives(User user) {
+        List<PatientProfile> profiles = patientProfileRepository.findByUser(user);
+        return profiles.stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 }

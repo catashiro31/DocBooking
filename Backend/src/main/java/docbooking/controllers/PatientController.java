@@ -5,10 +5,7 @@ import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.PatientProfileService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/v1/patient")
@@ -34,4 +31,29 @@ public class PatientController {
             return ResponseEntity.status(400).body(e.getMessage());
         }
     }
+
+    @GetMapping("relatives/{id}")
+    public ResponseEntity<?> getRelativeDetail(@PathVariable Integer id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        if (currentUser == null)
+            return ResponseEntity.status(401).build();
+        if (!SecurityUtils.hasRole(User.RoleStatus.PATIENT))
+            return ResponseEntity.status(403).body("Quyền truy cập bị từ chối");
+        try {
+            return ResponseEntity.ok(patientProfileService.getRelativeById(id, currentUser));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("relatives")
+    public ResponseEntity<?> getAllRelatives() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        if (currentUser== null)
+            return ResponseEntity.status(401).build();
+        if (!SecurityUtils.hasRole(User.RoleStatus.PATIENT))
+            return ResponseEntity.status(403).body("Quyền truy cập bị từ chối");
+        return  ResponseEntity.ok(patientProfileService.getMyRelatives(currentUser));
+    }
+
 }
