@@ -3,20 +3,21 @@ package docbooking.controllers;
 import docbooking.dtos.responses.DoctorCardDTO;
 import docbooking.dtos.responses.DoctorDetailDTO;
 import docbooking.dtos.responses.ReviewDTO;
+import docbooking.dtos.responses.SlotResponDTO;
 import docbooking.services.DoctorService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/doctors")
+@RequestMapping("api/v1/doctors")
 public class DoctorController {
-    @Autowired
-    private DoctorService doctorService;
+    private final DoctorService doctorService;
     @GetMapping("")
     public ResponseEntity<?> getDoctors(
             @RequestParam(required = false) String keyword,
@@ -37,6 +38,14 @@ public class DoctorController {
     @GetMapping("/{id}/reviews")
     public ResponseEntity<?> getDoctorReviews(@PathVariable Integer id){
         List<ReviewDTO> respon = doctorService.getReviewsByDoctorId(id);
+        return ResponseEntity.ok(respon);
+    }
+
+    @GetMapping("/{id}/slots")
+    public ResponseEntity<?> getDoctorSlots(
+            @PathVariable Integer id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        List<SlotResponDTO> respon = doctorService.getAvailableSlots(id, date);
         return ResponseEntity.ok(respon);
     }
 }
