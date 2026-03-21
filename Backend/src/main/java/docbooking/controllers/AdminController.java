@@ -1,5 +1,6 @@
 package docbooking.controllers;
 
+import docbooking.dtos.requests.FacilityRequestDTO;
 import docbooking.dtos.requests.SpecialtyRequestDTO;
 import docbooking.models.DoctorDetail;
 import docbooking.models.Specialty;
@@ -111,6 +112,42 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền quản trị viên!");
         }
         return ResponseEntity.ok(adminService.deleteSpecialty(id));
+    }
+
+    @PostMapping("/facility")
+    public ResponseEntity<?> addFacility(@RequestBody FacilityRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bạn chưa đăng nhập!");
+        }
+        if (!currentUser.getRole().toString().equals("ADMIN")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền quản trị viên!");
+        }
+        return ResponseEntity.ok(adminService.addFacility(req));
+    }
+
+    @PutMapping("/facility/{id}")
+    public ResponseEntity<?> updateFacility(@PathVariable long id, @RequestBody FacilityRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bạn chưa đăng nhập!");
+        }
+        if (!currentUser.getRole().toString().equals("ADMIN")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền quản trị viên!");
+        }
+        return ResponseEntity.ok(adminService.updateFacility(id, req));
+    }
+
+    @DeleteMapping("/facility/{id}")
+    public ResponseEntity<?> deleteFacility(@PathVariable long id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bạn chưa đăng nhập!");
+        }
+        if (!currentUser.getRole().toString().equals("ADMIN")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền quản trị viên!");
+        }
+        return ResponseEntity.ok(adminService.deleteFacility(id));
     }
 
     @GetMapping("/users")

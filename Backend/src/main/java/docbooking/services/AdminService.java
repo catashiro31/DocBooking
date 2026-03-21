@@ -1,11 +1,9 @@
 package docbooking.services;
 
+import docbooking.dtos.requests.FacilityRequestDTO;
 import docbooking.dtos.requests.SpecialtyRequestDTO;
 import docbooking.dtos.responses.StatResponseDTO;
-import docbooking.models.Appointment;
-import docbooking.models.DoctorDetail;
-import docbooking.models.Specialty;
-import docbooking.models.User;
+import docbooking.models.*;
 import docbooking.repositories.*;
 import org.springframework.stereotype.Service;
 
@@ -18,13 +16,15 @@ public class AdminService {
     private final AppointmentRepository appointment;
     private final UserRepository userRepository;
     private final SpecialtyRepository specialtyRepository;
+    private final FacilityRepository facilityRepository;
 
-    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, UserRepository userRepository, SpecialtyRepository specialtyRepository) {
+    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository) {
         this.doctorDetail = doctorDetail;
         this.patientProfile = patientProfile;
         this.appointment = appointment;
         this.userRepository = userRepository;
         this.specialtyRepository = specialtyRepository;
+        this.facilityRepository = facilityRepository;
     }
 
     public StatResponseDTO getStats() {
@@ -94,4 +94,34 @@ public class AdminService {
             return e.getMessage();
         }
     }
+
+    public Facility addFacility(FacilityRequestDTO req) {
+        Facility facility = Facility.builder()
+                .address(req.getAddress())
+                .description(req.getDescription())
+                .facilityName(req.getFacilityName())
+                .imageUrl(req.getImageUrl())
+                .build();
+        return facilityRepository.save(facility);
+    }
+
+    public Facility updateFacility(long facilityId, FacilityRequestDTO req) {
+        Facility facility = facilityRepository.findByFacilityId(facilityId);
+        facility.setAddress(req.getAddress());
+        facility.setFacilityName(req.getFacilityName());
+        facility.setDescription(req.getDescription());
+        facility.setImageUrl(req.getImageUrl());
+        return facilityRepository.save(facility);
+    }
+
+    public String deleteFacility(long facilityId) {
+        try {
+            Facility facility = facilityRepository.findByFacilityId(facilityId);
+            facilityRepository.delete(facility);
+            return "Đã xóa thành công cơ sở!";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
 }
