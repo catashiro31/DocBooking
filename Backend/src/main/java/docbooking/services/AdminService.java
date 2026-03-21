@@ -1,17 +1,15 @@
 package docbooking.services;
 
+import docbooking.dtos.requests.SpecialtyRequestDTO;
 import docbooking.dtos.responses.StatResponseDTO;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
+import docbooking.models.Specialty;
 import docbooking.models.User;
-import docbooking.repositories.AppointmentRepository;
-import docbooking.repositories.DoctorDetailRepository;
-import docbooking.repositories.PatientProfileRepository;
-import docbooking.repositories.UserRepository;
+import docbooking.repositories.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AdminService {
@@ -19,12 +17,14 @@ public class AdminService {
     private final PatientProfileRepository patientProfile;
     private final AppointmentRepository appointment;
     private final UserRepository userRepository;
+    private final SpecialtyRepository specialtyRepository;
 
-    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, UserRepository userRepository) {
+    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, UserRepository userRepository, SpecialtyRepository specialtyRepository) {
         this.doctorDetail = doctorDetail;
         this.patientProfile = patientProfile;
         this.appointment = appointment;
         this.userRepository = userRepository;
+        this.specialtyRepository = specialtyRepository;
     }
 
     public StatResponseDTO getStats() {
@@ -66,5 +66,32 @@ public class AdminService {
         user.setReasonBanned(reason);
         userRepository.save(user);
         return user;
+    }
+
+    public Specialty addSpecialty(SpecialtyRequestDTO req) {
+        Specialty specialty = Specialty.builder()
+                .specialName(req.getSpecialName())
+                .description(req.getDescription())
+                .imageUrl(req.getImageUrl())
+                .build();
+        return specialtyRepository.save(specialty);
+    }
+
+    public Specialty updateSpecialty(long specialtyId, SpecialtyRequestDTO req) {
+        Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
+        specialty.setDescription(req.getDescription());
+        specialty.setImageUrl(req.getImageUrl());
+        specialty.setSpecialName(req.getSpecialName());
+        return  specialtyRepository.save(specialty);
+    }
+
+    public String deleteSpecialty(long specialtyId) {
+        try {
+            Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
+            specialtyRepository.delete(specialty);
+            return "Đã xóa chuyên ngành!";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 }
