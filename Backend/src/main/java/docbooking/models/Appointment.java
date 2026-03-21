@@ -5,7 +5,6 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -50,8 +49,8 @@ public class Appointment {
     @Column(name = "payment_evidence_url")
     private String paymentEvidenceUrl;
 
-    @Column(name = "total_amount", precision = 15, scale = 2)
-    private BigDecimal totalAmount;
+    @Column(name = "total_amount")
+    private Double totalAmount;
 
     @Column(name = "qr_code_url")
     private String qrCodeUrl;
