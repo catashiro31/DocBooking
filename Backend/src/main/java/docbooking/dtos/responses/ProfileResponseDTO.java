@@ -5,7 +5,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor // Bắt buộc phải có để Builder hoạt động
+@AllArgsConstructor
 @NoArgsConstructor
 public class ProfileResponseDTO {
     private String email;

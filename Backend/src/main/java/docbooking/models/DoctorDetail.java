@@ -44,7 +44,7 @@ public class DoctorDetail {
     private Integer experienceYears;
 
     @Column(name = "price")
-    private double price;
+    private Double price;
 
     @Column(name = "id_card_url")
     private String idCardUrl;
@@ -57,7 +57,7 @@ public class DoctorDetail {
     private VerificationStatus verificationStatus;
 
     @Column(name = "rating_average")
-    private double ratingAverage;
+    private Double ratingAverage;
 
     @Column(name = "review_count")
     private Integer reviewCount;

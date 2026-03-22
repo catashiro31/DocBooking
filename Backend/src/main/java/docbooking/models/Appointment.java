@@ -50,7 +50,7 @@ public class Appointment {
     private String paymentEvidenceUrl;
 
     @Column(name = "total_amount")
-    private double totalAmount;
+    private Double totalAmount;
 
     @Column(name = "qr_code_url")
     private String qrCodeUrl;
