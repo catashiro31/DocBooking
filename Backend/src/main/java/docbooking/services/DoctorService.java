@@ -3,15 +3,14 @@ package docbooking.services;
 import docbooking.dtos.responses.DoctorCardDTO;
 import docbooking.dtos.responses.DoctorDetailDTO;
 import docbooking.dtos.responses.ReviewDTO;
-import docbooking.dtos.responses.SlotResponDTO;
+import docbooking.dtos.responses.SlotResponseDTO;
 import docbooking.models.DoctorDetail;
 import docbooking.models.DoctorSchedule;
 import docbooking.models.Review;
-import docbooking.repositories.DoctorDetailReponsitory;
+import docbooking.repositories.DoctorDetailRepository;
 import docbooking.repositories.DoctorScheduleRepository;
 import docbooking.repositories.ReviewRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class DoctorService {
     private final DoctorScheduleRepository doctorScheduleRepository;
-    private final DoctorDetailReponsitory doctorDetailReponsitory;
+    private final DoctorDetailRepository doctorDetailRepository;
     private final ReviewRepository reviewRepository;
 
     public List<DoctorCardDTO> getDoctors(String name , Integer specialityId, Double minPrice, Double maxPrice) {
@@ -48,20 +47,19 @@ public class DoctorService {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        List <DoctorDetail> doctors = doctorDetailReponsitory.findAll(specification);
-        return doctors.stream().map(doctor ->{
-            return DoctorCardDTO.builder()
-                    .doctorName(doctor.getUser().getFullName())
-                    .specialtyName(doctor.getSpecialty().getSpecialtyName())
-                    .doctorEmail(doctor.getUser().getEmail())
-                    .doctorPhone(doctor.getUser().getPhoneNumber())
-                    .avatarUrl(doctor.getUser().getAvatarUrl())
-                    .build();
-        }).collect(Collectors.toList());
+        List <DoctorDetail> doctors = doctorDetailRepository.findAll(specification);
+        return doctors.stream().map(doctor -> DoctorCardDTO.builder()
+                .doctorName(doctor.getUser().getFullName())
+                .specialtyName(doctor.getSpecialty().getSpecialtyName())
+                .doctorEmail(doctor.getUser().getEmail())
+                .doctorPhone(doctor.getUser().getPhoneNumber())
+                .avatarUrl(doctor.getUser().getAvatarUrl())
+                .build()
+        ).collect(Collectors.toList());
     }
 
     public DoctorDetailDTO getDoctorById(Integer doctorId){
-        DoctorDetail doctor = doctorDetailReponsitory.findById(doctorId)
+        DoctorDetail doctor = doctorDetailRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Bác sĩ với ID " + doctorId +" không tồn tại!"));
         return DoctorDetailDTO.builder()
                 .id(doctor.getDoctorId())
@@ -88,10 +86,10 @@ public class DoctorService {
         ).collect(Collectors.toList());
     }
 
-    public List<SlotResponDTO> getAvailableSlots(Integer doctorId, LocalDate dateWorking){
+    public List<SlotResponseDTO> getAvailableSlots(Integer doctorId, LocalDate dateWorking){
         List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctor_DoctorIdAndDateWorkingAndSlotStatus(
                 doctorId, dateWorking, DoctorSchedule.SlotStatus.AVAILABLE);
-        return schedules.stream().map(schedule -> SlotResponDTO.builder()
+        return schedules.stream().map(schedule -> SlotResponseDTO.builder()
                 .scheduleId(schedule.getScheduleId())
                 .timeSlot(schedule.getTimeSlot().getDisplayValue())
                 .slotStatus(schedule.getSlotStatus().name())

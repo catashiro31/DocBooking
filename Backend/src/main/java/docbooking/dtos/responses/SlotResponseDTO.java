@@ -7,7 +7,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SlotResponDTO {
+public class SlotResponseDTO {
     private Integer scheduleId;
     private String timeSlot;
     private String slotStatus;

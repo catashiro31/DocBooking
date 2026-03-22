@@ -3,7 +3,7 @@ package docbooking.controllers;
 import docbooking.dtos.responses.DoctorCardDTO;
 import docbooking.dtos.responses.DoctorDetailDTO;
 import docbooking.dtos.responses.ReviewDTO;
-import docbooking.dtos.responses.SlotResponDTO;
+import docbooking.dtos.responses.SlotResponseDTO;
 import docbooking.services.DoctorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -45,7 +45,7 @@ public class DoctorController {
     public ResponseEntity<?> getDoctorSlots(
             @PathVariable Integer id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
-        List<SlotResponDTO> response = doctorService.getAvailableSlots(id, date);
+        List<SlotResponseDTO> response = doctorService.getAvailableSlots(id, date);
         return ResponseEntity.ok(response);
     }
 }
