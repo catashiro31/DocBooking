@@ -7,7 +7,7 @@ import docbooking.dtos.responses.SlotResponseDTO;
 import docbooking.models.DoctorDetail;
 import docbooking.models.DoctorSchedule;
 import docbooking.models.Review;
-import docbooking.repositories.DoctorDetailReponsitory;
+import docbooking.repositories.DoctorDetailRepository;
 import docbooking.repositories.DoctorScheduleRepository;
 import docbooking.repositories.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class DoctorService {
     private final DoctorScheduleRepository doctorScheduleRepository;
-    private final DoctorDetailReponsitory doctorDetailReponsitory;
+    private final DoctorDetailRepository doctorDetailRepository;
     private final ReviewRepository reviewRepository;
 
     public List<DoctorCardDTO> getDoctors(String name , Integer specialityId, Double minPrice, Double maxPrice) {
@@ -47,7 +47,7 @@ public class DoctorService {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        List <DoctorDetail> doctors = doctorDetailReponsitory.findAll(specification);
+        List <DoctorDetail> doctors = doctorDetailRepository.findAll(specification);
         return doctors.stream().map(doctor -> DoctorCardDTO.builder()
                 .doctorName(doctor.getUser().getFullName())
                 .specialtyName(doctor.getSpecialty().getSpecialtyName())
@@ -59,7 +59,7 @@ public class DoctorService {
     }
 
     public DoctorDetailDTO getDoctorById(Integer doctorId){
-        DoctorDetail doctor = doctorDetailReponsitory.findById(doctorId)
+        DoctorDetail doctor = doctorDetailRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Bác sĩ với ID " + doctorId +" không tồn tại!"));
         return DoctorDetailDTO.builder()
                 .id(doctor.getDoctorId())
