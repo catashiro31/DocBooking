@@ -52,7 +52,7 @@ public class DoctorService {
         return doctors.stream().map(doctor ->{
             return DoctorCardDTO.builder()
                     .doctorName(doctor.getUser().getFullName())
-                    .specialtyName(doctor.getSpecialty().getSpecialityName())
+                    .specialtyName(doctor.getSpecialty().getSpecialtyName())
                     .doctorEmail(doctor.getUser().getEmail())
                     .doctorPhone(doctor.getUser().getPhoneNumber())
                     .avatarUrl(doctor.getUser().getAvatarUrl())
@@ -66,7 +66,7 @@ public class DoctorService {
         return DoctorDetailDTO.builder()
                 .id(doctor.getDoctorId())
                 .fullName(doctor.getUser().getFullName())
-                .specialtyName(doctor.getSpecialty().getSpecialityName())
+                .specialtyName(doctor.getSpecialty().getSpecialtyName())
                 .price(doctor.getPrice())
                 .description(doctor.getBio())
                 .doctorEmail(doctor.getUser().getEmail())
