@@ -70,7 +70,7 @@ public class AdminService {
 
     public Specialty addSpecialty(SpecialtyRequestDTO req) {
         Specialty specialty = Specialty.builder()
-                .specialName(req.getSpecialName())
+                .specialtyName(req.getSpecialtyName())
                 .description(req.getDescription())
                 .imageUrl(req.getImageUrl())
                 .build();
@@ -81,7 +81,7 @@ public class AdminService {
         Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
         specialty.setDescription(req.getDescription());
         specialty.setImageUrl(req.getImageUrl());
-        specialty.setSpecialName(req.getSpecialName());
+        specialty.setSpecialtyName(req.getSpecialtyName());
         return  specialtyRepository.save(specialty);
     }
 

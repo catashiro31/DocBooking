@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SpecialtyRequestDTO {
-    private String specialName;
+    private String specialtyName;
     private String description;
     private String imageUrl;
 }
