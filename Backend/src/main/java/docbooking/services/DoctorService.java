@@ -3,7 +3,7 @@ package docbooking.services;
 import docbooking.dtos.responses.DoctorCardDTO;
 import docbooking.dtos.responses.DoctorDetailDTO;
 import docbooking.dtos.responses.ReviewDTO;
-import docbooking.dtos.responses.SlotResponDTO;
+import docbooking.dtos.responses.SlotResponseDTO;
 import docbooking.models.DoctorDetail;
 import docbooking.models.DoctorSchedule;
 import docbooking.models.Review;
@@ -11,7 +11,6 @@ import docbooking.repositories.DoctorDetailReponsitory;
 import docbooking.repositories.DoctorScheduleRepository;
 import docbooking.repositories.ReviewRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -49,15 +48,14 @@ public class DoctorService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         List <DoctorDetail> doctors = doctorDetailReponsitory.findAll(specification);
-        return doctors.stream().map(doctor ->{
-            return DoctorCardDTO.builder()
-                    .doctorName(doctor.getUser().getFullName())
-                    .specialtyName(doctor.getSpecialty().getSpecialtyName())
-                    .doctorEmail(doctor.getUser().getEmail())
-                    .doctorPhone(doctor.getUser().getPhoneNumber())
-                    .avatarUrl(doctor.getUser().getAvatarUrl())
-                    .build();
-        }).collect(Collectors.toList());
+        return doctors.stream().map(doctor -> DoctorCardDTO.builder()
+                .doctorName(doctor.getUser().getFullName())
+                .specialtyName(doctor.getSpecialty().getSpecialtyName())
+                .doctorEmail(doctor.getUser().getEmail())
+                .doctorPhone(doctor.getUser().getPhoneNumber())
+                .avatarUrl(doctor.getUser().getAvatarUrl())
+                .build()
+        ).collect(Collectors.toList());
     }
 
     public DoctorDetailDTO getDoctorById(Integer doctorId){
@@ -88,10 +86,10 @@ public class DoctorService {
         ).collect(Collectors.toList());
     }
 
-    public List<SlotResponDTO> getAvailableSlots(Integer doctorId, LocalDate dateWorking){
+    public List<SlotResponseDTO> getAvailableSlots(Integer doctorId, LocalDate dateWorking){
         List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctor_DoctorIdAndDateWorkingAndSlotStatus(
                 doctorId, dateWorking, DoctorSchedule.SlotStatus.AVAILABLE);
-        return schedules.stream().map(schedule -> SlotResponDTO.builder()
+        return schedules.stream().map(schedule -> SlotResponseDTO.builder()
                 .scheduleId(schedule.getScheduleId())
                 .timeSlot(schedule.getTimeSlot().getDisplayValue())
                 .slotStatus(schedule.getSlotStatus().name())
