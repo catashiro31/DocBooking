@@ -6,6 +6,7 @@ import docbooking.dtos.requests.SignUpRequestDTO;
 import docbooking.models.User;
 import docbooking.security.JwtTokenProvider;
 import docbooking.services.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,19 +33,16 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> SignIn(
-            @RequestBody SignInRequestDTO  signInDTO
-    ) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(signInDTO.getEmail(),
-                        signInDTO.getPassword())
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtTokenProvider.createToken(authentication);
-        long expirationTime = jwtTokenProvider.getJwtExpiration();
-
-        return ResponseEntity.ok(new SignInResponseDTO(jwt, expirationTime));
+    public ResponseEntity<?> SignIn(@RequestBody SignInRequestDTO  signInDTO) {
+        try {
+            SignInResponseDTO response = authService.signIn(signInDTO);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            if (e.getMessage().equals("Tài khoản hông tồn tại")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
     }
 
     @PostMapping("/signup")
