@@ -17,7 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("api/v1/doctors")
-@PreAuthorize("hasAnyAuthority('DOCTOR')")
 public class DoctorController {
     private final DoctorService doctorService;
     @GetMapping("")

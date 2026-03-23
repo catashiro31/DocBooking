@@ -6,6 +6,7 @@ import docbooking.dtos.requests.SignUpRequestDTO;
 import docbooking.models.User;
 import docbooking.security.JwtTokenProvider;
 import docbooking.services.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,7 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> SignIn(@RequestBody SignInRequestDTO  signInDTO) {
+    public ResponseEntity<?> SignIn(@Valid @RequestBody SignInRequestDTO  signInDTO) {
         try {
             SignInResponseDTO response = authService.signIn(signInDTO);
             return ResponseEntity.ok(response);
@@ -47,7 +48,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> SignUp(
-            @RequestBody SignUpRequestDTO signUpDTO
+           @Valid @RequestBody SignUpRequestDTO signUpDTO
     ) {
         User user = authService.signUp(signUpDTO);
         return ResponseEntity.ok(user);
