@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SpecialtyRepository extends JpaRepository<Specialty, Integer> {
-    Specialty  findBySpecialtyId(long id);
+    Specialty  findBySpecialtyId(Integer id);
 }

@@ -43,7 +43,7 @@ public class PatientProfile {
     private String relationship;
 
     public enum GenderStatus {
-        MALE, FMALE, OTHER
+        MALE, FEMALE, OTHER
     }
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -41,14 +41,14 @@ public class AdminService {
         return doctorDetail.findDoctorDetailByVerificationStatus(DoctorDetail.VerificationStatus.PENDING);
     }
 
-    public DoctorDetail approveDoctor(long doctorId) {
+    public DoctorDetail approveDoctor(Integer doctorId) {
         DoctorDetail doctor = doctorDetail.findByDoctorId(doctorId);
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.APPROVED);
         doctorDetail.save(doctor);
         return doctor;
     }
 
-    public DoctorDetail rejectDoctor(long doctorId, String reason) {
+    public DoctorDetail rejectDoctor(Integer doctorId, String reason) {
         DoctorDetail doctor = doctorDetail.findByDoctorId(doctorId);
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.REJECTED);
         doctor.setReasonReject(reason);
@@ -60,7 +60,7 @@ public class AdminService {
         return userRepository.getAllUsers();
     }
 
-    public User setBlockedUser(long userId, String reason) {
+    public User setBlockedUser(Integer userId, String reason) {
         User user = userRepository.findByUserId(userId);
         user.setIsActive(false);
         user.setReasonBanned(reason);
@@ -77,7 +77,7 @@ public class AdminService {
         return specialtyRepository.save(specialty);
     }
 
-    public Specialty updateSpecialty(long specialtyId, SpecialtyRequestDTO req) {
+    public Specialty updateSpecialty(Integer specialtyId, SpecialtyRequestDTO req) {
         Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
         specialty.setDescription(req.getDescription());
         specialty.setImageUrl(req.getImageUrl());
@@ -85,7 +85,7 @@ public class AdminService {
         return  specialtyRepository.save(specialty);
     }
 
-    public String deleteSpecialty(long specialtyId) {
+    public String deleteSpecialty(Integer specialtyId) {
         try {
             Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
             specialtyRepository.delete(specialty);
@@ -105,7 +105,7 @@ public class AdminService {
         return facilityRepository.save(facility);
     }
 
-    public Facility updateFacility(long facilityId, FacilityRequestDTO req) {
+    public Facility updateFacility(Integer facilityId, FacilityRequestDTO req) {
         Facility facility = facilityRepository.findByFacilityId(facilityId);
         facility.setAddress(req.getAddress());
         facility.setFacilityName(req.getFacilityName());
@@ -114,7 +114,7 @@ public class AdminService {
         return facilityRepository.save(facility);
     }
 
-    public String deleteFacility(long facilityId) {
+    public String deleteFacility(Integer facilityId) {
         try {
             Facility facility = facilityRepository.findByFacilityId(facilityId);
             facilityRepository.delete(facility);

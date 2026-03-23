@@ -17,7 +17,7 @@ public class PatientProfileService {
     public RelativeResponseDTO addRelative(User user, RelativeRequestDTO req){
         if (patientProfileRepository.existsByFullNameAndPhoneNumberAndUser(
                 req.getFullName(), req.getPhoneNumber(), user)) {
-            throw new RuntimeException("Người thân này đã có trong danh sách rồi baby ơi!");
+            throw new RuntimeException("Người thân này đã có trong danh sách rồi");
         }
         PatientProfile profile = PatientProfile.builder()
                 .fullName(req.getFullName())
