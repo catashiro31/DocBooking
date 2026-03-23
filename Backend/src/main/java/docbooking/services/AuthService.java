@@ -29,7 +29,7 @@ public class AuthService {
 
         newUser.setPasswordHash(passwordEncoder.encode(req.getPassword()));
 
-        newUser.setRoleStatus(req.getRole());
+        newUser.setRole(req.getRole());
         return userRepository.save(newUser);
     }
 }

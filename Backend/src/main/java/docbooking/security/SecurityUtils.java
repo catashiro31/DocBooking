@@ -17,6 +17,6 @@ public class SecurityUtils {
 
     public static boolean hasRole(User.RoleStatus role) {
         User user = getCurrentUser();
-        return user != null && user.getRoleStatus() == role;
+        return user != null && user.getRole() == role;
     }
 }
