@@ -77,7 +77,7 @@ public class User implements UserDetails {
         if (this.roleStatus == null) {
             return new ArrayList<>();
         }
-        return List.of(new SimpleGrantedAuthority("ROLE_" + this.roleStatus.name()));
+        return List.of(new SimpleGrantedAuthority(this.roleStatus.name()));
     }
 
     @Override

@@ -12,5 +12,5 @@ public interface DoctorDetailRepository  extends JpaRepository<DoctorDetail, Int
                                                  JpaSpecificationExecutor<DoctorDetail> {
     List<DoctorDetail> findDoctorDetailByVerificationStatus(DoctorDetail.VerificationStatus status);
 
-    DoctorDetail findByDoctorId(long doctorId);
+    DoctorDetail findByDoctorId(Integer doctorId);
 }
