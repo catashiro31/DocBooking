@@ -60,6 +60,9 @@ public class User implements UserDetails {
         ADMIN, DOCTOR, PATIENT
     }
 
+    @Column(name = "verification_code")
+    private String verificationCode; // Dùng để lưu mã xác thực (VD: một chuỗi ngẫu nhiên)
+
     @Column(name = "reason_banned")
     private String reasonBanned;
 

@@ -9,6 +9,7 @@ import docbooking.repositories.PatientProfileRepository;
 import docbooking.repositories.UserRepository;
 import docbooking.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,19 +19,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final PatientProfileRepository patientProfileRepository;
+    private final EmailService emailService;
 
     public SignInResponseDTO signIn(SignInRequestDTO req) {
-        if (!userRepository.existsByEmail(req.getEmail())) {
+        if (!userRepository.existsByEmailAndIsActiveTrue(req.getEmail())) {
             throw new RuntimeException("Tài khoản hông tồn tại");
         }
 
@@ -48,7 +50,7 @@ public class AuthService {
         }
     }
     @Transactional
-    public User signUp(SignUpRequestDTO req) {
+    public String signUp(SignUpRequestDTO req) {
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new RuntimeException("Email đã được sử dụng!");
         }
@@ -59,21 +61,47 @@ public class AuthService {
                 .fullName(req.getFullName())
                 .phoneNumber(req.getPhoneNumber())
                 .role(req.getRole())
-                .isActive(true)
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        User savedUser = userRepository.save(newUser);
-        if (savedUser.getRole() == User.RoleStatus.PATIENT) {
-            PatientProfile selfProfile = PatientProfile.builder()
-                    .fullName(savedUser.getFullName())
-                    .phoneNumber(savedUser.getPhoneNumber())
-                    .relationship("SELF") // Đánh dấu đây là hồ sơ chính bản thân mình
-                    .user(savedUser) // Liên kết với tài khoản vừa tạo
-                    .build();
+        String randomCode = UUID.randomUUID().toString();
+        newUser.setVerificationCode(randomCode);
+        newUser.setIsActive(false);
 
-            patientProfileRepository.save(selfProfile);
+        userRepository.save(newUser);
+
+        emailService.sendSignUpConfirmation(
+                newUser.getEmail(),
+                newUser.getFullName(),
+                newUser.getVerificationCode()
+        );
+        return "Vui lòng kiểm tra email để xác thực tài khoản!";
+    }
+
+    public String verifyAccount(String email, String code) {
+        // 1. Tìm user theo email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại!"));
+
+        // 2. Kiểm tra mã code có khớp không
+        if (user.getVerificationCode() != null && user.getVerificationCode().equals(code)) {
+            user.setIsActive(true);
+            user.setVerificationCode(null);
+            userRepository.save(user);
+
+            if (user.getRole() == User.RoleStatus.PATIENT) {
+                PatientProfile selfProfile = PatientProfile.builder()
+                    .fullName(user.getFullName())
+                    .phoneNumber(user.getPhoneNumber())
+                    .relationship("SELF") // Đánh dấu đây là hồ sơ chính bản thân mình
+                    .user(user) // Liên kết với tài khoản vừa tạo
+                    .build();
+                patientProfileRepository.save(selfProfile);
+            }
+
+            return "Xác thực tài khoản thành công! Bây giờ bạn có thể đăng nhập.";
+        } else {
+            throw new RuntimeException("Đường link xác thực không hợp lệ hoặc đã hết hạn!");
         }
-        return savedUser;
     }
 }

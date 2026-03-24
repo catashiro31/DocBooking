@@ -4,6 +4,7 @@ import docbooking.dtos.requests.SignInRequestDTO;
 import docbooking.dtos.responses.SignInResponseDTO;
 import docbooking.dtos.requests.SignUpRequestDTO;
 import docbooking.models.User;
+import docbooking.repositories.UserRepository;
 import docbooking.security.JwtTokenProvider;
 import docbooking.services.AuthService;
 import jakarta.validation.Valid;
@@ -50,13 +51,22 @@ public class AuthController {
     public ResponseEntity<?> SignUp(
            @Valid @RequestBody SignUpRequestDTO signUpDTO
     ) {
-        User user = authService.signUp(signUpDTO);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(authService.signUp(signUpDTO));
     }
 
     @GetMapping("/signout")
     public ResponseEntity<?> SignOut() {
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Đăng xuất thành công!");
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyAccount(@RequestParam String email, @RequestParam String code) {
+        try {
+            String result = authService.verifyAccount(email, code);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
