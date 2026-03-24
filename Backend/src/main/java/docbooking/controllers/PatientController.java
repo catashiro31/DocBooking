@@ -2,6 +2,7 @@ package docbooking.controllers;
 
 import docbooking.dtos.requests.AppointmentRequestDTO;
 import docbooking.dtos.requests.RelativeRequestDTO;
+import docbooking.dtos.responses.AppointmentResponseDTO;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.AppointmentService;
@@ -47,5 +48,15 @@ public class PatientController {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(appointmentService.createAppointment(currentUser, req));
     }
-
+    @GetMapping("/appointments")
+    public ResponseEntity<?> getMyAppointments() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(appointmentService.getMyAppointments(currentUser));
+    }
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelAppointment(@PathVariable Integer id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        AppointmentResponseDTO response = appointmentService.cancelAppointment(currentUser, id);
+        return ResponseEntity.ok(response);
+    }
 }

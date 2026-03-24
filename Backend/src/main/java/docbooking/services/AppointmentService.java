@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +52,6 @@ public class AppointmentService {
         return mapToResponseDTO(savedAppointment);
     }
     private AppointmentResponseDTO mapToResponseDTO(Appointment app) {
-        // Để code gọn hơn, mình lấy các đối tượng liên quan ra trước
         var schedule = app.getSchedule();
         var doctor = schedule.getDoctor();
         var facility = doctor.getFacility();
@@ -61,22 +61,50 @@ public class AppointmentService {
                 .appointmentId(app.getId())
                 .patientName(app.getPatient().getFullName())
 
-                // Thông tin bác sĩ và địa điểm
                 .doctorName(doctor.getUser().getFullName())
                 .specialtyName(specialty.getSpecialtyName())
                 .facilityName(facility.getFacilityName())
                 .address(facility.getAddress())
 
-                // Thời gian
                 .dateWorking(schedule.getDateWorking())
                 .timeSlot(schedule.getTimeSlot().name())
 
-                // Trạng thái và tiền nong
                 .totalAmount(app.getTotalAmount())
-                .bookingStatus(app.getBookingStatus().name()) // Chuyển Enum thành String
+                .bookingStatus(app.getBookingStatus().name())
                 .paymentStatus(app.getPaymentStatus().name())
                 .createdAt(app.getCreatedAt())
                 .build();
 
+    }
+    public List<AppointmentResponseDTO> getMyAppointments(User user) {
+        return appointmentRepository.findByPatient_UserOrderByCreatedAtDesc(user)
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+    @Transactional
+    public AppointmentResponseDTO cancelAppointment(User user, Integer id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + id));
+
+        if (!appointment.getPatient().getUser().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("Bạn không có quyền hủy lịch hẹn này!");
+        }
+
+        if (appointment.getBookingStatus() == Appointment.BookingStatus.CANCELLED) {
+            throw new RuntimeException("Lịch hẹn này đã được hủy trước đó.");
+        }
+        if (appointment.getBookingStatus() == Appointment.BookingStatus.COMPLETED) {
+            throw new RuntimeException("Không thể hủy lịch hẹn đã hoàn thành.");
+        }
+
+        appointment.setBookingStatus(Appointment.BookingStatus.CANCELLED);
+        appointmentRepository.save(appointment);
+
+        DoctorSchedule schedule = appointment.getSchedule();
+        schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
+        doctorScheduleRepository.save(schedule);
+
+        return mapToResponseDTO(appointment);
     }
 }
