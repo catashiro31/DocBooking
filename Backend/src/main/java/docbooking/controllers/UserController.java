@@ -24,7 +24,7 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileRequestDTO req) {
+    public ResponseEntity<?> updateProfile(@Valid @ModelAttribute UpdateProfileRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         ProfileResponseDTO updatedProfile = userService.updateProfile(currentUser, req);
         return ResponseEntity.ok(updatedProfile);

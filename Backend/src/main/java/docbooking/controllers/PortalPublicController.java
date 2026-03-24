@@ -73,7 +73,6 @@ public class PortalPublicController {
 
             // Lấy URL sau khi upload thành công (Nhớ cập nhật tên hàm nếu bạn đã đổi ở Service)
             String fileUrl = portalService.uploadFile(file);
-            System.out.println(fileUrl);
             return ResponseEntity.ok(fileUrl);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Lỗi khi tải file lên: " + e.getMessage());
