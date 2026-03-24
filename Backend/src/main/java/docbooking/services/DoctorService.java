@@ -22,7 +22,7 @@ public class DoctorService {
     private final DoctorDetailRepository doctorDetailRepository;
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
-   private final DoctorScheduleRepository doctorScheduleRepository;
+    private final DoctorScheduleRepository doctorScheduleRepository;
     @Transactional
     public String completeProfile(User user, DoctorProfileRequestDTO req) {
         if (doctorDetailRepository.existsByUser(user)) {

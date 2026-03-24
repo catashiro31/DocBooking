@@ -14,11 +14,10 @@ public class DoctorDetailDTO {
     private String fullName;
     private String specialtyName;
     private Double price;
-    private String description;
+    private String bio;
     private String doctorEmail;
     private String doctorPhone;
     private String avatarUrl;
-    private String bio;
     private Double ratingAverage;
     private Integer totalReviews;
 }

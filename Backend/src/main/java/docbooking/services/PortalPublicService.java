@@ -57,6 +57,7 @@ public class PortalPublicService {
         Specification<DoctorDetail> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(cb.equal(root.get("verificationStatus"), DoctorDetail.VerificationStatus.APPROVED));
             if (name != null && !name.isEmpty()) {
                 predicates.add(cb.like(cb.lower(root.get("user").get("fullName")), "%" + name.toLowerCase() + "%"));
             }
@@ -87,12 +88,16 @@ public class PortalPublicService {
     public DoctorDetailDTO getDoctorById(Integer doctorId){
         DoctorDetail doctor = doctorDetailRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Bác sĩ với ID " + doctorId +" không tồn tại!"));
+
+        if(doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED){
+            throw new RuntimeException("Thông tin bác sĩ này chưa được công khai!");
+        }
         return DoctorDetailDTO.builder()
                 .id(doctor.getDoctorId())
                 .fullName(doctor.getUser().getFullName())
                 .specialtyName(doctor.getSpecialty().getSpecialtyName())
                 .price(doctor.getPrice())
-                .description(doctor.getBio())
+                .bio(doctor.getBio())
                 .doctorEmail(doctor.getUser().getEmail())
                 .doctorPhone(doctor.getUser().getPhoneNumber())
                 .avatarUrl(doctor.getUser().getAvatarUrl())
@@ -113,6 +118,12 @@ public class PortalPublicService {
     }
 
     public List<SlotResponseDTO> getAvailableSlots(Integer doctorId, LocalDate dateWorking){
+        DoctorDetail doctor = doctorDetailRepository.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Bác sĩ không tồn tại!"));
+
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
+            return new ArrayList<>();
+        }
         List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctor_DoctorIdAndDateWorkingAndSlotStatus(
                 doctorId, dateWorking, DoctorSchedule.SlotStatus.AVAILABLE);
         return schedules.stream().map(schedule -> SlotResponseDTO.builder()
