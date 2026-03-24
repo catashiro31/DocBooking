@@ -1,6 +1,7 @@
 package docbooking.repositories;
 
 import docbooking.models.DoctorDetail;
+import docbooking.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -13,4 +14,6 @@ public interface DoctorDetailRepository  extends JpaRepository<DoctorDetail, Int
     List<DoctorDetail> findDoctorDetailByVerificationStatus(DoctorDetail.VerificationStatus status);
 
     DoctorDetail findByDoctorId(Integer doctorId);
+
+    boolean existsByUser(User user);
 }
