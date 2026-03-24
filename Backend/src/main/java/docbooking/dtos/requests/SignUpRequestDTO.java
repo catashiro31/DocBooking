@@ -21,6 +21,7 @@ public class SignUpRequestDTO {
     @NotBlank(message = "Họ tên không được để trống")
     private String fullName;
 
+    @NotBlank(message = "Số điện thoại không được để trống")
     @Pattern(regexp = "^[0-9]{10}$", message = "Số điện thoại phải gồm 10 chữ số")
     private String phoneNumber;
 
