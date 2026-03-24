@@ -7,6 +7,7 @@ import docbooking.dtos.requests.UpdateProfileRequestDTO;
 import docbooking.dtos.responses.ProfileResponseDTO;
 import docbooking.models.User;
 import docbooking.repositories.UserRepository;
+import docbooking.utils.HandlingFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,12 +22,12 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final Cloudinary cloudinary;
+    private final HandlingFile handlingFile;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Cloudinary cloudinary) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Cloudinary cloudinary, HandlingFile handlingFile) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
-        this.cloudinary = cloudinary;
+        this.handlingFile = handlingFile;
     }
 
     public ProfileResponseDTO getProfile(UserDetails userDetails) {
@@ -50,28 +51,7 @@ public class UserService {
             user.setPhoneNumber(req.getPhoneNumber());
         }
 
-        // 2. Xử lý File an toàn (Tránh NullPointerException)
-        if (req.getFile() != null && !req.getFile().isEmpty()) {
-            try { // Phải bọc trong try-catch để xử lý IOException
-                String publicValue = UUID.randomUUID().toString();
-
-                // Gọi API của Cloudinary
-                Map uploadResult = cloudinary.uploader().upload(req.getFile().getBytes(),
-                        ObjectUtils.asMap(
-                                "public_id", publicValue,
-                                "resource_type", "auto"
-                        ));
-
-                // Cập nhật URL ảnh mới vào user
-                user.setAvatarUrl(uploadResult.get("secure_url").toString());
-
-            } catch (IOException e) {
-                // Ném ra lỗi để báo cho Controller biết quá trình upload thất bại
-                throw new RuntimeException("Lỗi khi tải ảnh lên hệ thống: " + e.getMessage());
-            }
-        }
-
-        // 3. Lưu vào Database và trả về kết quả
+        user.setAvatarUrl(handlingFile.getUrlFile(req.getFile()));
         User updatedUser = userRepository.save(user);
 
         return ProfileResponseDTO.builder()

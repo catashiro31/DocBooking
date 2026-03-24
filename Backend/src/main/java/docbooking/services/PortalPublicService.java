@@ -30,7 +30,6 @@ public class PortalPublicService {
     private final ReviewRepository reviewRepository;
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
-    private final Cloudinary cloudinary;
 
     public List<FacilityResponseDTO> getAllFacilities() {
         return facilityRepository.findAll().stream()
@@ -49,7 +48,6 @@ public class PortalPublicService {
                         .id(s.getSpecialtyId())
                         .name(s.getSpecialtyName())
                         .description(s.getDescription())
-                        .imageUrl(s.getImageUrl())
                         .build())
                 .toList();
     }
@@ -121,19 +119,5 @@ public class PortalPublicService {
                 .slotStatus(schedule.getSlotStatus().name())
                 .build()
         ).collect(Collectors.toList());
-    }
-
-
-    public String uploadFile(MultipartFile file) throws IOException {
-        String publicValue = UUID.randomUUID().toString();
-
-        // Gọi API của Cloudinary, thêm chế độ "auto" để nhận cả ảnh và PDF
-        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap(
-                        "public_id", publicValue,
-                        "resource_type", "auto"
-                ));
-
-        return uploadResult.get("secure_url").toString();
     }
 }
