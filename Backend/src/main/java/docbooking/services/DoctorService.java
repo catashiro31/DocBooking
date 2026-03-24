@@ -8,6 +8,7 @@ import docbooking.models.User;
 import docbooking.repositories.DoctorDetailRepository;
 import docbooking.repositories.FacilityRepository;
 import docbooking.repositories.SpecialtyRepository;
+import docbooking.utils.HandlingFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,8 @@ public class DoctorService {
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
    private final DoctorScheduleRepository doctorScheduleRepository;
+    private final HandlingFile handlingFile;
+
     @Transactional
     public String completeProfile(User user, DoctorProfileRequestDTO req) {
         if (doctorDetailRepository.existsByUser(user)) {
@@ -42,8 +45,8 @@ public class DoctorService {
                 .degree(req.getDegree())
                 .experienceYears(req.getExperienceYears())
                 .price(req.getPrice())
-                .idCardUrl(req.getIdCardUrl())
-                .certificateUrl(req.getCertificateUrl())
+                .idCardUrl(handlingFile.getUrlFile(req.getIdCardImage()))
+                .certificateUrl(handlingFile.getUrlFile(req.getCertificatePdf()))
                 .verificationStatus(DoctorDetail.VerificationStatus.PENDING)
                 .ratingAverage(0.0)
                 .reviewCount(0)

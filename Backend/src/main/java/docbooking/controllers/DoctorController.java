@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class DoctorController {
     private final DoctorService doctorService;
     @PostMapping("/profile")
-    public ResponseEntity<?> completeProfile(@Valid @RequestBody DoctorProfileRequestDTO req) {
+    public ResponseEntity<?> completeProfile(@Valid @ModelAttribute DoctorProfileRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(doctorService.completeProfile(currentUser, req));
     }
