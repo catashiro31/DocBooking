@@ -12,6 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import docbooking.dtos.requests.BulkScheduleRequestDTO;
+import docbooking.models.User;
+import docbooking.security.SecurityUtils;
+import org.springframework.web.bind.annotation.*;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/doctor")
@@ -22,5 +27,12 @@ public class DoctorController {
     public ResponseEntity<?> completeProfile(@Valid @RequestBody DoctorProfileRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(doctorService.completeProfile(currentUser, req));
+    }
+    @PostMapping("/schedules")
+    public ResponseEntity<?> createSchedules(
+            @RequestBody BulkScheduleRequestDTO bulkScheduleRequestDTO){
+        User currentUser = SecurityUtils.getCurrentUser(); 
+        doctorService.createDoctorSchedule(currentUser.getUserId(), bulkScheduleRequestDTO);
+        return ResponseEntity.ok("Tạo lịch làm việc thành công!");
     }
 }

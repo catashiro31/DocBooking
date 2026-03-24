@@ -11,6 +11,11 @@ import docbooking.repositories.SpecialtyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import docbooking.dtos.requests.BulkScheduleRequestDTO;
+import docbooking.models.DoctorSchedule;
+import docbooking.repositories.DoctorScheduleRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +23,7 @@ public class DoctorService {
     private final DoctorDetailRepository doctorDetailRepository;
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
+   private final DoctorScheduleRepository doctorScheduleRepository;
     @Transactional
     public String completeProfile(User user, DoctorProfileRequestDTO req) {
         if (doctorDetailRepository.existsByUser(user)) {
@@ -29,7 +35,6 @@ public class DoctorService {
         Facility facility = facilityRepository.findById(req.getFacilityId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
 
-        // Tạo DoctorDetail với đầy đủ các trường bạn vừa gửi
         DoctorDetail doctorDetail = DoctorDetail.builder()
                 .user(user)
                 .specialty(specialty)
@@ -48,4 +53,28 @@ public class DoctorService {
         doctorDetailRepository.save(doctorDetail);
         return "Hồ sơ của bạn đã được gửi đi thành công!";
     }
+   
+   
+    @Transactional
+    public void createDoctorSchedule(Integer userId, BulkScheduleRequestDTO bulkScheduleRequestDTO) {
+        DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
+
+        for(String slotName: bulkScheduleRequestDTO.getSlotIds()){
+            DoctorSchedule.TimeSlot timeSlot = DoctorSchedule.TimeSlot.valueOf(slotName);
+
+            if(doctorScheduleRepository.existsByDoctor_DoctorIdAndDateWorkingAndTimeSlot(
+                    doctor.getDoctorId(), bulkScheduleRequestDTO.getDate(), timeSlot)){
+                continue;
+            }
+            DoctorSchedule doctorSchedule = new DoctorSchedule();
+            doctorSchedule.setDoctor(doctor);
+            doctorSchedule.setDateWorking(bulkScheduleRequestDTO.getDate());
+            doctorSchedule.setTimeSlot(timeSlot);
+
+            doctorSchedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
+            doctorScheduleRepository.save(doctorSchedule);
+        }
+    }
+
 }
