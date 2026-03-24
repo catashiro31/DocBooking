@@ -35,9 +35,6 @@ public class Appointment {
     @Column(name = "booking_status")
     private BookingStatus bookingStatus;
 
-    @Column(name = "version")
-    private Integer version;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
