@@ -7,6 +7,7 @@ import docbooking.models.Specialty;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.AdminService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -68,12 +69,12 @@ public class AdminController {
     }
 
     @PostMapping("/facility")
-    public ResponseEntity<?> addFacility(@RequestBody FacilityRequestDTO req) {
+    public ResponseEntity<?> addFacility(@Valid @ModelAttribute FacilityRequestDTO req) {
         return ResponseEntity.ok(adminService.addFacility(req));
     }
 
     @PutMapping("/facility/{id}")
-    public ResponseEntity<?> updateFacility(@PathVariable Integer id, @RequestBody FacilityRequestDTO req) {
+    public ResponseEntity<?> updateFacility(@PathVariable Integer id,@Valid @ModelAttribute FacilityRequestDTO req) {
         return ResponseEntity.ok(adminService.updateFacility(id, req));
     }
 
