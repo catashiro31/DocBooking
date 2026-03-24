@@ -1,5 +1,7 @@
 package docbooking.services;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import docbooking.dtos.responses.*;
 import docbooking.models.DoctorDetail;
 import docbooking.models.DoctorSchedule;
@@ -9,10 +11,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -23,6 +30,8 @@ public class PortalPublicService {
     private final ReviewRepository reviewRepository;
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
+    private final Cloudinary cloudinary;
+
     public List<FacilityResponseDTO> getAllFacilities() {
         return facilityRepository.findAll().stream()
                 .map(f -> FacilityResponseDTO.builder()
@@ -112,5 +121,19 @@ public class PortalPublicService {
                 .slotStatus(schedule.getSlotStatus().name())
                 .build()
         ).collect(Collectors.toList());
+    }
+
+
+    public String uploadFile(MultipartFile file) throws IOException {
+        String publicValue = UUID.randomUUID().toString();
+
+        // Gọi API của Cloudinary, thêm chế độ "auto" để nhận cả ảnh và PDF
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap(
+                        "public_id", publicValue,
+                        "resource_type", "auto"
+                ));
+
+        return uploadResult.get("secure_url").toString();
     }
 }

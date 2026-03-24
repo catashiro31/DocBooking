@@ -9,13 +9,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/v1/portal")
+@RequestMapping("/api/v1/portal")
 public class PortalPublicController {
     private final PortalPublicService portalService;
     @GetMapping("/doctors")
@@ -56,5 +57,27 @@ public class PortalPublicController {
     public ResponseEntity<?> getAllSpecialty(){
         return ResponseEntity.ok(portalService.getAllSpecialties());
     }
-    
+
+    @PostMapping("/upload-file") // Đổi URL thành upload-file cho tổng quát
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("Vui lòng chọn một file!");
+            }
+
+            // BẢO MẬT: Chỉ cho phép file Ảnh và PDF
+            String contentType = file.getContentType();
+            if (contentType == null || !(contentType.startsWith("image/") || contentType.equals("application/pdf"))) {
+                return ResponseEntity.badRequest().body("Hệ thống chỉ hỗ trợ tải lên Hình ảnh (JPG, PNG) hoặc file PDF!");
+            }
+
+            // Lấy URL sau khi upload thành công (Nhớ cập nhật tên hàm nếu bạn đã đổi ở Service)
+            String fileUrl = portalService.uploadFile(file);
+            System.out.println(fileUrl);
+            return ResponseEntity.ok(fileUrl);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Lỗi khi tải file lên: " + e.getMessage());
+        }
+    }
+
 }
