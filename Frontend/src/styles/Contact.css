@@ -1,0 +1,67 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  margin: 40px 0;
+  color: #5a5a5c;
+}
+
+.contact_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+.contact_left img {
+  width: 350px;
+  border-radius: 4px;
+
+  opacity: 0;
+  animation: fadeIn 5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px); /* optional: trượt nhẹ */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.contact_right {
+  max-width: 350px;
+}
+
+.topic {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.contact_right p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.contact_right button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border: 1px solid black;
+  background: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.contact_right button:hover {
+  background: black;
+  color: white;
+}

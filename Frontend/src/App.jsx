@@ -2,16 +2,26 @@ import { Routes, Route } from "react-router-dom"
 import LogninPage from "./pages/LogninPage"
 import HomePage from "./pages/HomePage"
 import RegisterPage from "./pages/RegisterPage"
+import Doctors from './pages/Doctors'
+import About from "./pages/About"
+import Contact from "./pages/Contact"
+import Admin from "./pages/Admin"
 
 function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<LogninPage />} />
-      <Route path="/home" element={<HomePage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/signin" element={<LogninPage />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/sigout" element={<RegisterPage />} />
+      <Route path="/doctors" element={<Doctors />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/admin/*" element={<Admin />} />
+      {/* đường dẫn khác đều cho vào trang Doctors  */}
+      <Route path="*" element={<Doctors />} />
     </Routes>
-  )
+  ) 
 
 }
 
