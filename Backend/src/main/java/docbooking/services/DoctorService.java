@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import docbooking.dtos.requests.BulkScheduleRequestDTO;
 import docbooking.models.DoctorSchedule;
 import docbooking.repositories.DoctorScheduleRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
