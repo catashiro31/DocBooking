@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
             message = "Khu vực này chỉ dành cho Quản trị viên!";
         } else if (path.contains("/api/v1/patient")) {
             message = "Tính năng này chỉ dành cho Bệnh nhân!";
-        } else if (path.contains("/api/v1/doctor-management")) {
+        } else if (path.contains("/api/v1/doctor")) {
             message = "Chỉ Bác sĩ mới có quyền vào đây!";
         }
 

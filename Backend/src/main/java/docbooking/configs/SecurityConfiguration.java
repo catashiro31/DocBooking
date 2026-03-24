@@ -62,9 +62,7 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/doctors/**").permitAll()
-                        .requestMatchers("/api/v1/specialties").permitAll()
-                        .requestMatchers("/api/v1/facilities").permitAll()
+                        .requestMatchers("/api/v1/portal/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
