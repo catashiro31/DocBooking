@@ -1,25 +1,46 @@
-import React from 'react';
-import '../styles/SpecialtyFilter.css'; 
-import { SPECIALTIES } from '../utils/constants';
+import React, { useState } from 'react';
+import '../styles/Doctors.css'; 
+import { SPECIALTIES } from '../utils/constants'; 
 
 export default function SpecialtyFilter({ selected, onSelect }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (spec) => {
+    onSelect(spec);
+    setIsOpen(false); 
+  };
+
   return (
-    <aside className="sidebar">
-      <button
-        className={`filter-btn${selected === null ? ' filter-active' : ''}`}
-        onClick={() => onSelect(null)}
-      >
-        All Specialties
+    <div className="filter-wrapper">
+      {/* Nút hiển thị trên điện thoại (Hamburger menu) */}
+      <button className="filter-toggle" onClick={() => setIsOpen(!isOpen)}>
+        <span>{selected ? selected : "All Specialties"}</span>
+        <div className={`hamburger ${isOpen ? "open" : ""}`}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
       </button>
-      {SPECIALTIES.map(spec => (
+
+      {/* Danh sách các chuyên khoa */}
+      <aside className={`sidebar ${isOpen ? "show" : ""}`}>
         <button
-          key={spec}
-          className={`filter-btn${selected === spec ? ' filter-active' : ''}`}
-          onClick={() => onSelect(selected === spec ? null : spec)}
+          className={`filter-btn ${selected === null ? 'filter-active' : ''}`}
+          onClick={() => handleSelect(null)}
         >
-          {spec}
+          All Specialties
         </button>
-      ))}
-    </aside>
+        
+        {SPECIALTIES.map((spec) => (
+          <button
+            key={spec}
+            className={`filter-btn ${selected === spec ? 'filter-active' : ''}`}
+            onClick={() => handleSelect(selected === spec ? null : spec)}
+          >
+            {spec}
+          </button>
+        ))}
+      </aside>
+    </div>
   );
 }

@@ -222,3 +222,33 @@
     width: 420px;        
     transform: translateY(20px); 
 }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .home {
+    padding: 24px 16px;
+  }
+  /* Hero banner */
+  .hero1 {
+    flex-direction: column-reverse;
+    padding: 24px;
+    text-align: center;
+  }
+  .hero_left h1 { font-size: 32px; }
+  .hero_right { justify-content: center; margin-bottom: 24px; }
+  .hero_right img { width: 100%; max-width: 300px; }
+  
+  /* Chuyên khoa và Bác sĩ */
+  .specialty-list { gap: 16px; }
+  .doctor_list { grid-template-columns: 1fr; }
+  
+  /* Banner dưới cùng */
+  .banner {
+    flex-direction: column;
+    padding: 40px 24px 0 24px;
+    text-align: center;
+  }
+  .banner_left h1 { font-size: 32px; }
+  .banner_right { justify-content: center; margin-top: 24px; }
+  .banner_right img { width: 100%; max-width: 300px; }
+}

@@ -98,3 +98,23 @@
 .switch_page .link:hover {
     color: #2433dc;
 }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .login_container {
+    flex-direction: column;
+  }
+  .login_left {
+    padding: 32px 16px;
+  }
+  .login_right {
+    display: none; /* Ẩn ảnh nền phụ để tập trung vào form */
+  }
+  .form {
+    max-width: 100%;
+  }
+  .form select, .form button[type="submit"] {
+    width: 100% !important; 
+    margin-bottom: 16px;
+  }
+}

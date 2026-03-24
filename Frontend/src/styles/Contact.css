@@ -65,3 +65,18 @@ h1 {
   background: black;
   color: white;
 }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .contact_container {
+    flex-direction: column;
+    padding: 0 16px;
+    gap: 32px;
+    text-align: center;
+  }
+  .contact_left img {
+    width: 100%;
+    max-width: 300px;
+  }
+  .contact_right { max-width: 100%; }
+}
