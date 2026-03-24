@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DoctorDetailRepository  extends JpaRepository<DoctorDetail, Integer>,
@@ -13,4 +14,5 @@ public interface DoctorDetailRepository  extends JpaRepository<DoctorDetail, Int
     List<DoctorDetail> findDoctorDetailByVerificationStatus(DoctorDetail.VerificationStatus status);
 
     DoctorDetail findByDoctorId(Integer doctorId);
+    Optional<DoctorDetail> findByUser_UserId(Integer userId);
 }
