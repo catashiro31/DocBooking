@@ -11,13 +11,13 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<LogninPage />} />
+      <Route path="/signin" element={<LogninPage />} />
       <Route path="/" element={<HomePage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/sigout" element={<RegisterPage />} />
       <Route path="/doctors" element={<Doctors />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
-      <Route path="/Admin/*" element={<Admin />} />
+      <Route path="/admin/*" element={<Admin />} />
       {/* đường dẫn khác đều cho vào trang Doctors  */}
       <Route path="*" element={<Doctors />} />
     </Routes>
