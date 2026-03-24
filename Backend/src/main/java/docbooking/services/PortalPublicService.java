@@ -1,15 +1,10 @@
 package docbooking.services;
 
-import docbooking.dtos.responses.DoctorCardDTO;
-import docbooking.dtos.responses.DoctorDetailDTO;
-import docbooking.dtos.responses.ReviewDTO;
-import docbooking.dtos.responses.SlotResponseDTO;
+import docbooking.dtos.responses.*;
 import docbooking.models.DoctorDetail;
 import docbooking.models.DoctorSchedule;
 import docbooking.models.Review;
-import docbooking.repositories.DoctorDetailRepository;
-import docbooking.repositories.DoctorScheduleRepository;
-import docbooking.repositories.ReviewRepository;
+import docbooking.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -22,11 +17,33 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class DoctorService {
+public class PortalPublicService {
     private final DoctorScheduleRepository doctorScheduleRepository;
     private final DoctorDetailRepository doctorDetailRepository;
     private final ReviewRepository reviewRepository;
-
+    private final SpecialtyRepository specialtyRepository;
+    private final FacilityRepository facilityRepository;
+    public List<FacilityResponseDTO> getAllFacilities() {
+        return facilityRepository.findAll().stream()
+                .map(f -> FacilityResponseDTO.builder()
+                        .id(f.getFacilityId())
+                        .name(f.getFacilityName())
+                        .address(f.getAddress())
+                        .description(f.getDescription())
+                        .imageUrl(f.getImageUrl())
+                        .build())
+                .toList();
+    }
+    public List<SpecialtyResponseDTO> getAllSpecialties() {
+        return specialtyRepository.findAll().stream()
+                .map(s -> SpecialtyResponseDTO.builder()
+                        .id(s.getSpecialtyId())
+                        .name(s.getSpecialtyName())
+                        .description(s.getDescription())
+                        .imageUrl(s.getImageUrl())
+                        .build())
+                .toList();
+    }
     public List<DoctorCardDTO> getDoctors(String name , Integer specialityId, Double minPrice, Double maxPrice) {
         Specification<DoctorDetail> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();

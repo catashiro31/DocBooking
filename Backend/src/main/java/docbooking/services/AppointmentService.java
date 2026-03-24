@@ -44,6 +44,7 @@ public class AppointmentService {
                 .bookingStatus(Appointment.BookingStatus.PENDING)
                 .paymentStatus(Appointment.PaymentStatus.UNPAID)
                 .totalAmount(schedule.getDoctor().getPrice())
+                .holdExpiresAt(LocalDateTime.now().plusHours(2))
                 .createdAt(LocalDateTime.now())
                 .build();
         Appointment savedAppointment = appointmentRepository.save(appointment);

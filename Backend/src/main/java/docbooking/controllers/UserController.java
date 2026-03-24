@@ -5,7 +5,9 @@ import docbooking.dtos.responses.ProfileResponseDTO;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.UserService;
+import jakarta.validation.Valid;
 import lombok.Builder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +24,7 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequestDTO req) {
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         ProfileResponseDTO updatedProfile = userService.updateProfile(currentUser, req);
         return ResponseEntity.ok(updatedProfile);

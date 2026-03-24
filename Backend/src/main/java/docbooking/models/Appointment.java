@@ -42,7 +42,6 @@ public class Appointment {
     @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
 
-    @CreationTimestamp
     @Column(name = "hold_expires_at")
     private LocalDateTime holdExpiresAt;
 
