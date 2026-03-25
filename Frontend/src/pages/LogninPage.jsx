@@ -11,42 +11,34 @@ function LogninPage() {
 
     const navigate = useNavigate()
 
-    {/*const handleSubmitLogin = async (e) => {
-        e.preventDefault()
-        try {
-            const res = await login(email, password)
-            console.log(res)
-            navigate("/")
-        }
-        catch (error) {
-            console.error(error)
-        }
-    }*/}
     const handleSubmitLogin = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
 
         try {
-            // FAKE USER
-            const fakeUser = {
-                email,
-                role: email === "admin@gmail.com" && password === "123" ? "admin" : "user"
-            }
-            console.log(fakeUser)
+            const res = await login(email, password);
+            const userRole = res.role;
+            console.log("Role sau khi login:", userRole);
 
-            // 👉 lưu lại (quan trọng)
-            localStorage.setItem("user", JSON.stringify(fakeUser))
-
-            // 👉 điều hướng theo role
-            if (fakeUser.role === "admin") {
-                navigate("/admin/board")
-            } else {
-                navigate("/")
+            if (userRole === "ADMIN") {
+                navigate("/admin/board");
+            } 
+            else if (userRole === "DOCTOR") {
+                navigate("/doctor-dashboard");
+            } 
+            else {
+                navigate("/"); 
             }
 
         } catch (error) {
-            console.error(error)
+            // 5. HIỂN THỊ LỜI NHẮN LỖI TỪ BACKEND NHƯ ĐÃ CHỐT
+            if (error.response && error.response.data) {
+                alert(error.response.data);
+            } else {
+                alert("Lỗi kết nối đến máy chủ. Vui lòng thử lại!");
+            }
+            console.error("Lỗi đăng nhập:", error);
         }
-    }
+    };
 
     return (
         <div className="login_container">

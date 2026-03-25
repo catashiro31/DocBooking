@@ -1,7 +1,6 @@
-package docbooking.security;
+package docbooking.utils;
 
 import docbooking.models.User;
-import org.apache.catalina.authenticator.SpnegoAuthenticator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
