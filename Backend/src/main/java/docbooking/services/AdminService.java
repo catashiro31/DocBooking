@@ -113,10 +113,24 @@ public class AdminService {
     }
 
     public Specialty updateSpecialty(Integer specialtyId, SpecialtyRequestDTO req) {
-        Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
+        // 1. Tìm chuyên khoa hiện tại trong DB
+        Specialty specialty = specialtyRepository.findById(specialtyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa!"));
+
+        // 2. Chuẩn hóa tên mới
+        String newName = req.getSpecialtyName().trim();
+
+        // 3. KIỂM TRA TRÙNG:
+        // Tìm xem có AI KHÁC (IdNot) đang dùng cái tên (newName) này không
+        if (specialtyRepository.existsBySpecialtyNameIgnoreCaseAndSpecialtyIdNot(newName, specialtyId)) {
+            throw new RuntimeException("Tên chuyên khoa '" + newName + "' đã được sử dụng bởi một chuyên khoa khác!");
+        }
+
+        // 4. Nếu vượt qua kiểm tra, tiến hành cập nhật
+        specialty.setSpecialtyName(newName);
         specialty.setDescription(req.getDescription());
-        specialty.setSpecialtyName(req.getSpecialtyName());
-        return  specialtyRepository.save(specialty);
+
+        return specialtyRepository.save(specialty);
     }
 
     public String deleteSpecialty(Integer specialtyId) {
