@@ -44,4 +44,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        // Cứ API nào bắt đầu bằng /api/v1/auth/ thì KHÔNG thèm kiểm tra JWT luôn
+        return path.startsWith("/api/v1/auth/");
+    }
 }
