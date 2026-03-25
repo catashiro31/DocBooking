@@ -128,4 +128,9 @@ public class AdminController {
     public ResponseEntity<?> getAllReviews() {
         return ResponseEntity.ok().body(adminService.getAllReviews());
     }
+
+    @PatchMapping("/reviews/{id}/hide")
+    public ResponseEntity<?> rejectReview(@PathVariable Integer id) {
+        return ResponseEntity.ok().body(adminService.rejectReview(id));
+    }
 }

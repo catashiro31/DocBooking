@@ -257,4 +257,14 @@ public class AdminService {
     public List<Review> getAllReviews() {
         return reviewRepository.findAll();
     }
+
+    @Transactional
+    public String rejectReview(Integer id) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài đánh giá với ID: " + id));
+        review.setIsVisible(false);
+        reviewRepository.save(review);
+
+        return "Đã ẩn bài đánh giá thành công";
+    }
 }
