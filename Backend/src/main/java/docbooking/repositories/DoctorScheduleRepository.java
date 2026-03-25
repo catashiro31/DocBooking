@@ -1,7 +1,10 @@
 package docbooking.repositories;
 
 import docbooking.models.DoctorSchedule;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import docbooking.models.DoctorSchedule.SlotStatus;
 import docbooking.models.DoctorSchedule.TimeSlot;
@@ -17,9 +20,13 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule,I
             SlotStatus slotStatus
     );
 
+    @Modifying
+    @Query("UPDATE DoctorSchedule s SET s.slotStatus = 'CLOSED' WHERE s.scheduleId = :id")
+    void deleteSchedule(@Param("id") Integer id);
     boolean existsByDoctor_DoctorIdAndDateWorkingAndTimeSlot(
             Integer doctorId,
             LocalDate dateWorking,
             TimeSlot timeSlot
     );
+    List<DoctorSchedule> findByDoctor_DoctorIdOrderByDateWorkingDesc(Integer doctorId);
 }
