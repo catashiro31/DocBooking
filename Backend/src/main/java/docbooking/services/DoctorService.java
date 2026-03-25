@@ -17,6 +17,8 @@ import docbooking.dtos.requests.BulkScheduleRequestDTO;
 import docbooking.models.DoctorSchedule;
 import docbooking.repositories.DoctorScheduleRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class DoctorService {
