@@ -1,0 +1,120 @@
+/* ===== CONTAINER ===== */
+.login_container {
+    display: flex;
+    height: 100vh;
+    background: #f3f3f3;
+}
+
+/* ===== LEFT (FORM) ===== */
+.login_left {
+     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* thêm */
+    padding-left: 40px;      /* giảm từ 120px xuống */
+    padding-right: 40px;
+}
+
+/* ===== RIGHT (IMAGE) ===== */
+.login_right {
+    flex: 1;
+    position: relative;
+    clip-path: ellipse(85% 100% at 100% 50%);
+}
+
+.login_right img {
+     width: 100%;
+    height: 100%;
+    object-fit: cover; /* đổi contain -> cover để ảnh đầy hơn */
+}
+
+/* ===== FORM ===== */
+.form {
+     width: 100%;
+    max-width: 400px;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+}
+
+/* TEXT */
+.form h2 {
+    font-size: 32px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.form p {
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+/* INPUT */
+.form input {
+    width: 100%;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    background: transparent;
+    outline: none;
+}
+
+.form input:focus {
+    border-bottom: 2px solid #5f6dfc;
+}
+
+/* BUTTON */
+.form button {
+    margin-top: 20px;
+    padding: 12px 30px;
+    border-radius: 30px;
+    border: none;
+    background: #8ec5e8;
+    color: white;
+    cursor: pointer;
+}
+
+/* SWITCH */
+.switch_page {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.switch_page p {
+    margin: 0;
+    color: #777;
+    font-size: 14px;
+}
+
+.switch_page .link {
+    color: #6c63ff;
+    text-decoration: none;
+}
+
+.switch_page .link:hover {
+    color: #2433dc;
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .login_container {
+    flex-direction: column;
+  }
+  .login_left {
+    padding: 32px 16px;
+  }
+  .login_right {
+    display: none; /* Ẩn ảnh nền phụ để tập trung vào form */
+  }
+  .form {
+    max-width: 100%;
+  }
+  .form select, .form button[type="submit"] {
+    width: 100% !important; 
+    margin-bottom: 16px;
+  }
+}

@@ -1,17 +1,17 @@
-import axios from "axios"
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL: "http://localhost:5020/api/v1"
-})
+  baseURL: 'http://localhost:5020/api/v1', 
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
-
-  // ĐÃ SỬA: Phải kiểm tra thật kỹ xem token có hợp lệ không mới được gắn vào
-  if (token && token !== "undefined" && token !== "null") {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 }, (error) => {
   return Promise.reject(error);
