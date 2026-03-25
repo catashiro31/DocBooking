@@ -81,7 +81,7 @@ function HomePage() {
               </p>
             </div>
 
-            <button className="hero_btn" onClick={() => navigate("/register")}>
+            <button className="hero_btn" onClick={() => navigate("/sigout")}>
               Book Appointment →
             </button>
           </div>
@@ -143,7 +143,7 @@ function HomePage() {
           <div className="banner_left">
             <h2>Book Appointment</h2>
             <h1>with 10+ Trusted Doctors</h1>
-            <button className="more_btn" onClick={() => navigate("/register")}>Create account</button>
+            <button className="more_btn" onClick={() => navigate("/sigout")}>Create account</button>
           </div>
 
           <div className="banner_right">

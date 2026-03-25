@@ -11,34 +11,23 @@ function LogninPage() {
 
     const navigate = useNavigate()
 
-    {/*const handleSubmitLogin = async (e) => {
-        e.preventDefault()
-        try {
-            const res = await login(email, password)
-            console.log(res)
-            navigate("/")
-        }
-        catch (error) {
-            console.error(error)
-        }
-    }*/}
     const handleSubmitLogin = async (e) => {
         e.preventDefault()
 
         try {
-            // FAKE USER
-            const fakeUser = {
-                email,
-                role: email === "admin@gmail.com" && password === "123" ? "admin" : "user"
-            }
-            console.log(fakeUser)
+            const res = await login(email, password)
+            const user = res.data
 
-            // 👉 lưu lại (quan trọng)
-            localStorage.setItem("user", JSON.stringify(fakeUser))
+            localStorage.setItem("user", JSON.stringify(user))
 
-            // 👉 điều hướng theo role
-            if (fakeUser.role === "admin") {
-                navigate("/admin/board")
+            if (user.role === "admin") {
+                navigate("/admin")
+            } else if (user.role === "DOCTOR") {
+                if (user.verificationStatus === "PENDING") {
+                    navigate("/doctor/profile")
+                } else {
+                    navigate("/")
+                }
             } else {
                 navigate("/")
             }
@@ -72,7 +61,7 @@ function LogninPage() {
                     <button type="submit">Login</button>
                     <div className="switch_page">
                         <p>Do you have an account yet?</p>
-                        <Link className="link" to="/register">Register here</Link>
+                        <Link className="link" to="/sigout">Register here</Link>
                     </div>
                 </form>
             </div>

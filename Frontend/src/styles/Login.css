@@ -86,8 +86,10 @@
 
 .switch_page p {
     margin: 0;
-    color: #777;
-    font-size: 14px;
+    color: #777 !important;
+    font-size: 14px !important;
+    margin-top: 23px !important;
+    font-weight: 100 !important;
 }
 
 .switch_page .link {

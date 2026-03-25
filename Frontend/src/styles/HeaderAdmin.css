@@ -1,10 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
 .header-admin {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 30px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #ddd;
+  padding: 0 36px;
+  height: 68px;
+  background: #ffffff;
+  border-bottom: 1px solid #e8eaf0;
+  box-shadow: 0 2px 12px rgba(95, 109, 252, 0.07);
+  font-family: 'Nunito', sans-serif;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 /* LEFT */
@@ -15,14 +23,9 @@
 }
 
 .logo {
-  width: 200px;
-  height: 60px;
-}
-
-.brand {
-  font-size: 22px;
-  font-weight: bold;
-  color: #2563eb;
+  width: 180px;
+  height: 52px;
+  object-fit: contain;
 }
 
 /* CENTER */
@@ -33,26 +36,39 @@
 }
 
 .admin-badge {
-  padding: 12px 22px;
+  padding: 7px 22px;
   border-radius: 20px;
-  background: #e5e7eb;
-  font-size: 15px;
+  background: linear-gradient(135deg, #eef0ff, #e8e3ff);
+  color: #5f6dfc;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  letter-spacing: 0.5px;
+  border: 1.5px solid #c7ccff;
 }
 
 /* RIGHT */
 .header-right {
+  display: flex;
+  align-items: center;
 }
 
 .logout-btn {
-  padding: 10px 22px;
+  padding: 9px 24px;
   border: none;
-  border-radius: 20px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #5f6dfc, #a78bfa);
   color: white;
   cursor: pointer;
-  font-weight: 500;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 14px rgba(95, 109, 252, 0.3);
+  transition: all 0.25s ease;
 }
 
 .logout-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(95, 109, 252, 0.4);
 }

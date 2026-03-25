@@ -12,7 +12,7 @@ const HeaderAdmin = () => {
     localStorage.removeItem("accessToken");
 
     // 👉 chuyển về login
-    navigate("/login");
+    navigate("/signin");
   };
 
   return (

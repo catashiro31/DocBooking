@@ -116,7 +116,7 @@ function RegisterPage() {
 
                     <div className="switch_page">
                         <p>You already have an account?</p>
-                        <Link className="link" to="/login">Login here</Link>
+                        <Link className="link" to="/signin">Login here</Link>
                     </div>
 
                 </form>
