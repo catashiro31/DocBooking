@@ -35,4 +35,11 @@ public class DoctorController {
         doctorService.createDoctorSchedule(currentUser.getUserId(), bulkScheduleRequestDTO);
         return ResponseEntity.ok("Tạo lịch làm việc thành công!");
     }
+
+    @GetMapping("/schedules")
+    public ResponseEntity<?> getShedules(){
+        User currentUser = SecurityUtils.getCurrentUser();
+
+        return ResponseEntity.ok(doctorService.getMySchedules(currentUser.getUserId()));
+    }
 }

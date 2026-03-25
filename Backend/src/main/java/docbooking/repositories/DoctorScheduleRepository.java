@@ -22,4 +22,5 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule,I
             LocalDate dateWorking,
             TimeSlot timeSlot
     );
+    List<DoctorSchedule> findByDoctor_DoctorIdOrderByDateWorkingDesc(Integer doctorId);
 }

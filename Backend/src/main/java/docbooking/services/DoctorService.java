@@ -1,6 +1,7 @@
 package docbooking.services;
 
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
+import docbooking.dtos.responses.DoctorScheduleResponseDTO;
 import docbooking.models.DoctorDetail;
 import docbooking.models.Facility;
 import docbooking.models.Specialty;
@@ -14,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import docbooking.dtos.requests.BulkScheduleRequestDTO;
 import docbooking.models.DoctorSchedule;
 import docbooking.repositories.DoctorScheduleRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -75,5 +76,16 @@ public class DoctorService {
             doctorScheduleRepository.save(doctorSchedule);
         }
     }
+    public List<DoctorScheduleResponseDTO> getMySchedules(Integer userId) {
+        DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ"));
+        List<DoctorSchedule> shedules = doctorScheduleRepository.findByDoctor_DoctorIdOrderByDateWorkingDesc(doctor.getDoctorId());
 
+        return shedules.stream().map(schedule -> DoctorScheduleResponseDTO.builder()
+                .scheduleId(schedule.getScheduleId())
+                .dateWorking(schedule.getDateWorking())
+                .timeSlot(schedule.getTimeSlot().getDisplayValue())
+                .slotStatus(schedule.getSlotStatus().name())
+                .build()).toList();
+    }
 }

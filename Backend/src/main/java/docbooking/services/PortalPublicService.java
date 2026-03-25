@@ -49,7 +49,6 @@ public class PortalPublicService {
                         .id(s.getSpecialtyId())
                         .name(s.getSpecialtyName())
                         .description(s.getDescription())
-                        .imageUrl(s.getImageUrl())
                         .build())
                 .toList();
     }
