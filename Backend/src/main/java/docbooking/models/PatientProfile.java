@@ -1,5 +1,6 @@
 package docbooking.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,7 @@ public class PatientProfile {
     @Column(name = "patient_id")
     private Integer patientId;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -43,9 +45,13 @@ public class PatientProfile {
     private String relationship;
 
     public enum GenderStatus {
-        MALE, FMALE, OTHER
+        MALE, FEMALE, OTHER
     }
 
+    @JsonIgnore
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Appointment> appointments;
+    @Builder.Default
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 }

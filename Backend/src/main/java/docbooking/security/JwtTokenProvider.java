@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -24,7 +25,13 @@ public class JwtTokenProvider {
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
 
-    Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    @Value("${security.jwt.secret-key}")
+    private String secretKey;
+
+    private Key getSigningKey() {
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String createToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -35,7 +42,7 @@ public class JwtTokenProvider {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, key)
+                .signWith(getSigningKey(),SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -52,7 +59,7 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         // Check if the token is valid and not expired
         try {
-            Jwts.parser().setSigningKey(key).parseClaimsJws(token);
+            Jwts.parser().setSigningKey(getSigningKey()).parseClaimsJws(token);
             return true;
         } catch (MalformedJwtException ex) {
             log.error("Invalid JWT token");
@@ -71,7 +78,7 @@ public class JwtTokenProvider {
     public String getUsername(String token) {
         // Extract the username from the JWT token
         return Jwts.parser()
-                .setSigningKey(key)
+                .setSigningKey(getSigningKey())
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();

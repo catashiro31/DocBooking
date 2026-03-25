@@ -4,10 +4,12 @@ import docbooking.security.JwtTokenFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 @EnableWebSecurity
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfiguration {
 
     private final JwtTokenFilter jwtAuthenticationFilter;
@@ -74,13 +77,16 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/portal/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) ->
-                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getLocalizedMessage())
-                        )
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("text/plain;charset=UTF-8");
+                            response.getWriter().write("Bạn chưa đăng nhập!");
+                        })
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

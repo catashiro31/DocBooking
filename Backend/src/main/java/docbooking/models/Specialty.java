@@ -1,5 +1,6 @@
 package docbooking.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,14 +20,15 @@ public class Specialty {
     private Integer specialtyId;
 
     @Column(name = "specialty_name", length = 100, nullable = false)
-    private String specialName;
+    private String specialtyName;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "image_url")
-    private String imageUrl;
+    @Column(name = "is_active")
+    private Boolean isActive;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "specialty", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DoctorDetail> doctorDetails;
 }

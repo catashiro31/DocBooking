@@ -1,11 +1,11 @@
 package docbooking.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,10 +21,12 @@ public class Appointment {
     @Column(name = "appointment_id")
     private Integer id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
     private PatientProfile patient;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id", nullable = false)
     private DoctorSchedule schedule;
@@ -36,22 +38,18 @@ public class Appointment {
     @Column(name = "booking_status")
     private BookingStatus bookingStatus;
 
-    @Column(name = "version")
-    private Integer version;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
 
-    @CreationTimestamp
     @Column(name = "hold_expires_at")
     private LocalDateTime holdExpiresAt;
 
     @Column(name = "payment_evidence_url")
     private String paymentEvidenceUrl;
 
-    @Column(name = "total_amount", precision = 15, scale = 2)
-    private BigDecimal totalAmount;
+    @Column(name = "total_amount")
+    private Double totalAmount;
 
     @Column(name = "qr_code_url")
     private String qrCodeUrl;

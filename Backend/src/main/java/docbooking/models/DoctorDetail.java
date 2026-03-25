@@ -1,9 +1,9 @@
 package docbooking.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -19,14 +19,17 @@ public class DoctorDetail {
     @Column(name = "doctor_id")
     private Integer doctorId;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", unique = true)
     private User user;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialty_id", nullable = false)
     private Specialty specialty;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facility_id", nullable = false)
     private Facility facility;
@@ -40,8 +43,8 @@ public class DoctorDetail {
     @Column(name = "experience_years")
     private Integer experienceYears;
 
-    @Column(name = "price", precision = 15, scale = 2)
-    private BigDecimal price;
+    @Column(name = "price")
+    private Double price;
 
     @Column(name = "id_card_url")
     private String idCardUrl;
@@ -53,16 +56,20 @@ public class DoctorDetail {
     @Column(name = "verification_status")
     private VerificationStatus verificationStatus;
 
-    @Column(name = "rating_average", precision = 2, scale = 1)
-    private BigDecimal ratingAverage;
+    @Column(name = "rating_average")
+    private Double ratingAverage;
 
     @Column(name = "review_count")
     private Integer reviewCount;
+
+    @Column(name = "reason_reject")
+    private String reasonReject;
 
     public enum VerificationStatus {
         PENDING, APPROVED, REJECTED
     }
 
+    @JsonIgnore
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DoctorSchedule> doctorSchedules;
 
