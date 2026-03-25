@@ -9,7 +9,7 @@
 
 ### 1. Backend (Server)
 * **Kiến trúc:** Layered Architecture
-* **Ngôn ngữ:** Java 17
+* **Ngôn ngữ:** Java 17 (JDK 17)
 * **Framework:** Spring Boot 3.2.2
 * **Database:** PostgreSQL 18
 * **ORM:** Hibernate / Spring Data JPA
@@ -46,47 +46,53 @@ DocBooking/
 
 ```text
 Backend/
-├── src/main/java/com/docbooking/
+├── src/main/java/docbooking/
 │   ├── DocBookingApplication.java
 │   │
-│   ├── controllers/             # Chứa TẤT CẢ các Controller
+│   ├── config/                     # Cấu hình chung
+│   │   └── SwaggerConfig.java      (Để tạo document API tự động)
+│   │
+│   ├── controllers/             # Lễ tân (API Layer)
 │   │   ├── AuthController.java
-│   │   ├── TestController.java
 │   │   ├── DoctorController.java
 │   │   └── BookingController.java
 │   │
-│   ├── models/                  # Chứa TẤT CẢ các Entity (DB Tables)
+│   ├── services/                # Bác sĩ (Business Layer)
+│   │   ├── IAuthService.java
+│   │   ├── IDoctorService.java
+│   │   ├── IBookingService.java
+│   │   └── impl/
+│   │       ├── AuthServiceImpl.java
+│   │       ├── DoctorServiceImpl.java
+│   │       └── BookingServiceImpl.java
+│   │
+│   ├── repository/              # Thủ kho (Data Access Layer)
+│   │   ├── UserRepository.java
+│   │   ├── RoleRepository.java
+│   │   ├── BookingRepository.java
+│   │   └── DoctorRepository.java
+│   │
+│   ├── models/                  # Hồ sơ (Entities)
 │   │   ├── User.java
 │   │   ├── Role.java
-│   │   ├── ERole.java           (Enum)
+│   │   ├── ERole.java
 │   │   ├── Doctor.java
 │   │   └── Booking.java
 │   │
-│   ├── repository/              # Chứa TẤT CẢ Interface Repository
-│   │   ├── UserRepository.java
-│   │   ├── RoleRepository.java
-│   │   └── BookingRepository.java
+│   ├── dto/                     # Phiếu tin (Data Transfer Objects)
+│   │   ├── auth/ ...
+│   │   ├── booking/ ...
+│   │   └── doctor/ ...
 │   │
-│   ├── security/                # Cấu hình bảo mật
-│   │   ├── WebSecurityConfig.java
-│   │   ├── jwt/
-│   │   │   ├── AuthEntryPointJwt.java
-│   │   │   ├── AuthTokenFilter.java
-│   │   │   └── JwtUtils.java
-│   │   └── services/
-│   │       ├── UserDetailsImpl.java
-│   │       └── UserDetailsServiceImpl.java
+│   ├── exception/               # <--- BỔ SUNG: Xử lý lỗi tập trung
+│   │   ├── GlobalExceptionHandler.java  (Bắt lỗi toàn bộ hệ thống)
+│   │   └── ResourceNotFoundException.java (Lỗi tùy chỉnh)
 │   │
-│   └── dto/
-│       ├── auth/
-│       │   ├── LoginRequest.java
-│       │   ├── RegisterRequest.java
-│       │   └── JwtResponse.java
-│       ├── booking/
-│       │   ├── BookingRequest.java
-│       │   └── BookingDTO.java (Dùng để trả về dữ liệu)
-│       └── doctor/
-│           └── DoctorDTO.java
+│   └── security/                # Bảo vệ (Security Layer)
+│       ├── WebSecurityConfig.java
+│       ├── jwt/ ...
+│       └── services/            # (Lưu ý bên dưới)
+│           └── UserDetailsServiceImpl.java
 │
 └── src/main/resources/
     └── application.properties
