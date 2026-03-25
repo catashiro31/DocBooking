@@ -11,17 +11,17 @@ export const login = async(email, password) => { //hàm nhận emai, password g�
 }
 
 export const logout = async() => {
-    const refeshToke = localStorage.getItem("refeshToken") //yêu cầu refechToken hủy token
-    await api.post("/auth/sigout", {refeshToke})
+    const refreshToken = localStorage.getItem("refreshToken") //yêu cầu refreshToken hủy token
+    await api.post("/auth/signout", {refreshToken})
     localStorage.removeItem("accessToken")
-    localStorage.removeItem("refeshToken")
+    localStorage.removeItem("refreshToken")
 }
 
-export const register = async(email, password, fullName, confirm, phone, role) => { //hàm gửi emai, password,... gửi lên server
+export const register = async(email, password, fullName, confirm, phoneNumber, role) => { //hàm gửi emai, password,... gửi lên server
     const res = await api.post("/auth/signup", {
-        email, password, fullName, confirm, phone, role
+        email, password, fullName, confirm, phoneNumber, role
     })
     localStorage.setItem("accessToken", res.data.accessToken)
-    localStorage.setItem("refeshToken", res.data.refeshToke)
+    localStorage.setItem("refreshToken", res.data.refreshToken)
     return res.data
 }
