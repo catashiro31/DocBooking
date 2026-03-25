@@ -11,7 +11,7 @@ function LogninPage() {
 
     const navigate = useNavigate()
 
-    const handleSubmitLogin = async (e) => {
+    {/*const handleSubmitLogin = async (e) => {
         e.preventDefault()
         try {
             const res = await login(email, password)
@@ -19,6 +19,31 @@ function LogninPage() {
             navigate("/")
         }
         catch (error) {
+            console.error(error)
+        }
+    }*/}
+    const handleSubmitLogin = async (e) => {
+        e.preventDefault()
+
+        try {
+            // FAKE USER
+            const fakeUser = {
+                email,
+                role: email === "admin@gmail.com" && password === "123" ? "admin" : "user"
+            }
+            console.log(fakeUser)
+
+            // 👉 lưu lại (quan trọng)
+            localStorage.setItem("user", JSON.stringify(fakeUser))
+
+            // 👉 điều hướng theo role
+            if (fakeUser.role === "admin") {
+                navigate("/admin/board")
+            } else {
+                navigate("/")
+            }
+
+        } catch (error) {
             console.error(error)
         }
     }

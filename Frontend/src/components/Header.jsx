@@ -29,10 +29,8 @@ export default function Header() {
         </ul>
 
         <div className={`nav-buttons ${isOpen ? "show" : ""}`}>
-          <button className="btn-outline">Admin</button>
-          <button className="btn-primary" onClick={() => navigate('/register')}>
-            Create Account
-          </button>
+          <NavLink to="/login" className="btn-outline">Login</NavLink>
+          <NavLink to="/register" className="btn-primary">Create Account</NavLink>
         </div>
       </div>
     </div>

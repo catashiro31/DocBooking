@@ -4,7 +4,7 @@
 }
 
 /* ===== HERO ===== */
-.hero1 {
+/*.hero1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -23,6 +23,10 @@
     font-size: 42px;
     font-weight: bold;
     margin-bottom: 20px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .hero_left p {
@@ -48,6 +52,83 @@
 
 .hero_right img {
     width: 400px;
+}*/
+
+/* ===== HERO ===== */
+.hero1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #5f6dfc;
+    padding: 80px;
+    border-radius: 20px;
+    color: white;
+    gap: 50px;
+}
+
+/* LEFT SIDE */
+.hero_left {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.hero_left h1 {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: white;
+}
+
+.hero_desc {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.hero_desc img {
+    width: 150px;
+    height: 60px;   
+}
+
+.hero_desc p {
+    max-width: 420px;
+    line-height: 1.6;
+    font-size: 17px;
+}
+
+/* BUTTON */
+.hero_btn {
+    padding: 12px 22px;      /* nhỏ hơn để không dài */
+    border-radius: 30px;
+    border: none;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+    width: fit-content;      /* quan trọng: nút chỉ dài theo chữ */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.25s;
+}
+
+.hero_btn:hover {
+    transform: translateY(-3px);
+}
+
+/* RIGHT SIDE */
+.hero_right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.hero_right img {
+    width: 500px;
+    max-width: 100%;
 }
 
 /* ===== SPECIALITY ===== */

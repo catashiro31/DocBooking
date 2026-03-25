@@ -8,6 +8,7 @@ import img3 from "../images/img3.png"
 import img4 from "../images/img4.png"
 import img5 from "../images/img5.png"
 import img6 from "../images/img6.png"
+import icon from "../images/iconHome.png"
 import d from "../../public/doctors/Ham.jpg"
 import bannerImg from "../images/banner-removebg-preview.png"
 import Footer from "../components/footer"
@@ -72,12 +73,17 @@ function HomePage() {
               With Trusted Doctors
             </h1>
 
-            <p>
-              Simply browse through our extensive list of trusted doctors,
-              schedule your appointment hassle-free.
-            </p>
+            <div className="hero_desc">
+              <img src={icon} alt="icon" />
+              <p>
+                Simply browse through our extensive list of trusted doctors,
+                schedule your appointment hassle-free.
+              </p>
+            </div>
 
-            <button className="more_book" onClick={() => navigate("/register")}>Book Appointment →</button>
+            <button className="hero_btn" onClick={() => navigate("/register")}>
+              Book Appointment →
+            </button>
           </div>
 
           <div className="hero_right">
