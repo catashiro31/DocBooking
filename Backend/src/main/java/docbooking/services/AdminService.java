@@ -206,4 +206,14 @@ public class AdminService {
         }
     }
 
+    public List<Appointment> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo, Appointment.BookingStatus status) {
+        if (dateFrom.isAfter(dateTo)) {
+            throw new RuntimeException("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
+        }
+
+        List<Appointment> appointments = appointmentRepository.findAllByPeriodAndStatus(dateFrom, dateTo, status);
+
+        return appointments;
+    }
+
 }

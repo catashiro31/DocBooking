@@ -2,6 +2,7 @@ package docbooking.controllers;
 
 import docbooking.dtos.requests.FacilityRequestDTO;
 import docbooking.dtos.requests.SpecialtyRequestDTO;
+import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
 import docbooking.models.Specialty;
 import docbooking.models.User;
@@ -105,5 +106,16 @@ public class AdminController {
     @PatchMapping("/users/{id}/block")
     public ResponseEntity<?> setBlocked(@PathVariable Integer id, @RequestParam String reason) {
         return ResponseEntity.ok().body(adminService.setBlockedUser(id,reason));
+    }
+
+    @GetMapping("/appointments")
+    public ResponseEntity<?> getAllAppointments(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime dateTo,
+            @RequestParam(required = false) Appointment.BookingStatus status
+    ) {
+        if (dateFrom == null) dateFrom = LocalDateTime.now().minusMonths(1);
+        if (dateTo== null) dateTo = LocalDateTime.now();
+        return ResponseEntity.ok().body(adminService.getAllAppointments(dateFrom, dateTo, status));
     }
 }

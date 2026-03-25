@@ -23,4 +23,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query("SELECT a FROM Appointment a " +
+            "WHERE a.createdAt BETWEEN :dateFrom AND :dateTo " +
+            "AND (:status IS NULL OR a.bookingStatus = :status) " +
+            "ORDER BY a.createdAt DESC")
+    List<Appointment> findAllByPeriodAndStatus(
+            @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo,
+            @Param("status") Appointment.BookingStatus status
+    );
 }
