@@ -1,6 +1,8 @@
 package docbooking.services;
 
+import docbooking.dtos.requests.ChangeDoctorProfileRequestDTO;
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
+import docbooking.dtos.responses.DoctorProfileResponseDTO;
 import docbooking.dtos.responses.DoctorScheduleResponseDTO;
 import docbooking.models.DoctorDetail;
 import docbooking.models.Facility;
@@ -108,5 +110,36 @@ public class DoctorService {
             throw new RuntimeException("Không thể xóa! Lịch trình này đã có người đặt hoặc đóng!");
         }
         doctorScheduleRepository.deleteSchedule(scheduleId);
+    }
+    @Transactional(readOnly = true)
+    public DoctorProfileResponseDTO getDoctorProfile(User user) {
+        DoctorDetail detail = doctorDetailRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Hồ sơ bác sĩ chưa được tạo!"));
+
+        return DoctorProfileResponseDTO.builder()
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .avatarUrl(user.getAvatarUrl())
+                .bio(detail.getBio())
+                .degree(detail.getDegree())
+                .experienceYears(detail.getExperienceYears())
+                .price(detail.getPrice())
+                .specialtyName(detail.getSpecialty().getSpecialtyName())
+                .facilityName(detail.getFacility().getFacilityName())
+                .facilityAddress(detail.getFacility().getAddress())
+                .ratingAverage(detail.getRatingAverage())
+                .reviewCount(detail.getReviewCount())
+                .verificationStatus(detail.getVerificationStatus().name())
+                .build();
+    }
+    @Transactional
+    public DoctorProfileResponseDTO updateDoctorProfile(User currentUser, ChangeDoctorProfileRequestDTO req) {
+        DoctorDetail detail = doctorDetailRepository.findByUser(currentUser)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ để cập nhật!"));
+        if (req.getBio() != null) detail.setBio(req.getBio());
+        if (req.getPrice() != null) detail.setPrice(req.getPrice());
+        DoctorDetail savedDetail = doctorDetailRepository.save(detail);
+        return getDoctorProfile(currentUser);
     }
 }

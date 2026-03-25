@@ -1,5 +1,6 @@
 package docbooking.controllers;
 
+import docbooking.dtos.requests.ChangeDoctorProfileRequestDTO;
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
@@ -49,5 +50,15 @@ public class DoctorController {
         doctorService.deleteDoctorSchedule(SecurityUtils.getCurrentUser().getUserId(), id);
         return ResponseEntity.ok("Đã đóng lịch trình thành công!");
     }
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.getDoctorProfile(currentUser));
+    }
 
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody ChangeDoctorProfileRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.updateDoctorProfile(currentUser, req));
+    }
 }
