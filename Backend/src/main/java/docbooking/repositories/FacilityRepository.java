@@ -8,4 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public  interface FacilityRepository  extends JpaRepository<Facility,Integer> {
     Facility findByFacilityId(Integer facilityId);
+
+    boolean existsByFacilityNameIgnoreCase(String specialtyName);
+
+    boolean existsByFacilityNameIgnoreCaseAndFacilityIdNot(String specialtyName, Integer id);
 }

@@ -9,6 +9,7 @@ import docbooking.repositories.*;
 import docbooking.utils.EmailUtil;
 import docbooking.utils.FileUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -143,23 +144,51 @@ public class AdminService {
         }
     }
 
+    @Transactional
     public Facility addFacility(FacilityRequestDTO req) {
+        // 1. Chuẩn hóa tên
+        String name = req.getFacilityName().trim();
+
+        // 2. Kiểm tra trùng tên toàn hệ thống
+        if (facilityRepository.existsByFacilityNameIgnoreCase(name)) {
+            throw new RuntimeException("Cơ sở y tế '" + name + "' đã tồn tại!");
+        }
 
         Facility facility = Facility.builder()
                 .address(req.getAddress())
                 .description(req.getDescription())
-                .facilityName(req.getFacilityName())
+                .facilityName(name)
                 .imageUrl(fileUtil.getUrlFile(req.getFile()))
                 .build();
         return facilityRepository.save(facility);
     }
 
+    @Transactional
     public Facility updateFacility(Integer facilityId, FacilityRequestDTO req) {
+        // 1. Kiểm tra tồn tại
         Facility facility = facilityRepository.findByFacilityId(facilityId);
+        if (facility == null) {
+            throw new RuntimeException("Không tìm thấy cơ sở y tế!");
+        }
+
+        // 2. Chuẩn hóa tên mới
+        String newName = req.getFacilityName().trim();
+
+        // 3. Kiểm tra xem tên mới có trùng với cơ sở nào KHÁC không
+        if (facilityRepository.existsByFacilityNameIgnoreCaseAndFacilityIdNot(newName, facilityId)) {
+            throw new RuntimeException("Tên '" + newName + "' đã được sử dụng bởi một cơ sở khác!");
+        }
+
+        // 4. Cập nhật thông tin
         facility.setAddress(req.getAddress());
-        facility.setFacilityName(req.getFacilityName());
+        facility.setFacilityName(newName);
         facility.setDescription(req.getDescription());
-        facility.setImageUrl(fileUtil.getUrlFile(req.getFile()));
+
+        // Chỉ cập nhật ảnh nếu người dùng có gửi file mới
+        if (req.getFile() != null && !req.getFile().isEmpty()) {
+            facility.setImageUrl(fileUtil.getUrlFile(req.getFile()));
+        }
+
         return facilityRepository.save(facility);
     }
 
