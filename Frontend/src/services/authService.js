@@ -17,7 +17,7 @@ export const logout = async() => {
     localStorage.removeItem("refreshToken")
 }
 
-export const register = async(email, password, fullName, confirm, phoneNumber, role) => { //hàm gửi emai, password,... gửi lên server
+export const register = async(email, password, fullName, confirm, phoneNumber, role) => {
     const res = await api.post("/auth/signup", {
         email, password, fullName, confirm, phoneNumber, role
     })

@@ -11,7 +11,7 @@ function RegisterPage() {
     const [password, setPassword] = useState("")
     const [fullName, setFullName] = useState("")
     const [confirm, setConfirm] = useState("")
-    const [phone, setPhone] = useState("")
+    const [phoneNumber, setPhoneNumber] = useState("")
     const [role, setRole] = useState("")
 
     const navigate = useNavigate()
@@ -25,19 +25,12 @@ function RegisterPage() {
         }
 
         try {
-            await register(email, password, fullName, confirm, phone, role)
-            alert("Đăng ký thành công")
-
-            const res = await login(email, password)
-            const userRole = res.role
-
-            if (userRole === "DOCTOR")
-                navigate("/doctor-dashboard")
-            else
-                navigate("/booking")
+            await register(email, password, fullName, confirm, phoneNumber, role)
+            alert("Đăng ký thành công! Bạn sẽ cần check email để kích hoạt tài khoản trước khi đăng nhập.")
+            navigate("/login")
 
         } catch (error) {
-            console.error("Không thể đăng ký", error)
+            alert(error.response.data);
         }
     }
 
@@ -81,8 +74,8 @@ function RegisterPage() {
                     <input
                         type="text"
                         placeholder="Số điện thoại"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
                     />
                     <select
                         value={role}
