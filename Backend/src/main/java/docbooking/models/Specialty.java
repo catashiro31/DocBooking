@@ -25,6 +25,9 @@ public class Specialty {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "is_active")
+    private Boolean isActive;
+
     @JsonIgnore
     @OneToMany(mappedBy = "specialty", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DoctorDetail> doctorDetails;

@@ -108,6 +108,7 @@ public class AdminService {
         Specialty specialty = Specialty.builder()
                 .specialtyName(name)
                 .description(req.getDescription())
+                .isActive(true)
                 .build();
 
         return specialtyRepository.save(specialty);
@@ -137,7 +138,8 @@ public class AdminService {
     public String deleteSpecialty(Integer specialtyId) {
         try {
             Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
-            specialtyRepository.delete(specialty);
+            specialty.setIsActive(true);
+            specialtyRepository.save(specialty);
             return "Đã xóa chuyên ngành!";
         } catch (Exception e) {
             return e.getMessage();
@@ -159,6 +161,7 @@ public class AdminService {
                 .description(req.getDescription())
                 .facilityName(name)
                 .imageUrl(fileUtil.getUrlFile(req.getFile()))
+                .isActive(true)
                 .build();
         return facilityRepository.save(facility);
     }
@@ -195,7 +198,8 @@ public class AdminService {
     public String deleteFacility(Integer facilityId) {
         try {
             Facility facility = facilityRepository.findByFacilityId(facilityId);
-            facilityRepository.delete(facility);
+            facility.setIsActive(false);
+            facilityRepository.save(facility);
             return "Đã xóa thành công cơ sở!";
         } catch (Exception e) {
             return e.getMessage();

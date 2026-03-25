@@ -32,6 +32,9 @@ public class Facility {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "is_active")
+    private Boolean isActive;
+
     @JsonIgnore
     @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DoctorDetail> doctorDetails;
