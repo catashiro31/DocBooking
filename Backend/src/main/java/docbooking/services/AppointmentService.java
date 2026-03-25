@@ -29,7 +29,7 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentResponseDTO createAppointment(User user, AppointmentRequestDTO req) {
-        PatientProfile profile = patientProfileRepository.findByPatientIdAndUser(req.getPatientId(), user)
+        PatientProfile profile = patientProfileRepository.findByPatientIdAndUserAndIsActiveTrue(req.getPatientId(), user)
                 .orElseThrow(() -> new RuntimeException("Hồ sơ bệnh nhân này không tồn tại hoặc bạn không có quyền sử dụng!"));
         DoctorSchedule schedule = doctorScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(()->new RuntimeException("Ca khám không tồn tại hoặc bạn không có quyền sử dụng!"));

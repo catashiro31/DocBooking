@@ -8,6 +8,7 @@ import docbooking.security.SecurityUtils;
 import docbooking.services.AppointmentService;
 import docbooking.services.PatientProfileService;
 import lombok.Builder;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,12 @@ public class PatientController {
     public ResponseEntity<?> updateRelative(@PathVariable Integer id, @RequestBody RelativeRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(patientProfileService.updateRelative(id, currentUser, req));
+    }
+    @DeleteMapping("relatives/{id}")
+    public ResponseEntity<?> deleteRelative(@PathVariable Integer id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        patientProfileService.deleteRelative(currentUser, id);
+        return ResponseEntity.ok("Xóa hồ sơ người thân thành công");
     }
 
     @PostMapping("/appointments")

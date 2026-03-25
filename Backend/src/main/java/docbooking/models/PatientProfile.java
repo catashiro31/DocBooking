@@ -48,4 +48,7 @@ public class PatientProfile {
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Appointment> appointments;
+    @Builder.Default
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 }
