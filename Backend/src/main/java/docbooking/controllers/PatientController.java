@@ -3,15 +3,18 @@ package docbooking.controllers;
 import docbooking.dtos.requests.AppointmentRequestDTO;
 import docbooking.dtos.requests.RelativeRequestDTO;
 import docbooking.dtos.responses.AppointmentResponseDTO;
+import docbooking.models.Appointment;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.AppointmentService;
 import docbooking.services.PatientProfileService;
 import lombok.Builder;
 import org.apache.coyote.Response;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("api/v1/patient")
@@ -76,5 +79,13 @@ public class PatientController {
     public ResponseEntity<?> getHistoryDetail(@PathVariable Integer id) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(appointmentService.getAppointmentDetail(currentUser, id));
+    }
+
+    @PostMapping("/appointments/{id}/payment-proof")
+    public ResponseEntity<?> uploadEvidencePaymentProof(
+            @PathVariable("id") Integer id,
+            @RequestParam("file") MultipartFile file
+    ) {
+        return ResponseEntity.ok(appointmentService.uploadPaymentProof(id, file));
     }
 }

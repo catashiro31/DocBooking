@@ -9,9 +9,11 @@ import docbooking.models.DoctorSchedule;
 import docbooking.models.PatientProfile;
 import docbooking.models.User;
 import docbooking.repositories.*;
+import docbooking.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ public class AppointmentService {
     private final HikariDataSource hikariDataSource;
     private final MedicalResultRepository medicalResultRepository;
     private final ReviewRepository reviewRepository;
+    private final FileUtil fileUtil;
 
     @Transactional
     public AppointmentResponseDTO createAppointment(User user, AppointmentRequestDTO req) {
@@ -140,6 +143,21 @@ public class AppointmentService {
         });
         return detailDTO;
     }
+
+    @Transactional
+    public String uploadPaymentProof(Integer id, MultipartFile file) {
+        String urlFile = fileUtil.getUrlFile(file);
+
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + id));
+
+        appointment.setPaymentEvidenceUrl(urlFile);
+
+        appointment.setPaymentStatus(Appointment.PaymentStatus.PENDING_CHECK);
+        appointmentRepository.save(appointment);
+        return "Đã Upload minh chứng thanh toán thành công!";
+    }
+
     private void copyBasicData(AppointmentResponseDTO source, AppointmentDetailDTO target) {
         target.setAppointmentId(source.getAppointmentId());
         target.setPatientName(source.getPatientName());

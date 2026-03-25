@@ -67,6 +67,6 @@ public class Appointment {
     }
 
     public enum PaymentStatus {
-        UNPAID, PENDING_CHECK, PAID, REFUNDED
+        UNPAID, PENDING_CHECK, PAID
     }
 }
