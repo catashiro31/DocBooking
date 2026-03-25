@@ -1,7 +1,7 @@
 import ic from "../images/icon_Appointment.png";
 import "../styles/Appointment.css";
 
-function Appointments() {
+function AppointmentsAdmin() {
   const data = [
   {
     id: 1,
@@ -91,4 +91,4 @@ function Appointments() {
   );
 }
 
-export default Appointments;
+export default AppointmentsAdmin;
