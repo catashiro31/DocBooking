@@ -2,11 +2,13 @@ package docbooking.controllers;
 
 import docbooking.dtos.requests.AppointmentRequestDTO;
 import docbooking.dtos.requests.RelativeRequestDTO;
+import docbooking.dtos.requests.ReviewRequestDTO;
 import docbooking.dtos.responses.AppointmentResponseDTO;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.AppointmentService;
 import docbooking.services.PatientProfileService;
+import jakarta.validation.Valid;
 import lombok.Builder;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
@@ -76,5 +78,16 @@ public class PatientController {
     public ResponseEntity<?> getHistoryDetail(@PathVariable Integer id) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(appointmentService.getAppointmentDetail(currentUser, id));
+    }
+    @PostMapping("/appointments/{id}/review")
+    public ResponseEntity<?> createReview(@PathVariable Integer id, @Valid @RequestBody ReviewRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(appointmentService.saveOrUpdateReview(currentUser, id, req, false));
+    }
+
+    @PutMapping("/appointments/{id}/review")
+    public ResponseEntity<?> updateReview(@PathVariable Integer id, @Valid @RequestBody ReviewRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(appointmentService.saveOrUpdateReview(currentUser, id, req, true));
     }
 }
