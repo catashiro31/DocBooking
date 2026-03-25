@@ -104,7 +104,7 @@ public class AdminService {
         return "Đã khóa tài khoản id " + userId;
     }
 
-    public Specialty addSpecialty(SpecialtyRequestDTO req) {
+    public String addSpecialty(SpecialtyRequestDTO req) {
         String name = req.getSpecialtyName().trim();
 
         // Kiểm tra trùng tên
@@ -117,11 +117,11 @@ public class AdminService {
                 .description(req.getDescription())
                 .isActive(true)
                 .build();
-
-        return specialtyRepository.save(specialty);
+        specialtyRepository.save(specialty);
+        return "Đã thêm chuyên khoa";
     }
 
-    public Specialty updateSpecialty(Integer specialtyId, SpecialtyRequestDTO req) {
+    public String updateSpecialty(Integer specialtyId, SpecialtyRequestDTO req) {
         Specialty specialty = specialtyRepository.findById(specialtyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa!"));
 
@@ -134,8 +134,8 @@ public class AdminService {
 
         specialty.setSpecialtyName(newName);
         specialty.setDescription(req.getDescription());
-
-        return specialtyRepository.save(specialty);
+        specialtyRepository.save(specialty);
+        return "Đã sửa thành công chuyên khoa";
     }
 
     public String deleteSpecialty(Integer specialtyId) {
@@ -150,7 +150,7 @@ public class AdminService {
     }
 
     @Transactional
-    public Facility addFacility(FacilityRequestDTO req) {
+    public String addFacility(FacilityRequestDTO req) {
         // 1. Chuẩn hóa tên
         String name = req.getFacilityName().trim();
 
@@ -166,11 +166,12 @@ public class AdminService {
                 .imageUrl(fileUtil.getUrlFile(req.getFile()))
                 .isActive(true)
                 .build();
-        return facilityRepository.save(facility);
+        facilityRepository.save(facility);
+        return "Đã thêm thành công cơ sở y tế";
     }
 
     @Transactional
-    public Facility updateFacility(Integer facilityId, FacilityRequestDTO req) {
+    public String updateFacility(Integer facilityId, FacilityRequestDTO req) {
         // 1. Kiểm tra tồn tại
         Facility facility = facilityRepository.findByFacilityId(facilityId);
         if (facility == null) {
@@ -194,8 +195,8 @@ public class AdminService {
         if (req.getFile() != null && !req.getFile().isEmpty()) {
             facility.setImageUrl(fileUtil.getUrlFile(req.getFile()));
         }
-
-        return facilityRepository.save(facility);
+        facilityRepository.save(facility);
+        return "Đã cập nhật thông tin cơ sở y tế";
     }
 
     public String deleteFacility(Integer facilityId) {
