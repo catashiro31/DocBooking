@@ -14,4 +14,9 @@ public interface PatientProfileRepository extends JpaRepository<PatientProfile, 
     boolean existsByFullNameAndPhoneNumberAndUserAndPatientIdNot(String fullName, String phoneNumber, User user, Integer id);
     Optional<PatientProfile> findByPatientIdAndUser(Integer id, User user);
     List<PatientProfile> findByUser(User user);
+    boolean existsByFullNameAndPhoneNumberAndUserAndIsActiveTrue(String fullName, String phoneNumber, User user);
+    boolean existsByFullNameAndPhoneNumberAndUserAndIsActiveTrueAndPatientIdNot(String fullName, String phoneNumber, User user, Integer id);
+    Optional<PatientProfile> findByPatientIdAndUserAndIsActiveTrue(Integer id, User user);
+    List<PatientProfile> findByUserAndIsActiveTrue(User user);
+
 }

@@ -25,10 +25,13 @@ public class Specialty {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+<<<<<<< tien_task
     @Column(name = "is_active")
     private Boolean isActive;
 
     @JsonIgnore
+=======
+>>>>>>> develop-backend
     @OneToMany(mappedBy = "specialty", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DoctorDetail> doctorDetails;
 }

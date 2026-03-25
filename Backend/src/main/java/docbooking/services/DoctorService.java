@@ -1,6 +1,7 @@
 package docbooking.services;
 
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
+import docbooking.dtos.responses.DoctorScheduleResponseDTO;
 import docbooking.models.DoctorDetail;
 import docbooking.models.Facility;
 import docbooking.models.Specialty;
@@ -22,7 +23,7 @@ public class DoctorService {
     private final DoctorDetailRepository doctorDetailRepository;
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
-   private final DoctorScheduleRepository doctorScheduleRepository;
+    private final DoctorScheduleRepository doctorScheduleRepository;
     private final FileUtil fileUtil;
 
     @Transactional
@@ -54,8 +55,7 @@ public class DoctorService {
         doctorDetailRepository.save(doctorDetail);
         return "Hồ sơ của bạn đã được gửi đi thành công!";
     }
-   
-   
+
     @Transactional
     public void createDoctorSchedule(Integer userId, BulkScheduleRequestDTO bulkScheduleRequestDTO) {
         DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
@@ -77,5 +77,34 @@ public class DoctorService {
             doctorScheduleRepository.save(doctorSchedule);
         }
     }
+    public List<DoctorScheduleResponseDTO> getMySchedules(Integer userId) {
+        DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ"));
+        List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctor_DoctorIdOrderByDateWorkingDesc(doctor.getDoctorId());
 
+        return schedules.stream().map(schedule -> DoctorScheduleResponseDTO.builder()
+                .scheduleId(schedule.getScheduleId())
+                .dateWorking(schedule.getDateWorking())
+                .timeSlot(schedule.getTimeSlot().getDisplayValue())
+                .slotStatus(schedule.getSlotStatus().name())
+                .build()).toList();
+    }
+
+    @Transactional
+    public void deleteDoctorSchedule(Integer userId, Integer scheduleId) {
+        DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ!"));
+
+        DoctorSchedule schedule = doctorScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin lịch!"));
+
+        if(!schedule.getDoctor().getDoctorId().equals(doctor.getDoctorId())){
+            throw new RuntimeException("Bạn không quyền xóa lịch trình của người khác!");
+        }
+
+        if(schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE){
+            throw new RuntimeException("Không thể xóa! Lịch trình này đã có người đặt hoặc đóng!");
+        }
+        doctorScheduleRepository.deleteSchedule(scheduleId);
+    }
 }

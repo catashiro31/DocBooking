@@ -117,7 +117,10 @@ public class AdminService {
         Specialty specialty = Specialty.builder()
                 .specialtyName(name)
                 .description(req.getDescription())
+<<<<<<< tien_task
                 .isActive(true)
+=======
+>>>>>>> develop-backend
                 .build();
         specialtyRepository.save(specialty);
         return "Đã thêm chuyên khoa";
@@ -136,8 +139,13 @@ public class AdminService {
 
         specialty.setSpecialtyName(newName);
         specialty.setDescription(req.getDescription());
+<<<<<<< tien_task
         specialtyRepository.save(specialty);
         return "Đã sửa thành công chuyên khoa";
+=======
+        specialty.setSpecialtyName(req.getSpecialtyName());
+        return  specialtyRepository.save(specialty);
+>>>>>>> develop-backend
     }
 
     public String deleteSpecialty(Integer specialtyId) {

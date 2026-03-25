@@ -23,4 +23,6 @@ public class AppointmentResponseDTO {
     private String bookingStatus;
     private String paymentStatus;
     private LocalDateTime createdAt;
+
+    private boolean hasResult;
 }

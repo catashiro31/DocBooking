@@ -2,11 +2,13 @@ package docbooking.controllers;
 
 import docbooking.dtos.requests.AppointmentRequestDTO;
 import docbooking.dtos.requests.RelativeRequestDTO;
+import docbooking.dtos.responses.AppointmentResponseDTO;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.AppointmentService;
 import docbooking.services.PatientProfileService;
 import lombok.Builder;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -41,11 +43,38 @@ public class PatientController {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(patientProfileService.updateRelative(id, currentUser, req));
     }
+    @DeleteMapping("relatives/{id}")
+    public ResponseEntity<?> deleteRelative(@PathVariable Integer id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        patientProfileService.deleteRelative(currentUser, id);
+        return ResponseEntity.ok("Xóa hồ sơ người thân thành công");
+    }
 
     @PostMapping("/appointments")
     public ResponseEntity<?> bookAppointment(@RequestBody AppointmentRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(appointmentService.createAppointment(currentUser, req));
     }
+    @GetMapping("/appointments")
+    public ResponseEntity<?> getMyAppointments() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(appointmentService.getMyAppointments(currentUser));
+    }
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelAppointment(@PathVariable Integer id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        AppointmentResponseDTO response = appointmentService.cancelAppointment(currentUser, id);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/history")
+    public ResponseEntity<?> getHistory() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(appointmentService.getPatientHistory(currentUser));
+    }
 
+    @GetMapping("/history/{id}")
+    public ResponseEntity<?> getHistoryDetail(@PathVariable Integer id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(appointmentService.getAppointmentDetail(currentUser, id));
+    }
 }

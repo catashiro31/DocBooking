@@ -15,5 +15,9 @@ public class UpdateProfileRequestDTO {
     @Pattern(regexp = "^[0-9]{10}$", message = "Số điện thoại phải gồm 10 chữ số")
     private String phoneNumber;
 
+<<<<<<< tien_task
     private MultipartFile file;
+=======
+    private String avatarUrl;
+>>>>>>> develop-backend
 }
