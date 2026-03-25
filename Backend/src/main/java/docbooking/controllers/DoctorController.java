@@ -6,6 +6,7 @@ import docbooking.security.SecurityUtils;
 import docbooking.services.DoctorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,4 +43,11 @@ public class DoctorController {
 
         return ResponseEntity.ok(doctorService.getMySchedules(currentUser.getUserId()));
     }
+
+    @DeleteMapping("/schedules/{id}")
+    public ResponseEntity<?> deleteSchedule(@PathVariable Integer id) {
+        doctorService.deleteDoctorSchedule(SecurityUtils.getCurrentUser().getUserId(), id);
+        return ResponseEntity.ok("Đã đóng lịch trình thành công!");
+    }
+
 }
