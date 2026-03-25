@@ -59,4 +59,15 @@ public class PatientController {
         AppointmentResponseDTO response = appointmentService.cancelAppointment(currentUser, id);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/history")
+    public ResponseEntity<?> getHistory() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(appointmentService.getPatientHistory(currentUser));
+    }
+
+    @GetMapping("/history/{id}")
+    public ResponseEntity<?> getHistoryDetail(@PathVariable Integer id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(appointmentService.getAppointmentDetail(currentUser, id));
+    }
 }

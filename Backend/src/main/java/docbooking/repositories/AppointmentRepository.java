@@ -13,4 +13,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment,Integer
     long countByBookingStatus(Appointment.BookingStatus bookingStatus);
 
     List<Appointment> findByPatient_UserOrderByCreatedAtDesc(User user);
+
+    List<Appointment> findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(
+            User user, Appointment.BookingStatus status
+    );
 }

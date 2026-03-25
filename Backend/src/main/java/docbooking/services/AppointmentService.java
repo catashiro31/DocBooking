@@ -1,14 +1,14 @@
 package docbooking.services;
 
+import com.zaxxer.hikari.HikariDataSource;
 import docbooking.dtos.requests.AppointmentRequestDTO;
+import docbooking.dtos.responses.AppointmentDetailDTO;
 import docbooking.dtos.responses.AppointmentResponseDTO;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorSchedule;
 import docbooking.models.PatientProfile;
 import docbooking.models.User;
-import docbooking.repositories.AppointmentRepository;
-import docbooking.repositories.DoctorScheduleRepository;
-import docbooking.repositories.PatientProfileRepository;
+import docbooking.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +23,9 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final PatientProfileRepository patientProfileRepository;
     private final DoctorScheduleRepository doctorScheduleRepository;
+    private final HikariDataSource hikariDataSource;
+    private final MedicalResultRepository medicalResultRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     public AppointmentResponseDTO createAppointment(User user, AppointmentRequestDTO req) {
@@ -106,5 +109,49 @@ public class AppointmentService {
         doctorScheduleRepository.save(schedule);
 
         return mapToResponseDTO(appointment);
+    }
+
+    public List<AppointmentResponseDTO> getPatientHistory(User user) {
+        List<Appointment> history = appointmentRepository
+             .findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(user, Appointment.BookingStatus.COMPLETED);
+        return history.stream().map(app->{
+            AppointmentResponseDTO dto = mapToResponseDTO(app);
+            dto.setHasResult(app.getBookingStatus() == Appointment.BookingStatus.COMPLETED);
+            return dto;
+        }).toList();
+    }
+
+    public AppointmentDetailDTO getAppointmentDetail(User user, Integer id) {
+        Appointment app = appointmentRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Khoong tìm thấy lịch hẹn"));
+        if (!app.getPatient().getUser().getUserId().equals(user.getUserId()))
+            throw new RuntimeException("Bạn không có quyền xem chi tiết lịch hẹn này");
+        AppointmentResponseDTO basicInfo = mapToResponseDTO(app);
+        AppointmentDetailDTO detailDTO = new AppointmentDetailDTO();
+        copyBasicData(basicInfo, detailDTO);
+        medicalResultRepository.findByAppointmentId(id).ifPresent(res->{
+            detailDTO.setDiagnosis(res.getDiagnosis());
+            detailDTO.setPrescriptionUrl(res.getPrescriptionUrl());
+            detailDTO.setDoctorNotes(res.getDoctorNotes());
+        });
+        reviewRepository.findByAppointment_Id(id).ifPresent(res->{
+            detailDTO.setRating(res.getRating());
+            detailDTO.setComment(res.getComment());
+        });
+        return detailDTO;
+    }
+    private void copyBasicData(AppointmentResponseDTO source, AppointmentDetailDTO target) {
+        target.setAppointmentId(source.getAppointmentId());
+        target.setPatientName(source.getPatientName());
+        target.setDoctorName(source.getDoctorName());
+        target.setSpecialtyName(source.getSpecialtyName());
+        target.setFacilityName(source.getFacilityName());
+        target.setAddress(source.getAddress());
+        target.setDateWorking(source.getDateWorking());
+        target.setTimeSlot(source.getTimeSlot());
+        target.setTotalAmount(source.getTotalAmount());
+        target.setBookingStatus(source.getBookingStatus());
+        target.setPaymentStatus(source.getPaymentStatus());
+        target.setCreatedAt(source.getCreatedAt());
     }
 }
