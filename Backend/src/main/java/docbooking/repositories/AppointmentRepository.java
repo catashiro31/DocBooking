@@ -34,4 +34,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             @Param("dateTo") LocalDateTime dateTo,
             @Param("status") Appointment.BookingStatus status
     );
+
+    List<Appointment> findByPatient_UserOrderByCreatedAtDesc(User user);
+
+    List<Appointment> findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(
+            User user, Appointment.BookingStatus status
+    );
+
 }
