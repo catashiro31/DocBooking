@@ -1,21 +1,17 @@
 package docbooking.services;
 
-import com.cloudinary.utils.ObjectUtils;
 import docbooking.dtos.AppointmentStats;
 import docbooking.dtos.requests.FacilityRequestDTO;
 import docbooking.dtos.requests.SpecialtyRequestDTO;
 import docbooking.dtos.responses.StatResponseDTO;
 import docbooking.models.*;
 import docbooking.repositories.*;
-import docbooking.utils.HandlingFile;
+import docbooking.utils.EmailUtil;
+import docbooking.utils.FileUtil;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class AdminService {
@@ -25,16 +21,18 @@ public class AdminService {
     private final UserRepository userRepository;
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
-    private final HandlingFile handlingFile;
+    private final FileUtil fileUtil;
+    private final EmailUtil emailUtil;
 
-    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, HandlingFile handlingFile) {
+    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, FileUtil fileUtil, EmailUtil emailUtil) {
         this.doctorDetail = doctorDetail;
         this.patientProfile = patientProfile;
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
         this.specialtyRepository = specialtyRepository;
         this.facilityRepository = facilityRepository;
-        this.handlingFile = handlingFile;
+        this.fileUtil = fileUtil;
+        this.emailUtil = emailUtil;
     }
 
     public StatResponseDTO getStats(LocalDateTime start, LocalDateTime end) {
@@ -62,9 +60,14 @@ public class AdminService {
 
     public DoctorDetail approveDoctor(Integer doctorId) {
         DoctorDetail doctor = doctorDetail.findByDoctorId(doctorId);
+        if (doctor == null) {
+            throw new RuntimeException("Không tìm thấy thông tin bác sĩ với ID: " + doctorId);
+        }
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.APPROVED);
-        doctorDetail.save(doctor);
-        return doctor;
+        String email = doctor.getUser().getEmail();
+        String fullName = doctor.getUser().getFullName();
+        emailUtil.sendDoctorApprovedEmail(email, fullName);
+        return doctorDetail.save(doctor);
     }
 
     public DoctorDetail rejectDoctor(Integer doctorId, String reason) {
@@ -118,7 +121,7 @@ public class AdminService {
                 .address(req.getAddress())
                 .description(req.getDescription())
                 .facilityName(req.getFacilityName())
-                .imageUrl(handlingFile.getUrlFile(req.getFile()))
+                .imageUrl(fileUtil.getUrlFile(req.getFile()))
                 .build();
         return facilityRepository.save(facility);
     }
@@ -128,7 +131,7 @@ public class AdminService {
         facility.setAddress(req.getAddress());
         facility.setFacilityName(req.getFacilityName());
         facility.setDescription(req.getDescription());
-        facility.setImageUrl(handlingFile.getUrlFile(req.getFile()));
+        facility.setImageUrl(fileUtil.getUrlFile(req.getFile()));
         return facilityRepository.save(facility);
     }
 

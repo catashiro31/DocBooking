@@ -8,8 +8,8 @@ import docbooking.models.User;
 import docbooking.repositories.PatientProfileRepository;
 import docbooking.repositories.UserRepository;
 import docbooking.security.JwtTokenProvider;
+import docbooking.utils.EmailUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,7 +29,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final PatientProfileRepository patientProfileRepository;
-    private final EmailService emailService;
+    private final EmailUtil emailUtil;
 
     public SignInResponseDTO signIn(SignInRequestDTO req) {
         if (!userRepository.existsByEmailAndIsActiveTrue(req.getEmail())) {
@@ -70,7 +70,7 @@ public class AuthService {
 
         userRepository.save(newUser);
 
-        emailService.sendSignUpConfirmation(
+        emailUtil.sendSignUpConfirmation(
                 newUser.getEmail(),
                 newUser.getFullName(),
                 newUser.getVerificationCode()

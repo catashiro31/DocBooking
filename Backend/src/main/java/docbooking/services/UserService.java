@@ -1,33 +1,26 @@
 package docbooking.services;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import docbooking.dtos.requests.ChangePasswordRequestDTO;
 import docbooking.dtos.requests.UpdateProfileRequestDTO;
 import docbooking.dtos.responses.ProfileResponseDTO;
 import docbooking.models.User;
 import docbooking.repositories.UserRepository;
-import docbooking.utils.HandlingFile;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import docbooking.utils.FileUtil;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final HandlingFile handlingFile;
+    private final FileUtil fileUtil;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Cloudinary cloudinary, HandlingFile handlingFile) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Cloudinary cloudinary, FileUtil fileUtil) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
-        this.handlingFile = handlingFile;
+        this.fileUtil = fileUtil;
     }
 
     public ProfileResponseDTO getProfile(UserDetails userDetails) {
@@ -51,7 +44,7 @@ public class UserService {
             user.setPhoneNumber(req.getPhoneNumber());
         }
 
-        user.setAvatarUrl(handlingFile.getUrlFile(req.getFile()));
+        user.setAvatarUrl(fileUtil.getUrlFile(req.getFile()));
         User updatedUser = userRepository.save(user);
 
         return ProfileResponseDTO.builder()

@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component // BẮT BUỘC CÓ: Để Spring Boot quản lý và cho phép tiêm (inject) ở nơi khác
-public class HandlingFile {
+public class FileUtil {
 
     private final Cloudinary cloudinary;
 
     // Cần có Constructor để Spring Boot tự động nạp cấu hình Cloudinary vào đây
-    public HandlingFile(Cloudinary cloudinary) {
+    public FileUtil(Cloudinary cloudinary) {
         this.cloudinary = cloudinary;
     }
 
