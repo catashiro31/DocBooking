@@ -24,9 +24,6 @@ public class Specialty {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "image_url")
-    private String imageUrl;
-
     @OneToMany(mappedBy = "specialty", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DoctorDetail> doctorDetails;
 }
