@@ -1,7 +1,9 @@
 import React from 'react';
-import '../styles/DoctorCard.css'; 
+import '../styles/Doctors.css'; 
+import { useNavigate } from 'react-router-dom';
 
 export default function DoctorCard({ doctor }) {
+  const navigate = useNavigate();
   return (
     <div className="card">
       <div className="avatar-wrap">
@@ -30,7 +32,7 @@ export default function DoctorCard({ doctor }) {
           <span className="meta-badge">🎓 {doctor.experience} yrs</span>
           <span className="meta-badge">💰 ₹{doctor.fee}</span>
         </div>
-        <button className="book-btn">Book Appointment</button>
+        <button className="book-btn" onClick={() => navigate(`/appointment/${doctor.id}`)}>Book Appointment</button>
       </div>
     </div>
   );

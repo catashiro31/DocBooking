@@ -5,6 +5,7 @@ import RegisterPage from "./pages/RegisterPage"
 import Doctors from './pages/Doctors'
 import About from "./pages/About"
 import Contact from "./pages/Contact"
+import Appointment from './pages/Appointment';
 import Admin from "./pages/Admin"
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
       <Route path="/doctors" element={<Doctors />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/appointment/:docId" element={<Appointment />} />
       <Route path="/admin/*" element={<Admin />} />
       {/* đường dẫn khác đều cho vào trang Doctors  */}
       <Route path="*" element={<Doctors />} />

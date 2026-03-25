@@ -89,3 +89,22 @@ body {
 .about_container_buttom > div:hover b {
   color: white;
 }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .about_container_top, .about_container_buttom {
+    flex-direction: column;
+    padding: 0 16px;
+    gap: 32px;
+    text-align: center;
+  }
+  .about_left_top img {
+    width: 100%;
+    max-width: 300px;
+  }
+  .about_right_top { max-width: 100%; }
+  .reason {
+    margin-left: 0;
+    text-align: center;
+  }
+}
