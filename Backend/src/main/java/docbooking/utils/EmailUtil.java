@@ -135,4 +135,38 @@ public class EmailUtil {
             System.err.println("Lỗi khi gửi email phê duyệt: " + e.getMessage());
         }
     }
+
+    public void sendPermanentBanEmail(String toEmail, String fullName, String reason) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("[DocBooking] Thông báo: Khóa tài khoản vĩnh viễn");
+
+            String content = String.format(
+                    "Xin chào %s,\n\n" +
+                            "Chúng tôi rất tiếc phải thông báo rằng tài khoản của bạn trên hệ thống DocBooking đã bị KHÓA VĨNH VIỄN, có hiệu lực ngay lập tức.\n\n" +
+                            "LÝ DO VI PHẠM:\n" +
+                            "----------------------------\n" +
+                            "%s\n" +
+                            "----------------------------\n\n" +
+                            "Quyết định này được đưa ra sau khi chúng tôi xem xét kỹ lưỡng các hoạt động trên tài khoản của bạn. Việc khóa vĩnh viễn đồng nghĩa với việc:\n" +
+                            "- Bạn không thể đăng nhập vào hệ thống.\n" +
+                            "- Mọi lịch hẹn hiện có (nếu có) sẽ bị hủy bỏ.\n" +
+                            "- Bạn không được phép đăng ký tài khoản mới bằng thông tin này.\n\n" +
+                            "Nếu bạn cho rằng đây là một sự nhầm lẫn, vui lòng liên hệ với bộ phận hỗ trợ qua email: support@docbooking.com.\n\n" +
+                            "Trân trọng,\n" +
+                            "Ban quản trị hệ thống DocBooking.",
+                    fullName,
+                    (reason != null && !reason.isEmpty()) ? reason : "Vi phạm nghiêm trọng điều khoản sử dụng của hệ thống."
+            );
+
+            message.setText(content);
+            mailSender.send(message);
+            System.out.println("Đã gửi email khóa tài khoản tới: " + toEmail);
+
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi email khóa tài khoản: " + e.getMessage());
+        }
+    }
 }

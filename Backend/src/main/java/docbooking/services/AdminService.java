@@ -87,24 +87,31 @@ public class AdminService {
         return userRepository.getAllUsers();
     }
 
-    public User setBlockedUser(Integer userId, String reason) {
+    @Transactional // Đảm bảo tính nhất quán dữ liệu
+    public String setBlockedUser(Integer userId, String reason) {
         User user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new RuntimeException("Không tìm thấy người dùng với ID: " + userId);
+        }
         user.setIsActive(false);
         user.setReasonBanned(reason);
-        userRepository.save(user);
-        return user;
+        User savedUser = userRepository.save(user);
+        emailUtil.sendPermanentBanEmail(
+                savedUser.getEmail(),
+                savedUser.getFullName(),
+                reason
+        );
+        return "Đã khóa tài khoản id " + userId;
     }
 
     public Specialty addSpecialty(SpecialtyRequestDTO req) {
-        // 1. Chuẩn hóa dữ liệu đầu vào (loại bỏ dấu cách thừa)
         String name = req.getSpecialtyName().trim();
 
-        // 2. Kiểm tra trùng tên
+        // Kiểm tra trùng tên
         if (specialtyRepository.existsBySpecialtyNameIgnoreCase(name)) {
             throw new RuntimeException("Chuyên khoa '" + name + "' đã tồn tại trong hệ thống!");
         }
 
-        // 3. Nếu không trùng thì mới tiến hành Builder và Save
         Specialty specialty = Specialty.builder()
                 .specialtyName(name)
                 .description(req.getDescription())
@@ -115,20 +122,16 @@ public class AdminService {
     }
 
     public Specialty updateSpecialty(Integer specialtyId, SpecialtyRequestDTO req) {
-        // 1. Tìm chuyên khoa hiện tại trong DB
         Specialty specialty = specialtyRepository.findById(specialtyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa!"));
 
-        // 2. Chuẩn hóa tên mới
         String newName = req.getSpecialtyName().trim();
 
-        // 3. KIỂM TRA TRÙNG:
-        // Tìm xem có AI KHÁC (IdNot) đang dùng cái tên (newName) này không
+        // KIỂM TRA TRÙNG:
         if (specialtyRepository.existsBySpecialtyNameIgnoreCaseAndSpecialtyIdNot(newName, specialtyId)) {
             throw new RuntimeException("Tên chuyên khoa '" + newName + "' đã được sử dụng bởi một chuyên khoa khác!");
         }
 
-        // 4. Nếu vượt qua kiểm tra, tiến hành cập nhật
         specialty.setSpecialtyName(newName);
         specialty.setDescription(req.getDescription());
 
