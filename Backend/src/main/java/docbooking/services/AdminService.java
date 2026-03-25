@@ -95,10 +95,20 @@ public class AdminService {
     }
 
     public Specialty addSpecialty(SpecialtyRequestDTO req) {
+        // 1. Chuẩn hóa dữ liệu đầu vào (loại bỏ dấu cách thừa)
+        String name = req.getSpecialtyName().trim();
+
+        // 2. Kiểm tra trùng tên
+        if (specialtyRepository.existsBySpecialtyNameIgnoreCase(name)) {
+            throw new RuntimeException("Chuyên khoa '" + name + "' đã tồn tại trong hệ thống!");
+        }
+
+        // 3. Nếu không trùng thì mới tiến hành Builder và Save
         Specialty specialty = Specialty.builder()
-                .specialtyName(req.getSpecialtyName())
+                .specialtyName(name)
                 .description(req.getDescription())
                 .build();
+
         return specialtyRepository.save(specialty);
     }
 
