@@ -11,5 +11,4 @@ import lombok.*;
 public class SpecialtyRequestDTO {
     private String specialtyName;
     private String description;
-    private String imageUrl;
 }

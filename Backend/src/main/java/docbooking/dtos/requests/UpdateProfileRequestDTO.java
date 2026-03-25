@@ -16,9 +16,5 @@ public class UpdateProfileRequestDTO {
     @Pattern(regexp = "^[0-9]{10}$", message = "Số điện thoại phải gồm 10 chữ số")
     private String phoneNumber;
 
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")
-    private String email;
-
     private String avatarUrl;
 }
