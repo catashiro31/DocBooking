@@ -15,5 +15,5 @@ public  interface FacilityRepository  extends JpaRepository<Facility,Integer> {
 
     boolean existsByFacilityNameIgnoreCaseAndFacilityIdNot(String specialtyName, Integer id);
 
-    List<Facility> findAllAndIsActiveTrue();
+    List<Facility> findAllByIsActiveTrue();
 }

@@ -14,5 +14,5 @@ public interface SpecialtyRepository extends JpaRepository<Specialty, Integer> {
 
     boolean existsBySpecialtyNameIgnoreCaseAndSpecialtyIdNot(String specialtyName, Integer id);
 
-    List<Specialty> findAllAndIsActiveTrue();
+    List<Specialty> findAllByIsActiveTrue();
 }

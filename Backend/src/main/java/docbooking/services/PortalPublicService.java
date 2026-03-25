@@ -32,7 +32,7 @@ public class PortalPublicService {
     private final FacilityRepository facilityRepository;
 
     public List<FacilityResponseDTO> getAllFacilities() {
-        return facilityRepository.findAllAndIsActiveTrue().stream()
+        return facilityRepository.findAllByIsActiveTrue().stream()
                 .map(f -> FacilityResponseDTO.builder()
                         .id(f.getFacilityId())
                         .name(f.getFacilityName())
@@ -43,7 +43,7 @@ public class PortalPublicService {
                 .toList();
     }
     public List<SpecialtyResponseDTO> getAllSpecialties() {
-        return specialtyRepository.findAllAndIsActiveTrue().stream()
+        return specialtyRepository.findAllByIsActiveTrue().stream()
                 .map(s -> SpecialtyResponseDTO.builder()
                         .id(s.getSpecialtyId())
                         .name(s.getSpecialtyName())
