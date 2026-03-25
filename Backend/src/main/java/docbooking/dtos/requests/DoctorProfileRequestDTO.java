@@ -1,9 +1,11 @@
 package docbooking.dtos.requests;
 
+import jakarta.mail.Multipart;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -24,11 +26,11 @@ public class DoctorProfileRequestDTO {
     @NotNull(message = "Vui lòng nhập giá khám")
     private Double price;
 
-    @NotBlank(message = "Vui lòng tải lên ảnh CCCD")
-    private String idCardUrl;
+    @NotNull(message = "Vui lòng tải lên ảnh CCCD")
+    private MultipartFile idCardImage;
 
-    @NotBlank(message = "Vui lòng tải lên ảnh chứng chỉ hành nghề")
-    private String certificateUrl;
+    @NotNull(message = "Vui lòng đính kèm file chứng chỉ!")
+    private MultipartFile certificatePdf;
 
     @NotNull(message = "Vui lòng chọn chuyên khoa")
     private Integer specialtyId;

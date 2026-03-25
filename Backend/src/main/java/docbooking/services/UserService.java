@@ -1,11 +1,12 @@
 package docbooking.services;
 
+import com.cloudinary.Cloudinary;
 import docbooking.dtos.requests.ChangePasswordRequestDTO;
 import docbooking.dtos.requests.UpdateProfileRequestDTO;
 import docbooking.dtos.responses.ProfileResponseDTO;
 import docbooking.models.User;
 import docbooking.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
+import docbooking.utils.FileUtil;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,9 +15,12 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final FileUtil fileUtil;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Cloudinary cloudinary, FileUtil fileUtil) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.fileUtil = fileUtil;
     }
 
     public ProfileResponseDTO getProfile(UserDetails userDetails) {
@@ -32,17 +36,18 @@ public class UserService {
     }
 
     public ProfileResponseDTO updateProfile(User user, UpdateProfileRequestDTO req) {
+        // 1. Cập nhật thông tin Text
         if (req.getFullName() != null && !req.getFullName().isBlank()) {
             user.setFullName(req.getFullName());
         }
         if (req.getPhoneNumber() != null && !req.getPhoneNumber().isBlank()) {
             user.setPhoneNumber(req.getPhoneNumber());
         }
-        if (req.getAvatarUrl() != null && !req.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(req.getAvatarUrl());
-        }
+
+        user.setAvatarUrl(fileUtil.getUrlFile(req.getFile()));
         User updatedUser = userRepository.save(user);
-        return  ProfileResponseDTO.builder()
+
+        return ProfileResponseDTO.builder()
                 .email(updatedUser.getEmail())
                 .fullName(updatedUser.getFullName())
                 .phoneNumber(updatedUser.getPhoneNumber())

@@ -9,13 +9,13 @@ import docbooking.models.User;
 import docbooking.repositories.DoctorDetailRepository;
 import docbooking.repositories.FacilityRepository;
 import docbooking.repositories.SpecialtyRepository;
+import docbooking.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import docbooking.dtos.requests.BulkScheduleRequestDTO;
 import docbooking.models.DoctorSchedule;
 import docbooking.repositories.DoctorScheduleRepository;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +24,8 @@ public class DoctorService {
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
     private final DoctorScheduleRepository doctorScheduleRepository;
+    private final FileUtil fileUtil;
+
     @Transactional
     public String completeProfile(User user, DoctorProfileRequestDTO req) {
         if (doctorDetailRepository.existsByUser(user)) {
@@ -43,8 +45,8 @@ public class DoctorService {
                 .degree(req.getDegree())
                 .experienceYears(req.getExperienceYears())
                 .price(req.getPrice())
-                .idCardUrl(req.getIdCardUrl())
-                .certificateUrl(req.getCertificateUrl())
+                .idCardUrl(fileUtil.getUrlFile(req.getIdCardImage()))
+                .certificateUrl(fileUtil.getUrlFile(req.getCertificatePdf()))
                 .verificationStatus(DoctorDetail.VerificationStatus.PENDING)
                 .ratingAverage(0.0)
                 .reviewCount(0)

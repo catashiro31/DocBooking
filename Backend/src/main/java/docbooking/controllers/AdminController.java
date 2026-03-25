@@ -2,15 +2,21 @@ package docbooking.controllers;
 
 import docbooking.dtos.requests.FacilityRequestDTO;
 import docbooking.dtos.requests.SpecialtyRequestDTO;
+import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
 import docbooking.models.Specialty;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.AdminService;
+import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -23,8 +29,18 @@ public class AdminController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<?> getStats() {
-        return ResponseEntity.ok(adminService.getStats());
+    public ResponseEntity<?> getStats(
+            @RequestParam(value = "startDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime startDate,
+
+            @RequestParam(value = "endDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime endDate
+    ) {
+        // Nếu không truyền, mặc định lấy trong vòng 1 tháng qua
+        if (startDate == null) startDate = LocalDateTime.now().minusMonths(1);
+        if (endDate == null) endDate = LocalDateTime.now();
+
+        return ResponseEntity.ok(adminService.getStats(startDate, endDate));
     }
 
     @GetMapping("/doctor-pending")
@@ -68,12 +84,12 @@ public class AdminController {
     }
 
     @PostMapping("/facility")
-    public ResponseEntity<?> addFacility(@RequestBody FacilityRequestDTO req) {
+    public ResponseEntity<?> addFacility(@Valid @ModelAttribute FacilityRequestDTO req) {
         return ResponseEntity.ok(adminService.addFacility(req));
     }
 
     @PutMapping("/facility/{id}")
-    public ResponseEntity<?> updateFacility(@PathVariable Integer id, @RequestBody FacilityRequestDTO req) {
+    public ResponseEntity<?> updateFacility(@PathVariable Integer id,@Valid @ModelAttribute FacilityRequestDTO req) {
         return ResponseEntity.ok(adminService.updateFacility(id, req));
     }
 
@@ -90,5 +106,31 @@ public class AdminController {
     @PatchMapping("/users/{id}/block")
     public ResponseEntity<?> setBlocked(@PathVariable Integer id, @RequestParam String reason) {
         return ResponseEntity.ok().body(adminService.setBlockedUser(id,reason));
+    }
+
+    @GetMapping("/appointments")
+    public ResponseEntity<?> getAllAppointments(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime dateTo,
+            @RequestParam(required = false) Appointment.BookingStatus status
+    ) {
+        if (dateFrom == null) dateFrom = LocalDateTime.now().minusMonths(1);
+        if (dateTo== null) dateTo = LocalDateTime.now();
+        return ResponseEntity.ok().body(adminService.getAllAppointments(dateFrom, dateTo, status));
+    }
+
+    @PatchMapping("/appointments/{id}/confirm-payment")
+    public ResponseEntity<?> confirmPayment(@PathVariable Integer id) {
+        return ResponseEntity.ok().body(adminService.confirmPayment(id));
+    }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<?> getAllReviews() {
+        return ResponseEntity.ok().body(adminService.getAllReviews());
+    }
+
+    @PatchMapping("/reviews/{id}/hide")
+    public ResponseEntity<?> rejectReview(@PathVariable Integer id) {
+        return ResponseEntity.ok().body(adminService.rejectReview(id));
     }
 }

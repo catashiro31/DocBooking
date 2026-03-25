@@ -1,9 +1,8 @@
 package docbooking.dtos.requests;
-
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -16,5 +15,9 @@ public class UpdateProfileRequestDTO {
     @Pattern(regexp = "^[0-9]{10}$", message = "Số điện thoại phải gồm 10 chữ số")
     private String phoneNumber;
 
+<<<<<<< tien_task
+    private MultipartFile file;
+=======
     private String avatarUrl;
+>>>>>>> develop-backend
 }

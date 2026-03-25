@@ -1,4 +1,5 @@
 package docbooking.models;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -60,12 +61,17 @@ public class User implements UserDetails {
         ADMIN, DOCTOR, PATIENT
     }
 
+    @Column(name = "verification_code")
+    private String verificationCode; // Dùng để lưu mã xác thực (VD: một chuỗi ngẫu nhiên)
+
     @Column(name = "reason_banned")
     private String reasonBanned;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Notification> notifications;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PatientProfile> patientProfiles;
 
