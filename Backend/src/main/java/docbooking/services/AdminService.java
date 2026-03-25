@@ -72,7 +72,6 @@ public class AdminService {
         Specialty specialty = Specialty.builder()
                 .specialtyName(req.getSpecialtyName())
                 .description(req.getDescription())
-                .imageUrl(req.getImageUrl())
                 .build();
         return specialtyRepository.save(specialty);
     }
@@ -80,7 +79,6 @@ public class AdminService {
     public Specialty updateSpecialty(Integer specialtyId, SpecialtyRequestDTO req) {
         Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
         specialty.setDescription(req.getDescription());
-        specialty.setImageUrl(req.getImageUrl());
         specialty.setSpecialtyName(req.getSpecialtyName());
         return  specialtyRepository.save(specialty);
     }
