@@ -23,8 +23,9 @@ public class AdminService {
     private final FacilityRepository facilityRepository;
     private final FileUtil fileUtil;
     private final EmailUtil emailUtil;
+    private final ReviewRepository reviewRepository;
 
-    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, FileUtil fileUtil, EmailUtil emailUtil) {
+    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, FileUtil fileUtil, EmailUtil emailUtil, ReviewRepository reviewRepository) {
         this.doctorDetail = doctorDetail;
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
@@ -32,6 +33,7 @@ public class AdminService {
         this.facilityRepository = facilityRepository;
         this.fileUtil = fileUtil;
         this.emailUtil = emailUtil;
+        this.reviewRepository = reviewRepository;
     }
 
     public StatResponseDTO getStats(LocalDateTime start, LocalDateTime end) {
@@ -250,5 +252,9 @@ public class AdminService {
         );
 
         return "Đã chấp nhận thanh toán thành công";
+    }
+
+    public List<Review> getAllReviews() {
+        return reviewRepository.findAll();
     }
 }

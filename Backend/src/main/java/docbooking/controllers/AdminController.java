@@ -123,4 +123,9 @@ public class AdminController {
     public ResponseEntity<?> confirmPayment(@PathVariable Integer id) {
         return ResponseEntity.ok().body(adminService.confirmPayment(id));
     }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<?> getAllReviews() {
+        return ResponseEntity.ok().body(adminService.getAllReviews());
+    }
 }
