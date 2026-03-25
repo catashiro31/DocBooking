@@ -16,7 +16,6 @@ import java.util.List;
 @Service
 public class AdminService {
     private final DoctorDetailRepository doctorDetail;
-    private final PatientProfileRepository patientProfile;
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
     private final SpecialtyRepository specialtyRepository;
@@ -26,7 +25,6 @@ public class AdminService {
 
     public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, FileUtil fileUtil, EmailUtil emailUtil) {
         this.doctorDetail = doctorDetail;
-        this.patientProfile = patientProfile;
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
         this.specialtyRepository = specialtyRepository;
@@ -72,8 +70,14 @@ public class AdminService {
 
     public DoctorDetail rejectDoctor(Integer doctorId, String reason) {
         DoctorDetail doctor = doctorDetail.findByDoctorId(doctorId);
+        if (doctor == null) {
+            throw new RuntimeException("Không tìm thấy thông tin bác sĩ với ID: " + doctorId);
+        }
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.REJECTED);
         doctor.setReasonReject(reason);
+        String email = doctor.getUser().getEmail();
+        String fullName = doctor.getUser().getFullName();
+        emailUtil.sendDoctorRejectedEmail(email, fullName, reason);
         doctorDetail.save(doctor);
         return doctor;
     }

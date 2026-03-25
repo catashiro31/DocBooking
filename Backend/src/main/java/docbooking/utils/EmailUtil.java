@@ -74,6 +74,37 @@ public class EmailUtil {
         }
     }
 
+    public void sendDoctorRejectedEmail(String toEmail, String fullName, String reason) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("[DocBooking] Thông báo: Hồ sơ bác sĩ chưa được phê duyệt");
+
+            String content = String.format(
+                    "Xin chào Bác sĩ %s,\n\n" +
+                            "Cảm ơn bác sĩ đã quan tâm và gửi hồ sơ đăng ký chuyên môn tại hệ thống DocBooking.\n\n" +
+                            "Sau khi xem xét kỹ lưỡng, chúng tôi rất tiếc phải thông báo rằng hồ sơ của bác sĩ hiện chưa thể được phê duyệt.\n\n" +
+                            "LÝ DO CỤ THỂ:\n" +
+                            "----------------------------\n" +
+                            "%s\n" +
+                            "----------------------------\n\n" +
+                            "Bác sĩ vui lòng đăng nhập lại hệ thống để cập nhật/chỉnh sửa hồ sơ theo lý do nêu trên và gửi lại yêu cầu phê duyệt.\n\n" +
+                            "Trân trọng,\n" +
+                            "Ban quản trị DocBooking.",
+                    fullName,
+                    (reason != null && !reason.isEmpty()) ? reason : "Thông tin hồ sơ chưa đầy đủ hoặc không chính xác."
+            );
+
+            message.setText(content);
+            mailSender.send(message);
+            System.out.println("Đã gửi email từ chối tới: " + toEmail);
+
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi email từ chối: " + e.getMessage());
+        }
+    }
+
     public void sendAppointmentInformation(String toEmail, String fullName, String doctorName, String appointmentTime, String location) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
