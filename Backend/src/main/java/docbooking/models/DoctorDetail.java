@@ -69,6 +69,7 @@ public class DoctorDetail {
         PENDING, APPROVED, REJECTED
     }
 
+    @JsonIgnore
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DoctorSchedule> doctorSchedules;
 

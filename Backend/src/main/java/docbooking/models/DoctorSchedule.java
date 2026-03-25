@@ -1,5 +1,6 @@
 package docbooking.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -19,6 +20,7 @@ public class DoctorSchedule {
     @Column(name = "schedule_id")
     private Integer scheduleId;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id")
     private DoctorDetail doctor;
@@ -56,6 +58,7 @@ public class DoctorSchedule {
         AVAILABLE, BOOKED, CLOSED
     }
 
+    @JsonIgnore
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Appointment> appointments;
 }
