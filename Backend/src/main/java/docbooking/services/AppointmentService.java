@@ -2,13 +2,12 @@ package docbooking.services;
 
 import com.zaxxer.hikari.HikariDataSource;
 import docbooking.dtos.requests.AppointmentRequestDTO;
+import docbooking.dtos.requests.ReviewRequestDTO;
 import docbooking.dtos.responses.AppointmentDetailDTO;
 import docbooking.dtos.responses.AppointmentResponseDTO;
-import docbooking.models.Appointment;
-import docbooking.models.DoctorSchedule;
-import docbooking.models.PatientProfile;
-import docbooking.models.User;
+import docbooking.models.*;
 import docbooking.repositories.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +26,7 @@ public class AppointmentService {
     private final HikariDataSource hikariDataSource;
     private final MedicalResultRepository medicalResultRepository;
     private final ReviewRepository reviewRepository;
+    private final DoctorDetailRepository doctorDetailRepository;
 
     @Transactional
     public AppointmentResponseDTO createAppointment(User user, AppointmentRequestDTO req) {
@@ -153,5 +154,54 @@ public class AppointmentService {
         target.setBookingStatus(source.getBookingStatus());
         target.setPaymentStatus(source.getPaymentStatus());
         target.setCreatedAt(source.getCreatedAt());
+    }
+
+    @Transactional
+    public String saveOrUpdateReview(User user, Integer id, @Valid ReviewRequestDTO req, boolean isUpdate) {
+        Appointment app = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn!"));
+        if (!app.getPatient().getUser().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("Bạn không có quyền đánh giá lịch hẹn này!");
+        }
+        if (app.getBookingStatus() != Appointment.BookingStatus.COMPLETED) {
+            throw new RuntimeException("Bạn chỉ có thể đánh giá sau khi đã hoàn thành buổi khám!");
+        }
+        Optional<Review> existingReview = reviewRepository.findByAppointment_Id(id);
+        Review review;
+        if (isUpdate) {
+            // Đối với PUT: Cập nhật đánh giá cũ
+            review = existingReview.orElseThrow(() -> new RuntimeException("Chưa có đánh giá nào để cập nhật!"));
+        } else {
+            // Đối với POST: Chặn tạo trùng và set hiển thị mặc định
+            if (existingReview.isPresent()) {
+                throw new RuntimeException("Lịch hẹn này đã được đánh giá rồi!");
+            }
+            review = new Review();
+            review.setAppointment(app);
+            review.setIsVisible(true);
+        }
+
+        review.setRating(req.getRating());
+        review.setComment(req.getComment());
+        reviewRepository.save(review);
+
+        updateDoctorStats(app.getSchedule().getDoctor().getDoctorId());
+
+        return isUpdate ? "Cập nhật đánh giá thành công!" : "Gửi đánh giá thành công!";
+    }
+    private void updateDoctorStats(Integer doctorId) {
+        DoctorDetail doctor = doctorDetailRepository.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
+
+        List<Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorId(doctorId);
+        doctor.setReviewCount(reviews.size());
+
+        double average = reviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+        doctor.setRatingAverage(Math.round(average * 10.0) / 10.0);
+
+        doctorDetailRepository.save(doctor);
     }
 }
