@@ -1,11 +1,26 @@
 package docbooking.repositories;
 
+import docbooking.dtos.AppointmentStats;
 import docbooking.models.Appointment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface AppointmentRepository extends JpaRepository<Appointment,Integer> {
+import java.time.LocalDateTime;
+import java.util.List;
 
-    long countByBookingStatus(Appointment.BookingStatus bookingStatus);
+@Repository
+public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
+
+    @Query("SELECT new docbooking.dtos.AppointmentStats( " +
+            "COUNT(CASE WHEN a.bookingStatus = 'COMPLETED' THEN 1 END), " +
+            "COUNT(CASE WHEN a.bookingStatus = 'PENDING' THEN 1 END), " +
+            "COUNT(CASE WHEN a.bookingStatus = 'CANCELLED' THEN 1 END)) " +
+            "FROM Appointment a " +
+            "WHERE a.createdAt BETWEEN :start AND :end")
+    AppointmentStats getAppointmentStatsByPeriod(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }

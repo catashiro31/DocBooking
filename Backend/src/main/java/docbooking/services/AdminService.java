@@ -1,6 +1,7 @@
 package docbooking.services;
 
 import com.cloudinary.utils.ObjectUtils;
+import docbooking.dtos.AppointmentStats;
 import docbooking.dtos.requests.FacilityRequestDTO;
 import docbooking.dtos.requests.SpecialtyRequestDTO;
 import docbooking.dtos.responses.StatResponseDTO;
@@ -10,6 +11,8 @@ import docbooking.utils.HandlingFile;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -18,29 +21,38 @@ import java.util.UUID;
 public class AdminService {
     private final DoctorDetailRepository doctorDetail;
     private final PatientProfileRepository patientProfile;
-    private final AppointmentRepository appointment;
+    private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
     private final HandlingFile handlingFile;
 
-    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, HandlingFile handlingFile) {
+    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, HandlingFile handlingFile) {
         this.doctorDetail = doctorDetail;
         this.patientProfile = patientProfile;
-        this.appointment = appointment;
+        this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
         this.specialtyRepository = specialtyRepository;
         this.facilityRepository = facilityRepository;
         this.handlingFile = handlingFile;
     }
 
-    public StatResponseDTO getStats() {
+    public StatResponseDTO getStats(LocalDateTime start, LocalDateTime end) {
+        // 1. Lấy dữ liệu gộp từ Repo (Chỉ 1 lần truy vấn DB)
+        AppointmentStats appStats = appointmentRepository.getAppointmentStatsByPeriod(start, end);
+
+        // 2. Xử lý nếu appStats bị null (để tránh lỗi .getCompleted() bị null)
+        if (appStats == null) {
+            appStats = new AppointmentStats(0, 0, 0);
+        }
+
+        // 3. Đóng gói vào kết quả trả về
         return StatResponseDTO.builder()
-                .numberOfDoctors(doctorDetail.count())
-                .numberOfPatients(patientProfile.count())
-                .numberOfSuccessAppointments(appointment.countByBookingStatus(Appointment.BookingStatus.COMPLETED))
-                .numberOfPendingAppointments(appointment.countByBookingStatus(Appointment.BookingStatus.PENDING))
-                .numberOfFailingAppointments(appointment.countByBookingStatus(Appointment.BookingStatus.CANCELLED))
+                .numberOfDoctors(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.DOCTOR, start, end))
+                .numberOfPatients(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.PATIENT, start, end))
+                .numberOfSuccessAppointments(appStats.getCompleted())
+                .numberOfPendingAppointments(appStats.getPending())
+                .numberOfFailingAppointments(appStats.getCancelled())
                 .build();
     }
 

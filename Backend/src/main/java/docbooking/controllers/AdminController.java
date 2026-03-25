@@ -8,10 +8,14 @@ import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.AdminService;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -24,8 +28,18 @@ public class AdminController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<?> getStats() {
-        return ResponseEntity.ok(adminService.getStats());
+    public ResponseEntity<?> getStats(
+            @RequestParam(value = "startDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime startDate,
+
+            @RequestParam(value = "endDate", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime endDate
+    ) {
+        // Nếu không truyền, mặc định lấy trong vòng 1 tháng qua
+        if (startDate == null) startDate = LocalDateTime.now().minusMonths(1);
+        if (endDate == null) endDate = LocalDateTime.now();
+
+        return ResponseEntity.ok(adminService.getStats(startDate, endDate));
     }
 
     @GetMapping("/doctor-pending")

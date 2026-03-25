@@ -33,7 +33,7 @@ public class AuthService {
 
     public SignInResponseDTO signIn(SignInRequestDTO req) {
         if (!userRepository.existsByEmailAndIsActiveTrue(req.getEmail())) {
-            throw new RuntimeException("Tài khoản hông tồn tại");
+            throw new RuntimeException("Tài khoản không tồn tại");
         }
 
         try {
