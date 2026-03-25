@@ -4,7 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import HeaderAdmin from "../components/HeaderAdmin";
 import Sidebar from "../components/SidebarAdmin";
 import Dashboard from "../components/Dashboard";
-import Appointments from "../components/Appointments";
+import Appointments from "../components/AppointmentsAdmin";
 import DoctorsListAdmin from "../components/DoctorsListAdmin";
 
 import "../styles/Admin.css";
