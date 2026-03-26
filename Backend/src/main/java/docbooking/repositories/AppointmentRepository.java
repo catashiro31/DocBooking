@@ -2,6 +2,7 @@ package docbooking.repositories;
 
 import docbooking.dtos.AppointmentStats;
 import docbooking.models.Appointment;
+import docbooking.models.Review;
 import docbooking.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,4 +42,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             User user, Appointment.BookingStatus status
     );
 
+    List<Appointment> findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(User user);
 }

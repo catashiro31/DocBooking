@@ -1,7 +1,5 @@
 package docbooking.services;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import docbooking.dtos.responses.*;
 import docbooking.models.DoctorDetail;
 import docbooking.models.DoctorSchedule;
@@ -11,15 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.criteria.Predicate;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -51,7 +45,7 @@ public class PortalPublicService {
                         .build())
                 .toList();
     }
-    public List<DoctorCardDTO> getDoctors(String name , Integer specialityId, Double minPrice, Double maxPrice) {
+    public List<DoctorCardResonseDTO> getDoctors(String name , Integer specialityId, Double minPrice, Double maxPrice) {
         Specification<DoctorDetail> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -73,7 +67,7 @@ public class PortalPublicService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         List <DoctorDetail> doctors = doctorDetailRepository.findAll(specification);
-        return doctors.stream().map(doctor -> DoctorCardDTO.builder()
+        return doctors.stream().map(doctor -> DoctorCardResonseDTO.builder()
                 .doctorName(doctor.getUser().getFullName())
                 .specialtyName(doctor.getSpecialty().getSpecialtyName())
                 .doctorEmail(doctor.getUser().getEmail())
@@ -83,14 +77,14 @@ public class PortalPublicService {
         ).collect(Collectors.toList());
     }
 
-    public DoctorDetailDTO getDoctorById(Integer doctorId){
+    public DoctorDetailResonseDTO getDoctorById(Integer doctorId){
         DoctorDetail doctor = doctorDetailRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Bác sĩ với ID " + doctorId +" không tồn tại!"));
 
         if(doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED){
             throw new RuntimeException("Thông tin bác sĩ này chưa được công khai!");
         }
-        return DoctorDetailDTO.builder()
+        return DoctorDetailResonseDTO.builder()
                 .id(doctor.getDoctorId())
                 .fullName(doctor.getUser().getFullName())
                 .specialtyName(doctor.getSpecialty().getSpecialtyName())
@@ -103,9 +97,9 @@ public class PortalPublicService {
                 .totalReviews(doctor.getReviewCount())
                 .build();
     }
-    public List<ReviewDTO> getReviewsByDoctorId(Integer doctorId){
+    public List<ReviewResponseDTO> getReviewsByDoctorId(Integer doctorId){
         List<Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorIdOrderByCreatedAtDesc(doctorId);
-        return reviews.stream().map(review -> ReviewDTO.builder()
+        return reviews.stream().map(review -> ReviewResponseDTO.builder()
                 .reviewId(review.getReviewId())
                 .rating(review.getRating())
                 .comment(review.getComment())
