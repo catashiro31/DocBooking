@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 @EnableWebSecurity
 @Configuration
@@ -54,10 +55,24 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        // ĐÃ SỬA: Nâng cấp toàn bộ lên cú pháp Lambda DSL của Spring Boot 3.x
+
         httpSecurity
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-                .cors(cors -> cors.disable())
+
+                // ĐÃ SỬA: Cấu hình CORS mở cửa cho Frontend Vite
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    // 1. Chỉ cho phép tên miền/cổng này được gọi API (Điền đúng URL của Frontend)
+                    config.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+                    // 2. Cho phép các method HTTP cơ bản
+                    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    // 3. Cho phép Frontend gửi mọi Header (đặc biệt là cái thẻ Authorization: Bearer...)
+                    config.setAllowedHeaders(java.util.List.of("*"));
+                    // 4. (Tùy chọn) Cho phép gửi Cookie nếu sau này cần
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
+
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

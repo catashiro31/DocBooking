@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReviewDTO {
+public class ReviewResponseDTO {
     private Integer reviewId;
     private Integer rating;
     private String comment;

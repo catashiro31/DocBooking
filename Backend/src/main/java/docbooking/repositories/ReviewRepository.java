@@ -1,6 +1,7 @@
 package docbooking.repositories;
 
 import docbooking.models.Review;
+import docbooking.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Pageable;
@@ -13,4 +14,6 @@ public interface ReviewRepository extends JpaRepository<Review,Integer> {
     List<Review> findByAppointment_Schedule_Doctor_DoctorIdOrderByCreatedAtDesc(Integer doctorId);
 
     Optional<Review> findByAppointment_Id(Integer id);
+    List<Review> findByAppointment_Schedule_Doctor_DoctorId(Integer doctorId);
+    List<Review>findByAppointment_Schedule_Doctor_UserOrderByCreatedAtDesc(User user);
 }

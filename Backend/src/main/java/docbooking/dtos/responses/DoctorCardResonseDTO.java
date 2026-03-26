@@ -6,7 +6,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DoctorCardDTO {
+public class DoctorCardResonseDTO {
     private String doctorName;
     private String specialtyName;
     private String doctorEmail;
