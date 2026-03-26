@@ -42,7 +42,7 @@ public class DoctorController {
     public ResponseEntity<?> getShedules(){
         User currentUser = SecurityUtils.getCurrentUser();
 
-        return ResponseEntity.ok(doctorService.getMySchedules(currentUser.getUserId()));
+        return ResponseEntity.ok(doctorService.getDoctorSchedules(currentUser.getUserId()));
     }
 
     @DeleteMapping("/schedules/{id}")
@@ -60,5 +60,11 @@ public class DoctorController {
     public ResponseEntity<?> updateProfile(@RequestBody ChangeDoctorProfileRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(doctorService.updateDoctorProfile(currentUser, req));
+    }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<?> getReviews() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.getDoctorReviews(currentUser.getUserId()));
     }
 }

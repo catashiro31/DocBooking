@@ -4,20 +4,14 @@ import docbooking.dtos.requests.ChangeDoctorProfileRequestDTO;
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
 import docbooking.dtos.responses.DoctorProfileResponseDTO;
 import docbooking.dtos.responses.DoctorScheduleResponseDTO;
-import docbooking.models.DoctorDetail;
-import docbooking.models.Facility;
-import docbooking.models.Specialty;
-import docbooking.models.User;
-import docbooking.repositories.DoctorDetailRepository;
-import docbooking.repositories.FacilityRepository;
-import docbooking.repositories.SpecialtyRepository;
+import docbooking.dtos.responses.ReviewDTO;
+import docbooking.models.*;
+import docbooking.repositories.*;
 import docbooking.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import docbooking.dtos.requests.BulkScheduleRequestDTO;
-import docbooking.models.DoctorSchedule;
-import docbooking.repositories.DoctorScheduleRepository;
 
 import java.util.List;
 
@@ -29,6 +23,7 @@ public class DoctorService {
     private final FacilityRepository facilityRepository;
     private final DoctorScheduleRepository doctorScheduleRepository;
     private final FileUtil fileUtil;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     public String completeProfile(User user, DoctorProfileRequestDTO req) {
@@ -81,7 +76,7 @@ public class DoctorService {
             doctorScheduleRepository.save(doctorSchedule);
         }
     }
-    public List<DoctorScheduleResponseDTO> getMySchedules(Integer userId) {
+    public List<DoctorScheduleResponseDTO> getDoctorSchedules(Integer userId) {
         DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ"));
         List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctor_DoctorIdOrderByDateWorkingDesc(doctor.getDoctorId());
@@ -141,5 +136,19 @@ public class DoctorService {
         if (req.getPrice() != null) detail.setPrice(req.getPrice());
         DoctorDetail savedDetail = doctorDetailRepository.save(detail);
         return getDoctorProfile(currentUser);
+    }
+
+    public List<ReviewDTO> getDoctorReviews(Integer userId) {
+        DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ!"));
+        List<Review> review = reviewRepository.findByAppointment_Schedule_Doctor_DoctorIdOrderByCreatedAtDesc(doctor.getDoctorId());
+
+        return review.stream().map(reviews -> ReviewDTO.builder()
+                .reviewId(reviews.getReviewId())
+                .rating(reviews.getRating())
+                .comment(reviews.getComment())
+                .patientName(reviews.getAppointment().getPatient().getFullName())
+                .createdAt(reviews.getCreatedAt())
+                .build()).toList();
     }
 }
