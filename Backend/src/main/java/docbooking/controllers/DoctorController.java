@@ -2,6 +2,7 @@ package docbooking.controllers;
 
 import docbooking.dtos.requests.ChangeDoctorProfileRequestDTO;
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
+import docbooking.dtos.requests.MedicalResultRequestDTO;
 import docbooking.models.Appointment;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
@@ -82,5 +83,20 @@ public class DoctorController {
         User currentUser = SecurityUtils.getCurrentUser();
         doctorService.updateAppointmentStatus(currentUser, id, newStatus);
         return ResponseEntity.ok("Cập nhật trạng thái lịch hẹn thành công!");
+    }
+    @PostMapping("/appointment/{id}/result")
+    public ResponseEntity<?> submitResults(
+            @PathVariable Integer id,
+            @ModelAttribute MedicalResultRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.submitMedicalResult(currentUser,id,req));
+    }
+
+    @PutMapping("/appointment/{id}/result")
+    public ResponseEntity<?> updateResults(
+            @PathVariable Integer id,
+            @ModelAttribute MedicalResultRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.updateMedicalResult(currentUser,id,req));
     }
 }

@@ -2,6 +2,7 @@ package docbooking.services;
 
 import docbooking.dtos.requests.ChangeDoctorProfileRequestDTO;
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
+import docbooking.dtos.requests.MedicalResultRequestDTO;
 import docbooking.dtos.responses.*;
 import docbooking.models.*;
 import docbooking.repositories.*;
@@ -182,4 +183,53 @@ public class DoctorService {
         appointment.setBookingStatus(newStatus);
         appointmentRepository.save(appointment);
     }
+
+    @Transactional
+    public String submitMedicalResult(User doctorUser, Integer appointmentId, MedicalResultRequestDTO req) {
+        Appointment app = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn!"));
+
+        if (!app.getSchedule().getDoctor().getUser().getUserId().equals(doctorUser.getUserId())) {
+            throw new RuntimeException("Bạn không có quyền trả kết quả cho lịch hẹn này!");
+        }
+
+        if (medicalResultRepository.findByAppointmentId(appointmentId).isPresent()) {
+            throw new RuntimeException("Lịch hẹn này đã có kết quả khám!");
+        }
+
+        MedicalResult result = MedicalResult.builder()
+                .appointment(app)
+                .diagnosis(req.getDiagnosis())
+                .doctorNotes(req.getDoctorNotes())
+                .prescriptionUrl(fileUtil.getUrlFile(req.getPrescriptionFile()))
+                .build();
+
+        medicalResultRepository.save(result);
+
+        app.setBookingStatus(Appointment.BookingStatus.COMPLETED);
+        appointmentRepository.save(app);
+
+        return "Đã trả kết quả khám thành công!";
+    }
+
+    @Transactional
+    public String updateMedicalResult(User doctorUser, Integer appointmentId, MedicalResultRequestDTO req) {
+        MedicalResult result = medicalResultRepository.findByAppointmentId(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Chưa có kết quả khám để chỉnh sửa!"));
+
+        if (!result.getAppointment().getSchedule().getDoctor().getUser().getUserId().equals(doctorUser.getUserId())) {
+            throw new RuntimeException("Bạn không có quyền chỉnh sửa kết quả này!");
+        }
+
+        if (req.getDiagnosis() != null) result.setDiagnosis(req.getDiagnosis());
+        if (req.getDoctorNotes() != null) result.setDoctorNotes(req.getDoctorNotes());
+
+        if (req.getPrescriptionFile() != null && !req.getPrescriptionFile().isEmpty()) {
+            result.setPrescriptionUrl(fileUtil.getUrlFile(req.getPrescriptionFile()));
+        }
+
+        medicalResultRepository.save(result);
+        return "Đã cập nhật kết quả khám!";
+    }
+
 }
