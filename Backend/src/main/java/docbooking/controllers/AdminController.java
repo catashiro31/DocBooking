@@ -4,13 +4,18 @@ import docbooking.dtos.requests.FacilityRequestDTO;
 import docbooking.dtos.requests.SpecialtyRequestDTO;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
+import docbooking.models.Specialty;
+import docbooking.models.User;
+import docbooking.security.SecurityUtils;
 import docbooking.services.AdminService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @RestController

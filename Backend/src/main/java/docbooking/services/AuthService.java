@@ -43,18 +43,12 @@ public class AuthService {
 
             String jwt = jwtTokenProvider.createToken(authentication);
             long expiration = jwtTokenProvider.getJwtExpiration();
-            User currentUser = userRepository.findByEmail(req.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Lỗi truy xuất dữ liệu"));
-
-            String role = currentUser.getRole().name();
-
-            return new SignInResponseDTO(jwt, expiration, role);
+            return new SignInResponseDTO(jwt, expiration);
 
         } catch (BadCredentialsException e) {
             throw new RuntimeException("Sai mật khẩu");
         }
     }
-
     @Transactional
     public String signUp(SignUpRequestDTO req) {
         if (userRepository.existsByEmail(req.getEmail())) {

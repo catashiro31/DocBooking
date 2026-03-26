@@ -3,10 +3,11 @@ import docbooking.dtos.requests.ChangePasswordRequestDTO;
 import docbooking.dtos.requests.UpdateProfileRequestDTO;
 import docbooking.dtos.responses.ProfileResponseDTO;
 import docbooking.models.User;
-import docbooking.utils.SecurityUtils;
+import docbooking.security.SecurityUtils;
 import docbooking.services.UserService;
 import jakarta.validation.Valid;
 import lombok.Builder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
