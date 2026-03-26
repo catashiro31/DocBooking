@@ -11,7 +11,7 @@ export const login = async(email, password) => { //hàm nhận emai, password g�
 
 export const logout = async() => {
     const refeshToke = localStorage.getItem("refeshToken") //yêu cầu refechToken hủy token
-    await api.post("/auth/sigout", {refeshToke})
+    await api.post("/auth/signout", {refeshToke})
     localStorage.removeItem("accessToken")
     localStorage.removeItem("refeshToken")
 }

@@ -1,10 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom"
-import LogninPage from "./pages/LogninPage"
+import LoginPage from "./pages/LoginPage"
 import HomePage from "./pages/HomePage"
 import RegisterPage from "./pages/RegisterPage"
 import Doctors from './pages/Doctors'
 import About from "./pages/About"
 import Contact from "./pages/Contact"
+import Appointment from './pages/Appointment';
 import Admin from "./pages/Admin"
 import DoctorProfile from "./pages/DoctorProfile"
 
@@ -16,8 +17,8 @@ function App() {
     <Routes>
 
       {/* ✅ KHÔNG CHẶN LOGIN */}
-      <Route path="/signin" element={<LogninPage />} />
-      <Route path="/sigout" element={<RegisterPage />} />
+      <Route path="/signin" element={<LoginPage />} />
+      <Route path="/signout" element={<RegisterPage />} />
 
       {/* ✅ HOME */}
       <Route
@@ -46,6 +47,7 @@ function App() {
       <Route path="/doctors" element={<Doctors />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/appointment/:docId" element={<Appointment />} />
       <Route path="/admin/*" element={<Admin />} />
 
       {/* ❗ QUAN TRỌNG: KHÔNG redirect lung tung */}

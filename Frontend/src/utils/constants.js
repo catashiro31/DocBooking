@@ -1,10 +1,10 @@
 export const SPECIALTIES = [
-  "General Physician",
-  "Gynecologist",
-  "Dermatologist",
-  "Pediatrician",
-  "Neurologist",
-  "Gastroenterologist",
+  "Bác sĩ đa khoa",
+  "Bác sĩ phụ khoa",
+  "Bác sĩ da liễu",
+  "Bác sĩ nhi khoa",
+  "Nhà thần kinh học",
+  "Bác sĩ chuyên khoa tiêu hóa",
 ];
  
 export const DOCTORS_DATA = [
