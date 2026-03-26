@@ -53,7 +53,7 @@ export default function Appointment() {
     }
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      navigate('/login');
+      navigate('/signin');
       return;
     }
     try {
