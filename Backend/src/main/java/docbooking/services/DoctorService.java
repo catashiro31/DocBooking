@@ -2,23 +2,17 @@ package docbooking.services;
 
 import docbooking.dtos.requests.ChangeDoctorProfileRequestDTO;
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
-import docbooking.dtos.responses.DoctorProfileResponseDTO;
-import docbooking.dtos.responses.DoctorScheduleResponseDTO;
-import docbooking.models.DoctorDetail;
-import docbooking.models.Facility;
-import docbooking.models.Specialty;
-import docbooking.models.User;
-import docbooking.repositories.DoctorDetailRepository;
-import docbooking.repositories.FacilityRepository;
-import docbooking.repositories.SpecialtyRepository;
+import docbooking.dtos.requests.MedicalResultRequestDTO;
+import docbooking.dtos.responses.*;
+import docbooking.models.*;
+import docbooking.repositories.*;
 import docbooking.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import docbooking.dtos.requests.BulkScheduleRequestDTO;
-import docbooking.models.DoctorSchedule;
-import docbooking.repositories.DoctorScheduleRepository;
 
+import javax.print.Doc;
 import java.util.List;
 
 @Service
@@ -29,6 +23,9 @@ public class DoctorService {
     private final FacilityRepository facilityRepository;
     private final DoctorScheduleRepository doctorScheduleRepository;
     private final FileUtil fileUtil;
+    private final ReviewRepository reviewRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final MedicalResultRepository medicalResultRepository;
 
     @Transactional
     public String completeProfile(User user, DoctorProfileRequestDTO req) {
@@ -81,7 +78,7 @@ public class DoctorService {
             doctorScheduleRepository.save(doctorSchedule);
         }
     }
-    public List<DoctorScheduleResponseDTO> getMySchedules(Integer userId) {
+    public List<DoctorScheduleResponseDTO> getDoctorSchedules(Integer userId) {
         DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ"));
         List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctor_DoctorIdOrderByDateWorkingDesc(doctor.getDoctorId());
@@ -142,4 +139,97 @@ public class DoctorService {
         DoctorDetail savedDetail = doctorDetailRepository.save(detail);
         return getDoctorProfile(currentUser);
     }
+
+    public List<ReviewResponseDTO> getDoctorReviews(User user) {
+        List<Review> review = reviewRepository.findByAppointment_Schedule_Doctor_UserOrderByCreatedAtDesc(user);
+
+        return review.stream().map(reviews -> ReviewResponseDTO.builder()
+                .reviewId(reviews.getReviewId())
+                .rating(reviews.getRating())
+                .comment(reviews.getComment())
+                .patientName(reviews.getAppointment().getPatient().getFullName())
+                .createdAt(reviews.getCreatedAt())
+                .build()).toList();
+    }
+
+    public List<DoctorAppointmentResponseDTO> getDoctorAppointment(User user) {
+        List<Appointment> appointment = appointmentRepository.findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(user);
+        return appointment.stream().map(app -> {
+            DoctorSchedule schedule = app.getSchedule();
+            PatientProfile patient = app.getPatient();
+            return DoctorAppointmentResponseDTO.builder()
+                    .appointmentId(app.getId())
+                    .patientName(patient.getFullName())
+                    .patientPhoneNumber(patient.getPhoneNumber())
+                    .patientGender(patient.getGender() != null ? patient.getGender().name() : null)
+                    .dateWorking(schedule.getDateWorking())
+                    .timeSlot(schedule.getTimeSlot().name())
+                    .reason(app.getReason())
+                    .bookingStatus(app.getBookingStatus().name())
+                    .paymentStatus(app.getPaymentStatus().name())
+                    .createdAt(app.getCreatedAt())
+                    .build();
+        }).toList();
+    }
+
+    @Transactional
+    public void updateAppointmentStatus(User user, Integer appointmentId, Appointment.BookingStatus newStatus) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cuộc hẹn!"));
+        Integer ownerId = appointment.getSchedule().getDoctor().getUser().getUserId();
+        if(!ownerId.equals(user.getUserId())) {
+            throw new RuntimeException("Bạn không có quyền chỉnh sửa cuộc hẹn này!");
+        }
+        appointment.setBookingStatus(newStatus);
+        appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public String submitMedicalResult(User doctorUser, Integer appointmentId, MedicalResultRequestDTO req) {
+        Appointment app = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn!"));
+
+        if (!app.getSchedule().getDoctor().getUser().getUserId().equals(doctorUser.getUserId())) {
+            throw new RuntimeException("Bạn không có quyền trả kết quả cho lịch hẹn này!");
+        }
+
+        if (medicalResultRepository.findByAppointmentId(appointmentId).isPresent()) {
+            throw new RuntimeException("Lịch hẹn này đã có kết quả khám!");
+        }
+
+        MedicalResult result = MedicalResult.builder()
+                .appointment(app)
+                .diagnosis(req.getDiagnosis())
+                .doctorNotes(req.getDoctorNotes())
+                .prescriptionUrl(fileUtil.getUrlFile(req.getPrescriptionFile()))
+                .build();
+
+        medicalResultRepository.save(result);
+
+        app.setBookingStatus(Appointment.BookingStatus.COMPLETED);
+        appointmentRepository.save(app);
+
+        return "Đã trả kết quả khám thành công!";
+    }
+
+    @Transactional
+    public String updateMedicalResult(User doctorUser, Integer appointmentId, MedicalResultRequestDTO req) {
+        MedicalResult result = medicalResultRepository.findByAppointmentId(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Chưa có kết quả khám để chỉnh sửa!"));
+
+        if (!result.getAppointment().getSchedule().getDoctor().getUser().getUserId().equals(doctorUser.getUserId())) {
+            throw new RuntimeException("Bạn không có quyền chỉnh sửa kết quả này!");
+        }
+
+        if (req.getDiagnosis() != null) result.setDiagnosis(req.getDiagnosis());
+        if (req.getDoctorNotes() != null) result.setDoctorNotes(req.getDoctorNotes());
+
+        if (req.getPrescriptionFile() != null && !req.getPrescriptionFile().isEmpty()) {
+            result.setPrescriptionUrl(fileUtil.getUrlFile(req.getPrescriptionFile()));
+        }
+
+        medicalResultRepository.save(result);
+        return "Đã cập nhật kết quả khám!";
+    }
+
 }

@@ -2,6 +2,8 @@ package docbooking.controllers;
 
 import docbooking.dtos.requests.ChangeDoctorProfileRequestDTO;
 import docbooking.dtos.requests.DoctorProfileRequestDTO;
+import docbooking.dtos.requests.MedicalResultRequestDTO;
+import docbooking.models.Appointment;
 import docbooking.models.User;
 import docbooking.security.SecurityUtils;
 import docbooking.services.DoctorService;
@@ -42,7 +44,7 @@ public class DoctorController {
     public ResponseEntity<?> getShedules(){
         User currentUser = SecurityUtils.getCurrentUser();
 
-        return ResponseEntity.ok(doctorService.getMySchedules(currentUser.getUserId()));
+        return ResponseEntity.ok(doctorService.getDoctorSchedules(currentUser.getUserId()));
     }
 
     @DeleteMapping("/schedules/{id}")
@@ -60,5 +62,41 @@ public class DoctorController {
     public ResponseEntity<?> updateProfile(@RequestBody ChangeDoctorProfileRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(doctorService.updateDoctorProfile(currentUser, req));
+    }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<?> getReviews() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.getDoctorReviews(currentUser));
+    }
+
+    @GetMapping("/appointment")
+    public ResponseEntity<?> getAppointment() {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.getDoctorAppointment(currentUser));
+    }
+
+    @PutMapping("/appointment/{id}/status")
+    public ResponseEntity<?> updateBookStatus(
+            @PathVariable Integer id,
+            @RequestParam(name = "status") Appointment.BookingStatus newStatus) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        doctorService.updateAppointmentStatus(currentUser, id, newStatus);
+        return ResponseEntity.ok("Cập nhật trạng thái lịch hẹn thành công!");
+    }
+    @PostMapping("/appointment/{id}/result")
+    public ResponseEntity<?> submitResults(
+            @PathVariable Integer id,
+            @ModelAttribute MedicalResultRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.submitMedicalResult(currentUser,id,req));
+    }
+
+    @PutMapping("/appointment/{id}/result")
+    public ResponseEntity<?> updateResults(
+            @PathVariable Integer id,
+            @ModelAttribute MedicalResultRequestDTO req) {
+        User currentUser = SecurityUtils.getCurrentUser();
+        return ResponseEntity.ok(doctorService.updateMedicalResult(currentUser,id,req));
     }
 }
