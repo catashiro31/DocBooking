@@ -4,8 +4,7 @@ import Header from '../components/Header';
 import BookingSlots from '../components/Booking';
 import RelatedDoctors from '../components/Related';
 import { doctorService } from '../services/doctorService';
-import '../styles/Appointment.css';
-import Footer from '../components/footer';
+import Footer from '../components/Footer';
 
 export default function Appointment() {
   const { docId } = useParams();
@@ -54,7 +53,7 @@ export default function Appointment() {
     }
     const token = localStorage.getItem('accessToken');
     if (!token) {
-      navigate('/login');
+      navigate('/signin');
       return;
     }
     try {
