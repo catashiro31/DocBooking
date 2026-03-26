@@ -9,7 +9,7 @@ function RegisterPage() {
     const [password, setPassword] = useState("")
     const [fullName, setFullName] = useState("")
     const [confirm, setConfirm] = useState("")
-    const [phone, setPhone] = useState("")
+    const [phoneNumber, setPhoneNumber] = useState("")
     const [role, setRole] = useState("")
 
     const navigate = useNavigate()
@@ -23,14 +23,17 @@ function RegisterPage() {
         try {
             await register(email, password, fullName, confirm, phone, role)
             alert("Đăng ký thành công")
+
             const res = await login(email, password)
             const userRole = res.role
+
             if (userRole === "DOCTOR")
                 navigate("/doctor-dashboard")
             else
                 navigate("/booking")
+
         } catch (error) {
-            console.error("Không thể đăng ký", error)
+            alert(error.response.data);
         }
     }
 
@@ -124,9 +127,6 @@ function RegisterPage() {
                         placeholder="Số điện thoại"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        style={inputStyle}
-                        onFocus={e => e.target.style.borderBottom = '2px solid #5f6dfc'}
-                        onBlur={e => e.target.style.borderBottom = '1px solid #ccc'}
                     />
 
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>

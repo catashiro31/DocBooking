@@ -1,27 +1,23 @@
 import api from "./api"
 
-export const login = async(email, password) => { //hàm nhận emai, password gửi lên server
+export const login = async(email, password) => {
     const res = await api.post("/auth/signin", {
         email, password
     });
-    localStorage.setItem("accessToken", res.data.accessToken);
-    // ĐÃ SỬA: refreshToken thay vì refeshToke
-    localStorage.setItem("refreshToken", res.data.refreshToken); 
+    const token = res.data.token;
+    localStorage.setItem("token", token); 
     return res.data;
 }
 
 export const logout = async() => {
-    const refeshToke = localStorage.getItem("refeshToken") //yêu cầu refechToken hủy token
-    await api.post("/auth/signout", {refeshToke})
-    localStorage.removeItem("accessToken")
-    localStorage.removeItem("refeshToken")
+    const token = localStorage.getItem("token")
+    await api.post("/auth/signout", {token})
+    localStorage.removeItem("token")
 }
 
-export const register = async(email, password, fullName, confirm, phone, role) => { //hàm gửi emai, password,... gửi lên server
+export const register = async(email, password, fullName, confirm, phoneNumber, role) => {
     const res = await api.post("/auth/signup", {
-        email, password, fullName, confirm, phone, role
+        email, password, fullName, confirm, phoneNumber, role
     })
-    localStorage.setItem("accessToken", res.data.accessToken)
-    localStorage.setItem("refeshToken", res.data.refeshToke)
     return res.data
 }
