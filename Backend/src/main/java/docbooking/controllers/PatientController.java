@@ -14,6 +14,7 @@ import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("api/v1/patient")
@@ -89,5 +90,10 @@ public class PatientController {
     public ResponseEntity<?> updateReview(@PathVariable Integer id, @Valid @RequestBody ReviewRequestDTO req) {
         User currentUser = SecurityUtils.getCurrentUser();
         return ResponseEntity.ok(appointmentService.saveOrUpdateReview(currentUser, id, req, true));
+    }
+
+    @PostMapping("/appointments/{id}/payment-proof")
+    public ResponseEntity<?> uploadPaymentImage(@PathVariable Integer id, @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(appointmentService.uploadPaymentImage(id, file));
     }
 }

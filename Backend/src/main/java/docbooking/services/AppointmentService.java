@@ -7,10 +7,13 @@ import docbooking.dtos.responses.AppointmentDetailDTO;
 import docbooking.dtos.responses.AppointmentResponseDTO;
 import docbooking.models.*;
 import docbooking.repositories.*;
+import docbooking.utils.FileUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,6 +30,7 @@ public class AppointmentService {
     private final MedicalResultRepository medicalResultRepository;
     private final ReviewRepository reviewRepository;
     private final DoctorDetailRepository doctorDetailRepository;
+    private final FileUtil fileUtil;
 
     @Transactional
     public AppointmentResponseDTO createAppointment(User user, AppointmentRequestDTO req) {
@@ -203,5 +207,14 @@ public class AppointmentService {
         doctor.setRatingAverage(Math.round(average * 10.0) / 10.0);
 
         doctorDetailRepository.save(doctor);
+    }
+
+    public String uploadPaymentImage(Integer id, MultipartFile file) {
+        String url = fileUtil.getUrlFile(file);
+        Appointment app = appointmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy cuộc hẹn mã: " + id));
+        app.setPaymentEvidenceUrl(url);
+        app.setPaymentStatus(Appointment.PaymentStatus.PENDING_CHECK);
+        return "Minh chứng thanh toán đã được gửi";
     }
 }

@@ -2,7 +2,6 @@ package docbooking.repositories;
 
 import docbooking.dtos.AppointmentStats;
 import docbooking.models.Appointment;
-import docbooking.models.Review;
 import docbooking.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
@@ -43,4 +43,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     );
 
     List<Appointment> findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(User user);
+
+    Optional<Appointment> findById(Integer id);
 }
