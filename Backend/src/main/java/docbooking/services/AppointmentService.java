@@ -7,6 +7,7 @@ import docbooking.dtos.responses.AppointmentDetailDTO;
 import docbooking.dtos.responses.AppointmentResponseDTO;
 import docbooking.models.*;
 import docbooking.repositories.*;
+import docbooking.security.SecurityUtils;
 import docbooking.utils.FileUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -209,10 +210,14 @@ public class AppointmentService {
         doctorDetailRepository.save(doctor);
     }
 
-    public String uploadPaymentImage(Integer id, MultipartFile file) {
+    public String uploadPaymentImage(Integer id, MultipartFile file, User currentUser) {
         String url = fileUtil.getUrlFile(file);
         Appointment app = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy cuộc hẹn mã: " + id));
+
+        if (app.getPatient().getUser().getUserId().equals(currentUser.getUserId())) {
+            throw new RuntimeException("Bạn không có quyền thực hiện hành động này!");
+        }
         app.setPaymentEvidenceUrl(url);
         app.setPaymentStatus(Appointment.PaymentStatus.PENDING_CHECK);
         return "Minh chứng thanh toán đã được gửi";
