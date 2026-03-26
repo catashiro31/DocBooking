@@ -43,6 +43,4 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     );
 
     List<Appointment> findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(User user);
-
-    Optional<Appointment> findById(Integer id);
 }
