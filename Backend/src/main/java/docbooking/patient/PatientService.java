@@ -1,12 +1,10 @@
 package docbooking.patient;
 
-import com.zaxxer.hikari.HikariDataSource;
 import docbooking.models.*;
 import docbooking.patient.requests.Relative;
 import docbooking.patient.requests.Review;
 import docbooking.patient.responses.AppointmentDetail;
 import docbooking.repositories.*;
-import docbooking.utils.ConvertUrl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
