@@ -7,10 +7,13 @@ import docbooking.dtos.responses.AppointmentDetailDTO;
 import docbooking.dtos.responses.AppointmentResponseDTO;
 import docbooking.models.*;
 import docbooking.repositories.*;
+import docbooking.utils.FileUtil;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,6 +30,7 @@ public class AppointmentService {
     private final MedicalResultRepository medicalResultRepository;
     private final ReviewRepository reviewRepository;
     private final DoctorDetailRepository doctorDetailRepository;
+    private final FileUtil fileUtil;
 
     @Transactional
     public AppointmentResponseDTO createAppointment(User user, AppointmentRequestDTO req) {
