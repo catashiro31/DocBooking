@@ -61,4 +61,7 @@ public class DoctorSchedule {
     @JsonIgnore
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Appointment> appointments;
+
+    @Version
+    private Integer version;
 }

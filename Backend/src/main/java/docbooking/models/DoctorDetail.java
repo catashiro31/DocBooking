@@ -73,6 +73,5 @@ public class DoctorDetail {
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DoctorSchedule> doctorSchedules;
 
-    @Version
-    private Integer version;
+
 }
