@@ -1,15 +1,13 @@
 package docbooking.security;
 
+import docbooking.models.User; // Nhớ import class User của bạn
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -17,8 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
-@Getter
-@Setter
 @Component
 @Slf4j
 public class JwtTokenProvider {
@@ -34,18 +30,20 @@ public class JwtTokenProvider {
     }
 
     public String createToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        // 🔥 Ép kiểu về Entity User để lấy ID (thay vì dùng UserDetails)
+        User user = (User) authentication.getPrincipal();
+
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date())
+                // 🔥 Lưu ID vào Subject của Token
+                .setSubject(String.valueOf(user.getUserId())) // Đổi thành user.getId() tùy model của bạn
+                .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey(),SignatureAlgorithm.HS512)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
-
 
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -55,28 +53,18 @@ public class JwtTokenProvider {
         return null;
     }
 
-
     public boolean validateToken(String token) {
-        // Check if the token is valid and not expired
         try {
             Jwts.parser().setSigningKey(getSigningKey()).parseClaimsJws(token);
             return true;
-        } catch (MalformedJwtException ex) {
-            log.error("Invalid JWT token");
-        } catch (ExpiredJwtException ex) {
-            log.error("Expired JWT token");
-        } catch (UnsupportedJwtException ex) {
-            log.error("Unsupported JWT token");
-        } catch (IllegalArgumentException ex) {
-            log.error("JWT claims string is empty");
-        } catch (SignatureException e) {
-            log.error("there is an error with the signature of you token ");
+        } catch (Exception ex) {
+            log.error("JWT token validation failed: {}", ex.getMessage());
         }
         return false;
     }
 
-    public String getUsername(String token) {
-        // Extract the username from the JWT token
+    // 🔥 Đổi tên hàm cho chuẩn vì giờ nó trả về ID
+    public String getUserIdFromToken(String token) {
         return Jwts.parser()
                 .setSigningKey(getSigningKey())
                 .parseClaimsJws(token)
