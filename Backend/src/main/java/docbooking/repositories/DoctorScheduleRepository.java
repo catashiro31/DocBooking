@@ -11,6 +11,7 @@ import docbooking.models.DoctorSchedule.TimeSlot;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule,Integer> {
@@ -29,4 +30,10 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule,I
             TimeSlot timeSlot
     );
     List<DoctorSchedule> findByDoctor_DoctorIdOrderByDateWorkingDesc(Integer doctorId);
+
+    Optional<DoctorSchedule> findByDoctor_DoctorIdAndDateWorkingAndTimeSlot(
+            Integer doctorId,
+            LocalDate dateWorking,
+            DoctorSchedule.TimeSlot timeSlot
+    );
 }
