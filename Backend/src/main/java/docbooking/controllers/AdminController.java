@@ -119,7 +119,6 @@ public class AdminController {
         return ResponseEntity.ok().body(adminService.getAllAppointments(dateFrom, dateTo, status));
     }
 
-
     @GetMapping("/reviews")
     public ResponseEntity<?> getAllReviews() {
         return ResponseEntity.ok().body(adminService.getAllReviews());

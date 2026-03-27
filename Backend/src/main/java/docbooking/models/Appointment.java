@@ -47,8 +47,6 @@ public class Appointment {
     private LocalDateTime updatedAt;
 
     public enum BookingStatus {
-        PENDING, CONFIRMED, COMPLETED, CANCELLED
+        PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
     }
-
-
 }

@@ -222,8 +222,6 @@ public class AdminService {
         return appointments;
     }
 
-
-
     public List<Review> getAllReviews() {
         return reviewRepository.findAll();
     }

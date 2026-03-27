@@ -92,8 +92,4 @@ public class PatientController {
         return ResponseEntity.ok(appointmentService.saveOrUpdateReview(currentUser, id, req, true));
     }
 
-    @PostMapping("/appointments/{id}/payment-proof")
-    public ResponseEntity<?> uploadPaymentImage(@PathVariable Integer id, @RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(appointmentService.uploadPaymentImage(id, file));
-    }
 }

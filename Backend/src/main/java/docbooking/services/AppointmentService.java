@@ -7,6 +7,7 @@ import docbooking.dtos.responses.AppointmentDetailDTO;
 import docbooking.dtos.responses.AppointmentResponseDTO;
 import docbooking.models.*;
 import docbooking.repositories.*;
+import docbooking.security.SecurityUtils;
 import docbooking.utils.FileUtil;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -216,6 +217,4 @@ public class AppointmentService {
 
         doctorDetailRepository.save(doctor);
     }
-
-
 }
