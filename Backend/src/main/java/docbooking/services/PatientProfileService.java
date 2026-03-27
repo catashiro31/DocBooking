@@ -2,8 +2,10 @@ package docbooking.services;
 
 import docbooking.dtos.requests.RelativeRequestDTO;
 import docbooking.dtos.responses.RelativeResponseDTO;
+import docbooking.models.Appointment;
 import docbooking.models.PatientProfile;
 import docbooking.models.User;
+import docbooking.repositories.AppointmentRepository;
 import docbooking.repositories.PatientProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PatientProfileService {
     private final PatientProfileRepository patientProfileRepository;
+    private final AppointmentRepository appointmentRepository;
     public RelativeResponseDTO addRelative(User user, RelativeRequestDTO req){
         if (patientProfileRepository.existsByFullNameAndPhoneNumberAndUserAndIsActiveTrue(
                 req.getFullName(), req.getPhoneNumber(), user)) {
@@ -80,6 +83,14 @@ public class PatientProfileService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ hoặc hồ sơ đã bị xóa!"));
         if ("SELF".equals(profile.getRelationship())) {
             throw new RuntimeException("Không thể xóa hồ sơ chính!");
+        }
+        List<Appointment.BookingStatus> activeStatuses = List.of(
+                Appointment.BookingStatus.PENDING,
+                Appointment.BookingStatus.CONFIRMED
+        );
+
+        if (appointmentRepository.existsByPatient_PatientIdAndBookingStatusIn(id, activeStatuses)) {
+            throw new RuntimeException("Không thể xóa hồ sơ này vì đang có lịch hẹn chưa hoàn thành. Vui lòng hủy lịch hẹn trước!");
         }
         profile.setIsActive(false);
         patientProfileRepository.save(profile);

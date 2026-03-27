@@ -43,6 +43,12 @@ public class AppointmentService {
         LocalDate today = LocalDate.now();
         if (schedule.getDateWorking().isBefore(today))
             throw new RuntimeException("Không thể đặt lịch cho những ngày trong quá khứ!");
+        if (appointmentRepository.existsOverlappingAppointment(
+                profile.getPatientId(),
+                schedule.getDateWorking(),
+                schedule.getTimeSlot())) {
+            throw new RuntimeException("Hồ sơ bệnh nhân này đã có một lịch hẹn khác vào cùng thời gian!");
+        }
         schedule.setSlotStatus(DoctorSchedule.SlotStatus.BOOKED);
         doctorScheduleRepository.save(schedule);
 
@@ -51,9 +57,6 @@ public class AppointmentService {
                 .schedule(schedule)
                 .reason(req.getReason())
                 .bookingStatus(Appointment.BookingStatus.PENDING)
-                .paymentStatus(Appointment.PaymentStatus.UNPAID)
-                .totalAmount(schedule.getDoctor().getPrice())
-                .holdExpiresAt(LocalDateTime.now().plusHours(2))
                 .createdAt(LocalDateTime.now())
                 .build();
         Appointment savedAppointment = appointmentRepository.save(appointment);
@@ -77,9 +80,8 @@ public class AppointmentService {
                 .dateWorking(schedule.getDateWorking())
                 .timeSlot(schedule.getTimeSlot().name())
 
-                .totalAmount(app.getTotalAmount())
+
                 .bookingStatus(app.getBookingStatus().name())
-                .paymentStatus(app.getPaymentStatus().name())
                 .createdAt(app.getCreatedAt())
                 .build();
 
@@ -105,13 +107,21 @@ public class AppointmentService {
         if (appointment.getBookingStatus() == Appointment.BookingStatus.COMPLETED) {
             throw new RuntimeException("Không thể hủy lịch hẹn đã hoàn thành.");
         }
+        if (appointment.getBookingStatus() == Appointment.BookingStatus.CONFIRMED) {
+            LocalDate dateWorking = appointment.getSchedule().getDateWorking();
+            if (!dateWorking.isAfter(LocalDate.now())) {
+                throw new RuntimeException("Không thể hủy lịch hẹn đã xác nhận trong vòng 24h trước giờ khám. Vui lòng liên hệ hotline!");
+            }
+        }
 
         appointment.setBookingStatus(Appointment.BookingStatus.CANCELLED);
         appointmentRepository.save(appointment);
 
         DoctorSchedule schedule = appointment.getSchedule();
-        schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
-        doctorScheduleRepository.save(schedule);
+        if (schedule != null) {
+            schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
+            doctorScheduleRepository.save(schedule);
+        }
 
         return mapToResponseDTO(appointment);
     }
@@ -154,9 +164,7 @@ public class AppointmentService {
         target.setAddress(source.getAddress());
         target.setDateWorking(source.getDateWorking());
         target.setTimeSlot(source.getTimeSlot());
-        target.setTotalAmount(source.getTotalAmount());
         target.setBookingStatus(source.getBookingStatus());
-        target.setPaymentStatus(source.getPaymentStatus());
         target.setCreatedAt(source.getCreatedAt());
     }
 
@@ -209,12 +217,5 @@ public class AppointmentService {
         doctorDetailRepository.save(doctor);
     }
 
-    public String uploadPaymentImage(Integer id, MultipartFile file) {
-        String url = fileUtil.getUrlFile(file);
-        Appointment app = appointmentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy cuộc hẹn mã: " + id));
-        app.setPaymentEvidenceUrl(url);
-        app.setPaymentStatus(Appointment.PaymentStatus.PENDING_CHECK);
-        return "Minh chứng thanh toán đã được gửi";
-    }
+
 }

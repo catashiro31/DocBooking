@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter @Setter
 @NoArgsConstructor
-@AllArgsConstructor // BẮT BUỘC phải có Constructor đầy đủ tham số
+@AllArgsConstructor
 public class AppointmentStats {
     private long completed;
     private long pending;
