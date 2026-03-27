@@ -5,10 +5,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,29 +17,40 @@ import java.io.IOException;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    private JwtTokenProvider jwtTokenProvider;
-    private UserDetailsService userDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
+    // 🔥 Tiêm trực tiếp class này để dùng được hàm loadUserById
+    private final CustomUserDetails customUserDetails;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // Get the JWT token from the Authorization header
-        String token = jwtTokenProvider.resolveToken(request);
+        try {
+            String token = jwtTokenProvider.resolveToken(request);
 
-        // Check if the token is valid
-        if (token != null && jwtTokenProvider.validateToken(token)) {
+            if (token != null && jwtTokenProvider.validateToken(token)) {
 
-            // Get the user details from the token
-            UserDetails userDetails = userDetailsService.loadUserByUsername(
-                    jwtTokenProvider.getUsername(token));
-            // Create an authentication object and set it in the security context
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                // 🔥 1. Lấy ID (dạng String) từ Token và chuyển sang số nguyên
+                String userIdStr = jwtTokenProvider.getUserIdFromToken(token);
+                Integer userId = Integer.parseInt(userIdStr);
+
+                // 🔥 2. Tìm User bằng ID
+                UserDetails userDetails = customUserDetails.loadUserById(userId);
+
+                // 3. Set quyền vào Context
+                if (userDetails != null) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
+        } catch (Exception e) {
+            // Bắt lỗi an toàn để không làm sập server nếu token chứa chuỗi không phải là số ID hợp lệ
+            log.error("Không thể thiết lập xác thực người dùng trong Security Context", e);
         }
 
         filterChain.doFilter(request, response);
@@ -48,7 +59,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
-        // Cứ API nào bắt đầu bằng /api/v1/auth/ thì KHÔNG thèm kiểm tra JWT luôn
         return path.startsWith("/api/v1/auth/");
     }
 }

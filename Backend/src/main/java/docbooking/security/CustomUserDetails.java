@@ -24,4 +24,9 @@ public class CustomUserDetails implements UserDetailsService {
         }
     }
 
+    public UserDetails loadUserById(Integer id) { // Đổi Integer thành Long nếu DB của bạn dùng Long
+        // Giả sử tên hàm trong Repo của bạn là findById
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với ID: " + id));
+    }
 }
