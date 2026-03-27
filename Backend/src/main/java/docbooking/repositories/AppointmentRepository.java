@@ -1,9 +1,8 @@
 package docbooking.repositories;
 
-import docbooking.dtos.AppointmentStats;
+import docbooking.admin.responses.AppointmentStats;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorSchedule;
-import docbooking.models.Review;
 import docbooking.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,12 +13,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
 
-    @Query("SELECT new docbooking.dtos.AppointmentStats( " +
+    @Query("SELECT new docbooking.admin.responses.AppointmentStats( " +
             "COUNT(CASE WHEN a.bookingStatus = 'COMPLETED' THEN 1 END), " +
             "COUNT(CASE WHEN a.bookingStatus IN('PENDING', 'CONFIRMED') THEN 1 END), " +
             "COUNT(CASE WHEN a.bookingStatus = 'CANCELLED' THEN 1 END)) " +
