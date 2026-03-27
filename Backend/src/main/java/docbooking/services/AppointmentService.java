@@ -52,7 +52,6 @@ public class AppointmentService {
                 .schedule(schedule)
                 .reason(req.getReason())
                 .bookingStatus(Appointment.BookingStatus.PENDING)
-                .paymentStatus(Appointment.PaymentStatus.UNPAID)
                 .totalAmount(schedule.getDoctor().getPrice())
                 .holdExpiresAt(LocalDateTime.now().plusHours(2))
                 .createdAt(LocalDateTime.now())
@@ -80,7 +79,6 @@ public class AppointmentService {
 
                 .totalAmount(app.getTotalAmount())
                 .bookingStatus(app.getBookingStatus().name())
-                .paymentStatus(app.getPaymentStatus().name())
                 .createdAt(app.getCreatedAt())
                 .build();
 
@@ -208,18 +206,5 @@ public class AppointmentService {
         doctor.setRatingAverage(Math.round(average * 10.0) / 10.0);
 
         doctorDetailRepository.save(doctor);
-    }
-
-    public String uploadPaymentImage(Integer id, MultipartFile file, User currentUser) {
-        String url = fileUtil.getUrlFile(file);
-        Appointment app = appointmentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy cuộc hẹn mã: " + id));
-
-        if (app.getPatient().getUser().getUserId().equals(currentUser.getUserId())) {
-            throw new RuntimeException("Bạn không có quyền thực hiện hành động này!");
-        }
-        app.setPaymentEvidenceUrl(url);
-        app.setPaymentStatus(Appointment.PaymentStatus.PENDING_CHECK);
-        return "Minh chứng thanh toán đã được gửi";
     }
 }

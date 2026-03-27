@@ -119,11 +119,6 @@ public class AdminController {
         return ResponseEntity.ok().body(adminService.getAllAppointments(dateFrom, dateTo, status));
     }
 
-    @PatchMapping("/appointments/{id}/confirm-payment")
-    public ResponseEntity<?> confirmPayment(@PathVariable Integer id) {
-        return ResponseEntity.ok().body(adminService.confirmPayment(id));
-    }
-
     @GetMapping("/reviews")
     public ResponseEntity<?> getAllReviews() {
         return ResponseEntity.ok().body(adminService.getAllReviews());

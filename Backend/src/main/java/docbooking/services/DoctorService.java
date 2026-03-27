@@ -166,7 +166,6 @@ public class DoctorService {
                     .timeSlot(schedule.getTimeSlot().name())
                     .reason(app.getReason())
                     .bookingStatus(app.getBookingStatus().name())
-                    .paymentStatus(app.getPaymentStatus().name())
                     .createdAt(app.getCreatedAt())
                     .build();
         }).toList();
