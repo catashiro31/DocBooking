@@ -170,39 +170,4 @@ public class EmailUtil {
         }
     }
 
-    public void sendPaymentSuccessEmail(String toEmail, String fullName, String appointmentId, String appointmentDate, String doctorName) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(senderEmail);
-            message.setTo(toEmail);
-            message.setSubject("[DocBooking] Xác nhận: Thanh toán thành công cho lịch hẹn #" + appointmentId);
-
-            String content = String.format(
-                    "Xin chào %s,\n\n" +
-                            "Chúc mừng bạn! Hệ thống DocBooking đã nhận được thanh toán cho lịch hẹn của bạn.\n\n" +
-                            "--- THÔNG TIN XÁC NHẬN ---\n" +
-                            "✅ Trạng thái: Đã thanh toán thành công\n" +
-                            "🆔 Mã lịch hẹn: #%s\n" +
-                            "👨‍⚕️ Bác sĩ: %s\n" +
-                            "⏰ Thời gian khám: %s\n" +
-                            "📍 Địa điểm: Phòng khám Đa khoa DocBooking\n" +
-                            "----------------------------\n\n" +
-                            "Lưu ý khi đi khám:\n" +
-                            "- Bạn không cần mang theo tiền mặt cho chi phí khám cơ bản này.\n" +
-                            "- Vui lòng xuất trình email này hoặc mã lịch hẹn tại quầy lễ tân để được hỗ trợ nhanh nhất.\n" +
-                            "- Có mặt trước giờ hẹn 10-15 phút.\n\n" +
-                            "Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi!\n\n" +
-                            "Trân trọng,\n" +
-                            "Đội ngũ DocBooking.",
-                    fullName, appointmentId, doctorName, appointmentDate
-            );
-
-            message.setText(content);
-            mailSender.send(message);
-            System.out.println("Đã gửi email xác nhận thanh toán thành công tới: " + toEmail);
-
-        } catch (Exception e) {
-            System.err.println("Lỗi gửi mail xác nhận thanh toán: " + e.getMessage());
-        }
-    }
 }
