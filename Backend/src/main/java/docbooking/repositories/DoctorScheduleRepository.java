@@ -1,6 +1,7 @@
 package docbooking.repositories;
 
 import docbooking.models.DoctorSchedule;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -36,4 +37,11 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule,I
             LocalDate dateWorking,
             DoctorSchedule.TimeSlot timeSlot
     );
+    List<DoctorSchedule> findByDateWorkingAndSlotStatus(LocalDate date, SlotStatus status);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE DoctorSchedule s SET s.slotStatus = 'CLOSED' " +
+            "WHERE s.dateWorking < :today AND s.slotStatus = 'AVAILABLE'")
+    void closePastDaysSlots(@Param("today") LocalDate today);
 }

@@ -5,6 +5,7 @@ import docbooking.models.DoctorSchedule;
 import docbooking.models.User;
 import docbooking.repositories.AppointmentRepository;
 import docbooking.repositories.UserRepository;
+import docbooking.repositories.DoctorScheduleRepository; // Đã thêm
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Component
@@ -21,52 +23,84 @@ public class AppointmentScheduler {
 
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
-    // Chạy vào 1 giờ sáng mỗi ngày để dọn dẹp lịch của ngày hôm qua
-    @Scheduled(cron = "0 0 1 * * ?")
-    @Transactional
-    public void cancelPastDueAppointments() {
-        LocalDate today = LocalDate.now();
-        List<Appointment> pastDue =
-                appointmentRepository.findPastDueAppointments(today);//lay cac lich hen qua han
+    private final DoctorScheduleRepository doctorScheduleRepository; // Đã thêm
 
-        if (pastDue.isEmpty()) {
-            return;
+
+    @Scheduled(fixedRate = 900000)
+    @Transactional
+    public void cleanupSystem() {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        log.info("--- Bắt đầu tiến trình dọn dẹp hệ thống: {} ---", now);
+        // Đóng các khung giờ trống của những ngày đã qua
+        doctorScheduleRepository.closePastDaysSlots(today);
+        //  Đóng các khung giờ trống của chính hôm nay nhưng đã quá giờ thực tế
+        List<DoctorSchedule> todayAvailableSlots =
+                doctorScheduleRepository.findByDateWorkingAndSlotStatus(today, DoctorSchedule.SlotStatus.AVAILABLE);
+
+        for (DoctorSchedule slot : todayAvailableSlots) {
+            if (isSlotExpired(slot.getTimeSlot(), now)) {
+                slot.setSlotStatus(DoctorSchedule.SlotStatus.CLOSED);
+                doctorScheduleRepository.save(slot);
+            }
+        }
+        //  Xử lý các lịch hẹn đã quá hạn
+        List<Appointment> pastDue = appointmentRepository.findPastDueAppointments(today);
+
+        if (!pastDue.isEmpty()) {
+            log.info("Phát hiện {} lịch hẹn quá hạn. Đang xử lý vi phạm...", pastDue.size());
+            processAppointments(pastDue);
         }
 
-        log.info("Phát hiện {} lịch hẹn quá hạn. Đang xử lý...", pastDue.size());
+        log.info("--- Dọn dẹp hoàn tất! ---");
+    }
 
+    private void processAppointments(List<Appointment> pastDue) {
         for (Appointment app : pastDue) {
+            // Bác sĩ quên duyệt -> Chỉ hủy lịch
             if (app.getBookingStatus() == Appointment.BookingStatus.PENDING) {
-                // Bác sĩ quên duyệt -> Chỉ hủy lịch, không phạt bệnh nhân
                 app.setBookingStatus(Appointment.BookingStatus.CANCELLED);
             }
+            // Đã duyệt mà không khám -> Bệnh nhân không đến
             else if (app.getBookingStatus() == Appointment.BookingStatus.CONFIRMED) {
-                // Đã duyệt mà không khám -> Bệnh nhân không đến
                 app.setBookingStatus(Appointment.BookingStatus.NO_SHOW);
                 appointmentRepository.save(app);
 
-                // 2. Logic kiểm tra và khóa tài khoản
+                // Kiểm tra số lần vi phạm để khóa tài khoản
                 User patientUser = app.getPatient().getUser();
                 long noShowCount = appointmentRepository.countByPatient_User_UserIdAndBookingStatus(
                         patientUser.getUserId(),
                         Appointment.BookingStatus.NO_SHOW
                 );
 
+                // Nếu quá 3 thì khóa tài khoản
                 if (noShowCount >= 3) {
                     patientUser.setIsActive(false);
                     patientUser.setReasonBanned("Hệ thống tự động khóa: Không đến khám quá 3 lần.");
                     userRepository.save(patientUser);
-                    log.warn("Đã khóa tài khoản User ID: {} do quá 3 lần NO_SHOW", patientUser.getUserId());
+                    log.warn("Đã khóa tài khoản User ID: {} do vi phạm NO_SHOW 3 lần", patientUser.getUserId());
                 }
             }
 
-            appointmentRepository.save(app);
-
-            // 3. Đóng khung giờ khám của ngày cũ
+            // Đóng khung giờ khám liên quan đến lịch hẹn này
             if (app.getSchedule() != null) {
                 app.getSchedule().setSlotStatus(DoctorSchedule.SlotStatus.CLOSED);
             }
+            appointmentRepository.save(app);
         }
-        log.info("Dọn dẹp và xử lý vi phạm hoàn tất!");
+    }
+
+    //Chuyển đổi Enum TimeSlot (ví dụ: SLOT_09_00) thành LocalTime để so sánh
+    private boolean isSlotExpired(DoctorSchedule.TimeSlot timeSlot, LocalTime now) {
+        try {
+            // Chuyển SLOT_09_30 -> 09:30
+            String timeStr = timeSlot.name().replace("SLOT_", "").replace("_", ":");
+            LocalTime slotTime = LocalTime.parse(timeStr);
+            return slotTime.isBefore(now);
+        } catch (Exception e) {
+            log.error("Lỗi parse thời gian cho slot: {}", timeSlot);
+            return false;
+        }
     }
 }
