@@ -38,15 +38,6 @@ public class Appointment {
     @Column(name = "booking_status")
     private BookingStatus bookingStatus;
 
-    @Column(name = "hold_expires_at")
-    private LocalDateTime holdExpiresAt;
-
-    @Column(name = "total_amount")
-    private Double totalAmount;
-
-    @Column(name = "qr_code_url")
-    private String qrCodeUrl;
-
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;

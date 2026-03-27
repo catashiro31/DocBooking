@@ -13,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import docbooking.dtos.requests.BulkScheduleRequestDTO;
 
 import javax.print.Doc;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,14 +61,27 @@ public class DoctorService {
 
     @Transactional
     public void createDoctorSchedule(Integer userId, BulkScheduleRequestDTO bulkScheduleRequestDTO) {
+        if (bulkScheduleRequestDTO.getDate().isBefore(LocalDate.now())) {
+            throw new RuntimeException("Không thể tạo lịch cho những ngày trong quá khứ!");
+        }
         DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
 
         for(String slotName: bulkScheduleRequestDTO.getSlotIds()){
             DoctorSchedule.TimeSlot timeSlot = DoctorSchedule.TimeSlot.valueOf(slotName);
 
-            if(doctorScheduleRepository.existsByDoctor_DoctorIdAndDateWorkingAndTimeSlot(
-                    doctor.getDoctorId(), bulkScheduleRequestDTO.getDate(), timeSlot)){
+            Optional<DoctorSchedule> existingSlotOpt = doctorScheduleRepository
+                    .findByDoctor_DoctorIdAndDateWorkingAndTimeSlot(
+                            doctor.getDoctorId(),
+                            bulkScheduleRequestDTO.getDate(),
+                            timeSlot
+                    );
+            if (existingSlotOpt.isPresent()) {
+                DoctorSchedule existingSlot = existingSlotOpt.get();
+                if (existingSlot.getSlotStatus() == DoctorSchedule.SlotStatus.CLOSED) {
+                    existingSlot.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
+                    doctorScheduleRepository.save(existingSlot);
+                }
                 continue;
             }
             DoctorSchedule doctorSchedule = new DoctorSchedule();
@@ -175,9 +190,17 @@ public class DoctorService {
     public void updateAppointmentStatus(User user, Integer appointmentId, Appointment.BookingStatus newStatus) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cuộc hẹn!"));
-        Integer ownerId = appointment.getSchedule().getDoctor().getUser().getUserId();
-        if(!ownerId.equals(user.getUserId())) {
+
+        if(!appointment.getSchedule().getDoctor().getUser().getUserId().equals(user.getUserId())) {
             throw new RuntimeException("Bạn không có quyền chỉnh sửa cuộc hẹn này!");
+        }
+        if (newStatus == Appointment.BookingStatus.COMPLETED) {
+            throw new RuntimeException("Vui lòng dùng chức năng 'Trả kết quả khám' để hoàn thành!");
+        }
+        if (newStatus == Appointment.BookingStatus.CANCELLED) {
+            DoctorSchedule schedule = appointment.getSchedule();
+            schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
+            doctorScheduleRepository.save(schedule);
         }
         appointment.setBookingStatus(newStatus);
         appointmentRepository.save(appointment);
@@ -185,9 +208,12 @@ public class DoctorService {
 
     @Transactional
     public String submitMedicalResult(User doctorUser, Integer appointmentId, MedicalResultRequestDTO req) {
+
         Appointment app = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn!"));
-
+        if (app.getBookingStatus() != Appointment.BookingStatus.CONFIRMED) {
+            throw new RuntimeException("Lịch hẹn chưa được xác nhận hoặc đã bị hủy!");
+        }
         if (!app.getSchedule().getDoctor().getUser().getUserId().equals(doctorUser.getUserId())) {
             throw new RuntimeException("Bạn không có quyền trả kết quả cho lịch hẹn này!");
         }

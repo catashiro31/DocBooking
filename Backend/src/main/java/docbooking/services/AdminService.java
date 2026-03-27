@@ -143,7 +143,7 @@ public class AdminService {
     public String deleteSpecialty(Integer specialtyId) {
         try {
             Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
-            specialty.setIsActive(true);
+            specialty.setIsActive(false);
             specialtyRepository.save(specialty);
             return "Đã xóa chuyên ngành!";
         } catch (Exception e) {
@@ -235,4 +235,5 @@ public class AdminService {
 
         return "Đã ẩn bài đánh giá thành công";
     }
+
 }
