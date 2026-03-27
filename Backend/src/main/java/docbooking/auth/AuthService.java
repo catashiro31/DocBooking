@@ -40,8 +40,7 @@ public class AuthService {
             );
 
             String jwt = jwtTokenProvider.createToken(authentication);
-            long expiration = jwtTokenProvider.getJwtExpiration();
-            return new docbooking.auth.responses.SignIn(jwt, expiration);
+            return new docbooking.auth.responses.SignIn(jwt);
 
         } catch (BadCredentialsException e) {
             throw new RuntimeException("Sai mật khẩu");
