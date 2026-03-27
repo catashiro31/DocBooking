@@ -143,7 +143,7 @@ public class AdminService {
     public String deleteSpecialty(Integer specialtyId) {
         try {
             Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
-            specialty.setIsActive(true);
+            specialty.setIsActive(false);
             specialtyRepository.save(specialty);
             return "Đã xóa chuyên ngành!";
         } catch (Exception e) {
@@ -222,37 +222,7 @@ public class AdminService {
         return appointments;
     }
 
-    @Transactional
-    public String confirmPayment(Integer id) {
-        // 1. Tìm lịch hẹn theo ID
-        // Giả sử Repo của bạn dùng findById hoặc findByAppointmentId
-        Appointment appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn với ID: " + id));
 
-        // 2. Cập nhật trạng thái thành 'Đã thanh toán' (CONFIRMED hoặc APPROVED)
-        // Tùy vào Enum BookingStatus của Tiến nhé
-        appointment.setPaymentStatus(Appointment.PaymentStatus.PAID);
-
-        // 3. Lưu thay đổi vào Database
-        Appointment savedApp = appointmentRepository.save(appointment);
-
-        // 4. Gửi email xác nhận thanh toán thành công
-        // Lấy thông tin từ các Object liên kết (User, Doctor, Specialty)
-        String email = savedApp.getPatient().getUser().getEmail();
-        String fullName = savedApp.getPatient().getFullName();
-        String appDate = savedApp.getSchedule().getDateWorking().toString(); // Nên format lại dd/MM/yyyy
-        String doctorName = savedApp.getSchedule().getDoctor().getUser().getFullName();
-
-        emailUtil.sendPaymentSuccessEmail(
-                email,
-                fullName,
-                savedApp.getId().toString(),
-                appDate,
-                doctorName
-        );
-
-        return "Đã chấp nhận thanh toán thành công";
-    }
 
     public List<Review> getAllReviews() {
         return reviewRepository.findAll();
@@ -267,4 +237,5 @@ public class AdminService {
 
         return "Đã ẩn bài đánh giá thành công";
     }
+
 }

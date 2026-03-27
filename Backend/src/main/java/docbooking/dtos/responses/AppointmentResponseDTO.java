@@ -18,10 +18,7 @@ public class AppointmentResponseDTO {
 
     private LocalDate dateWorking;
     private String timeSlot;
-
-    private Double totalAmount;
     private String bookingStatus;
-    private String paymentStatus;
     private LocalDateTime createdAt;
 
     private boolean hasResult;

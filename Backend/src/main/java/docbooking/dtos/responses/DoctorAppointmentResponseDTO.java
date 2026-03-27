@@ -21,6 +21,5 @@ public class DoctorAppointmentResponseDTO{
     private String reason;
 
     private String bookingStatus;
-    private String paymentStatus;
     private LocalDateTime createdAt;
 }

@@ -38,22 +38,6 @@ public class Appointment {
     @Column(name = "booking_status")
     private BookingStatus bookingStatus;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status")
-    private PaymentStatus paymentStatus;
-
-    @Column(name = "hold_expires_at")
-    private LocalDateTime holdExpiresAt;
-
-    @Column(name = "payment_evidence_url")
-    private String paymentEvidenceUrl;
-
-    @Column(name = "total_amount")
-    private Double totalAmount;
-
-    @Column(name = "qr_code_url")
-    private String qrCodeUrl;
-
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -66,7 +50,5 @@ public class Appointment {
         PENDING, CONFIRMED, COMPLETED, CANCELLED
     }
 
-    public enum PaymentStatus {
-        UNPAID, PENDING_CHECK, PAID, REFUNDED
-    }
+
 }
