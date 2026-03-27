@@ -70,4 +70,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "WHERE s.dateWorking < :today " +
             "AND a.bookingStatus IN ('PENDING', 'CONFIRMED')")
     List<Appointment> findPastDueAppointments(@Param("today") LocalDate today);
+
+    long countByPatient_User_UserIdAndBookingStatusIn(
+            Integer userId,
+            Collection<Appointment.BookingStatus> statuses
+    );
+    long countByPatient_User_UserIdAndBookingStatus(
+            Integer userId,
+            Appointment.BookingStatus status
+    );
+
 }

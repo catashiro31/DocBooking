@@ -28,6 +28,7 @@ public class DoctorService {
     private final ReviewRepository reviewRepository;
     private final AppointmentRepository appointmentRepository;
     private final MedicalResultRepository medicalResultRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public String completeProfile(User user, DoctorProfileRequestDTO req) {
@@ -201,6 +202,22 @@ public class DoctorService {
             DoctorSchedule schedule = appointment.getSchedule();
             schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
             doctorScheduleRepository.save(schedule);
+        }
+
+        if (newStatus == Appointment.BookingStatus.NO_SHOW) {
+            appointment.setBookingStatus(Appointment.BookingStatus.NO_SHOW);
+            appointmentRepository.save(appointment);
+
+            User patientUser = appointment.getPatient().getUser();
+            long noShowCount = appointmentRepository.countByPatient_User_UserIdAndBookingStatus(
+                    patientUser.getUserId(), Appointment.BookingStatus.NO_SHOW);
+
+            if (noShowCount >= 3) {
+                patientUser.setIsActive(false);
+                patientUser.setReasonBanned("Hệ thống tự động khóa: Không đến khám 3 lần.");
+                userRepository.save(patientUser);
+            }
+            return;
         }
         appointment.setBookingStatus(newStatus);
         appointmentRepository.save(appointment);
