@@ -30,8 +30,12 @@ public class AuthService {
     private final ContextEmail contextEmail;
 
     public docbooking.auth.responses.SignIn signIn(SignIn req) {
-        if (!userRepository.existsByEmailAndIsActiveTrue(req.getEmail())) {
-            throw new RuntimeException("Tài khoản không tồn tại");
+        User user = userRepository.findByEmail(req.getEmail())
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            String reason = user.getReasonBanned() != null ? user.getReasonBanned() : "Vi phạm chính sách";
+            throw new RuntimeException("Tài khoản đã bị khóa. Lý do: " + reason);
         }
 
         try {

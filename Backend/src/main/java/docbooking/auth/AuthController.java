@@ -34,8 +34,11 @@ public class AuthController {
             docbooking.auth.responses.SignIn response = authService.signIn(signInDTO);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            if (e.getMessage().equals("Tài khoản hông tồn tại")) {
+            if (e.getMessage().contains("không tồn tại")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            }
+            if (e.getMessage().contains("đã bị khóa")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
