@@ -23,7 +23,7 @@ public class AppointmentScheduler {
     private final DoctorScheduleRepository doctorScheduleRepository;
 
 
-    @Scheduled(fixedRate = 900000)
+    @Scheduled(cron = "0 0 1 * * ?")
     @Transactional
     public void cleanupSystem() {
         LocalDate today = LocalDate.now();

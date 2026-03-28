@@ -97,7 +97,7 @@ public class PublicService {
                 .build();
     }
     public List<Review> getReviewsByDoctorId(Integer doctorId){
-        List<docbooking.models.Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorIdOrderByCreatedAtDesc(doctorId);
+        List<docbooking.models.Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorIdAndIsVisibleTrueOrderByCreatedAtDesc(doctorId);
         return reviews.stream().map(review -> Review.builder()
                 .reviewId(review.getReviewId())
                 .rating(review.getRating())
