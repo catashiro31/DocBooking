@@ -159,7 +159,7 @@ public class DoctorService {
     }
 
     public List<Review> getDoctorReviews(User user) {
-        List<docbooking.models.Review> review = reviewRepository.findByAppointment_Schedule_Doctor_UserOrderByCreatedAtDesc(user);
+        List<docbooking.models.Review> review = reviewRepository.findByAppointment_Schedule_Doctor_UserAndIsVisibleTrueOrderByCreatedAtDesc(user);
 
         return review.stream().map(reviews -> Review.builder()
                 .reviewId(reviews.getReviewId())
@@ -200,10 +200,26 @@ public class DoctorService {
         if (newStatus == docbooking.models.Appointment.BookingStatus.COMPLETED) {
             throw new RuntimeException("Vui lòng dùng chức năng 'Trả kết quả khám' để hoàn thành!");
         }
+
+        // Kiểm tra transition hợp lệ
+        docbooking.models.Appointment.BookingStatus currentStatus = appointment.getBookingStatus();
+        boolean validTransition = switch (currentStatus) {
+            case PENDING -> newStatus == docbooking.models.Appointment.BookingStatus.CONFIRMED
+                         || newStatus == docbooking.models.Appointment.BookingStatus.CANCELLED;
+            case CONFIRMED -> newStatus == docbooking.models.Appointment.BookingStatus.CANCELLED
+                           || newStatus == docbooking.models.Appointment.BookingStatus.NO_SHOW;
+            default -> false;
+        };
+        if (!validTransition) {
+            throw new RuntimeException("Không thể chuyển trạng thái từ " + currentStatus + " sang " + newStatus + "!");
+        }
+
         if (newStatus == docbooking.models.Appointment.BookingStatus.CANCELLED) {
             DoctorSchedule schedule = appointment.getSchedule();
-            schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
-            doctorScheduleRepository.save(schedule);
+            if (schedule != null && !schedule.getDateWorking().isBefore(LocalDate.now())) {
+                schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
+                doctorScheduleRepository.save(schedule);
+            }
         }
 
         if (newStatus == docbooking.models.Appointment.BookingStatus.NO_SHOW) {
@@ -260,7 +276,9 @@ public class DoctorService {
     public String updateMedicalResult(User doctorUser, Integer appointmentId, MedicalResult req) {
         docbooking.models.MedicalResult result = medicalResultRepository.findByAppointmentId(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Chưa có kết quả khám để chỉnh sửa!"));
-
+        if (result.getAppointment().getBookingStatus() != docbooking.models.Appointment.BookingStatus.COMPLETED) {
+            throw new RuntimeException("Không thể chỉnh sửa kết quả vì lịch hẹn không ở trạng thái hoàn thành!");
+        }
         if (!result.getAppointment().getSchedule().getDoctor().getUser().getUserId().equals(doctorUser.getUserId())) {
             throw new RuntimeException("Bạn không có quyền chỉnh sửa kết quả này!");
         }
