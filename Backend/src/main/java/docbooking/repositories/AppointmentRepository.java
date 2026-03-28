@@ -58,7 +58,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "WHERE a.patient.patientId = :patientId " +
             "AND a.schedule.dateWorking = :date " +
             "AND a.schedule.timeSlot = :timeSlot " +
-            "AND a.bookingStatus != 'CANCELLED'")
+            "AND a.bookingStatus IN ('PENDING', 'CONFIRMED')")
     boolean existsOverlappingAppointment(@Param("patientId") Integer patientId,
                                          @Param("date") LocalDate date,
                                          @Param("timeSlot") DoctorSchedule.TimeSlot timeSlot);
