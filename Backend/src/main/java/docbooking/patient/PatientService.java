@@ -203,8 +203,7 @@ public class PatientService {
         if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.NO_SHOW) {
             throw new RuntimeException("Không thể hủy lịch hẹn đã bị đánh dấu vắng mặt!");
         }
-        if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.CONFIRMED
-        || appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.PENDING) {
+        if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.CONFIRMED) {
             LocalDate dateWorking = appointment.getSchedule().getDateWorking();
             LocalTime slotTime = Time.parseTimeSlot(appointment.getSchedule().getTimeSlot());
             LocalDateTime appointmentDateTime = dateWorking.atTime(slotTime);
@@ -228,12 +227,9 @@ public class PatientService {
     public List<docbooking.patient.responses.Appointment> getPatientHistory(User user) {
         List<docbooking.models.Appointment> history = appointmentRepository
                 .findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(user, docbooking.models.Appointment.BookingStatus.COMPLETED);
-        return history.stream().map(app->{
-            docbooking.patient.responses.Appointment dto = mapToResponseDTO(app);
-            boolean exists = medicalResultRepository.findByAppointmentId(app.getId()).isPresent();
-            dto.setHasResult(exists);
-            return dto;
-        }).toList();
+        return history.stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     public AppointmentDetail getAppointmentDetail(User user, Integer id) {
