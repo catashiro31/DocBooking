@@ -62,8 +62,10 @@ public class DoctorService {
 
     @Transactional
     public void createDoctorSchedule(Integer userId, Schedule schedule) {
-        if (schedule.getDate().isBefore(LocalDate.now())) {
-            throw new RuntimeException("Không thể tạo lịch cho những ngày trong quá khứ!");
+        LocalDate today = LocalDate.now();
+
+        if (!schedule.getDate().isAfter(today)) {
+            throw new RuntimeException("Vui lòng chỉ tạo lịch khám từ ngày mai trở đi!");
         }
         DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
