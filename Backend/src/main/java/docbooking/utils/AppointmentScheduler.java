@@ -2,9 +2,7 @@ package docbooking.utils;
 
 import docbooking.models.Appointment;
 import docbooking.models.DoctorSchedule;
-import docbooking.models.User;
 import docbooking.repositories.AppointmentRepository;
-import docbooking.repositories.UserRepository;
 import docbooking.repositories.DoctorScheduleRepository; // Đã thêm
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +20,7 @@ import java.util.List;
 public class AppointmentScheduler {
 
     private final AppointmentRepository appointmentRepository;
-    private final UserRepository userRepository;
-    private final DoctorScheduleRepository doctorScheduleRepository; // Đã thêm
+    private final DoctorScheduleRepository doctorScheduleRepository;
 
 
     @Scheduled(fixedRate = 900000)
@@ -58,29 +55,9 @@ public class AppointmentScheduler {
 
     private void processAppointments(List<Appointment> pastDue) {
         for (Appointment app : pastDue) {
-            // Bác sĩ quên duyệt -> Chỉ hủy lịch
+            // Bác sĩ quên duyệt -> Tự động hủy lịch
             if (app.getBookingStatus() == Appointment.BookingStatus.PENDING) {
                 app.setBookingStatus(Appointment.BookingStatus.CANCELLED);
-            }
-            // Đã duyệt mà không khám -> Bệnh nhân không đến
-            else if (app.getBookingStatus() == Appointment.BookingStatus.CONFIRMED) {
-                app.setBookingStatus(Appointment.BookingStatus.NO_SHOW);
-                appointmentRepository.save(app);
-
-                // Kiểm tra số lần vi phạm để khóa tài khoản
-                User patientUser = app.getPatient().getUser();
-                long noShowCount = appointmentRepository.countByPatient_User_UserIdAndBookingStatus(
-                        patientUser.getUserId(),
-                        Appointment.BookingStatus.NO_SHOW
-                );
-
-                // Nếu quá 3 thì khóa tài khoản
-                if (noShowCount >= 3) {
-                    patientUser.setIsActive(false);
-                    patientUser.setReasonBanned("Hệ thống tự động khóa: Không đến khám quá 3 lần.");
-                    userRepository.save(patientUser);
-                    log.warn("Đã khóa tài khoản User ID: {} do vi phạm NO_SHOW 3 lần", patientUser.getUserId());
-                }
             }
 
             // Đóng khung giờ khám liên quan đến lịch hẹn này
