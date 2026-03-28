@@ -48,7 +48,7 @@ public class PatientController {
     }
 
     @PostMapping("/appointments")
-    public ResponseEntity<?> bookAppointment(@RequestBody Appointment req) {
+    public ResponseEntity<?> bookAppointment(@Valid @RequestBody Appointment req) {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(patientService.createAppointment(currentUser, req));
     }

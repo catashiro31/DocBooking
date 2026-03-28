@@ -91,16 +91,7 @@ public class AppointmentScheduler {
         }
     }
 
-    //Chuyển đổi Enum TimeSlot (ví dụ: SLOT_09_00) thành LocalTime để so sánh
     private boolean isSlotExpired(DoctorSchedule.TimeSlot timeSlot, LocalTime now) {
-        try {
-            // Chuyển SLOT_09_30 -> 09:30
-            String timeStr = timeSlot.name().replace("SLOT_", "").replace("_", ":");
-            LocalTime slotTime = LocalTime.parse(timeStr);
-            return slotTime.isBefore(now);
-        } catch (Exception e) {
-            log.error("Lỗi parse thời gian cho slot: {}", timeSlot);
-            return false;
-        }
+        return Time.parseTimeSlot(timeSlot).isBefore(now);
     }
 }
