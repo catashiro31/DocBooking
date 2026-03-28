@@ -8,12 +8,15 @@ import docbooking.models.*;
 import docbooking.repositories.*;
 import docbooking.utils.ContextEmail;
 import docbooking.utils.ConvertUrl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@org.springframework.stereotype.Service
+@Service
+@RequiredArgsConstructor
 public class AdminService {
     private final DoctorDetailRepository doctorDetail;
     private final AppointmentRepository appointmentRepository;
@@ -23,17 +26,6 @@ public class AdminService {
     private final ConvertUrl convertUrl;
     private final ContextEmail contextEmail;
     private final ReviewRepository reviewRepository;
-
-    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, ConvertUrl convertUrl, ContextEmail contextEmail, ReviewRepository reviewRepository) {
-        this.doctorDetail = doctorDetail;
-        this.appointmentRepository = appointmentRepository;
-        this.userRepository = userRepository;
-        this.specialtyRepository = specialtyRepository;
-        this.facilityRepository = facilityRepository;
-        this.convertUrl = convertUrl;
-        this.contextEmail = contextEmail;
-        this.reviewRepository = reviewRepository;
-    }
 
     public Stat getStats(LocalDateTime start, LocalDateTime end) {
         // 1. Lấy dữ liệu gộp từ Repo (Chỉ 1 lần truy vấn DB)

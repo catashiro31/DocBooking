@@ -162,7 +162,7 @@ public class PatientService {
         var doctor = schedule.getDoctor();
         var facility = doctor.getFacility();
         var specialty = doctor.getSpecialty();
-
+        boolean exists = medicalResultRepository.findByAppointmentId(app.getId()).isPresent();
         return docbooking.patient.responses.Appointment.builder()
                 .appointmentId(app.getId())
                 .patientName(app.getPatient().getFullName())
@@ -178,6 +178,7 @@ public class PatientService {
 
                 .bookingStatus(app.getBookingStatus().name())
                 .createdAt(app.getCreatedAt())
+                .hasResult(exists)
                 .build();
 
     }
@@ -226,7 +227,8 @@ public class PatientService {
                 .findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(user, docbooking.models.Appointment.BookingStatus.COMPLETED);
         return history.stream().map(app->{
             docbooking.patient.responses.Appointment dto = mapToResponseDTO(app);
-            dto.setHasResult(app.getBookingStatus() == docbooking.models.Appointment.BookingStatus.COMPLETED);
+            boolean exists = medicalResultRepository.findByAppointmentId(app.getId()).isPresent();
+            dto.setHasResult(exists);
             return dto;
         }).toList();
     }
@@ -243,6 +245,7 @@ public class PatientService {
             detailDTO.setDiagnosis(res.getDiagnosis());
             detailDTO.setPrescriptionUrl(res.getPrescriptionUrl());
             detailDTO.setDoctorNotes(res.getDoctorNotes());
+            detailDTO.setHasResult(true);
         });
         reviewRepository.findByAppointment_Id(id).ifPresent(res->{
             detailDTO.setRating(res.getRating());
