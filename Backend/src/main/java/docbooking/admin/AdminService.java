@@ -154,14 +154,11 @@ public class AdminService {
     }
 
     public String deleteSpecialty(Integer specialtyId) {
-        try {
-            docbooking.models.Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
-            specialty.setIsActive(false);
-            specialtyRepository.save(specialty);
-            return "Đã xóa chuyên ngành!";
-        } catch (Exception e) {
-            return e.getMessage();
-        }
+        docbooking.models.Specialty specialty = specialtyRepository.findById(specialtyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa với ID: " + specialtyId));
+        specialty.setIsActive(false);
+        specialtyRepository.save(specialty);
+        return "Đã xóa chuyên ngành!";
     }
 
     @Transactional
@@ -215,14 +212,11 @@ public class AdminService {
     }
 
     public String deleteFacility(Integer facilityId) {
-        try {
-            docbooking.models.Facility facility = facilityRepository.findByFacilityId(facilityId);
-            facility.setIsActive(false);
-            facilityRepository.save(facility);
-            return "Đã xóa thành công cơ sở!";
-        } catch (Exception e) {
-            return e.getMessage();
-        }
+        docbooking.models.Facility facility = facilityRepository.findById(facilityId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế với ID: " + facilityId));
+        facility.setIsActive(false);
+        facilityRepository.save(facility);
+        return "Đã xóa thành công cơ sở!";
     }
 
     public List<Appointment> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo, Appointment.BookingStatus status) {
