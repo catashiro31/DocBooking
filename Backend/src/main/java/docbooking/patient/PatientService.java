@@ -8,8 +8,6 @@ import docbooking.repositories.*;
 import docbooking.utils.Time;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PatientService {
@@ -115,58 +112,47 @@ public class PatientService {
 
     @Transactional
     public docbooking.patient.responses.Appointment createAppointment(User user, docbooking.patient.requests.Appointment req) {
-        for (int retry = 0; retry < 3; retry++) {
-            try {
-                List<docbooking.models.Appointment.BookingStatus> activeStatuses = List.of(
-                        docbooking.models.Appointment.BookingStatus.PENDING,
-                        docbooking.models.Appointment.BookingStatus.CONFIRMED
-                );
+        List<docbooking.models.Appointment.BookingStatus> activeStatuses = List.of(
+                docbooking.models.Appointment.BookingStatus.PENDING,
+                docbooking.models.Appointment.BookingStatus.CONFIRMED
+        );
 
-                long activeCount = appointmentRepository.countByPatient_User_UserIdAndBookingStatusIn(
-                        user.getUserId(),
-                        activeStatuses
-                );
+        long activeCount = appointmentRepository.countByPatient_User_UserIdAndBookingStatusIn(
+                user.getUserId(),
+                activeStatuses
+        );
 
-                if (activeCount >= 3) {
-                    throw new RuntimeException("Bạn chỉ được đặt tối đa 3 lịch hẹn!");
-                }
-                PatientProfile profile = patientProfileRepository.findByPatientIdAndUserAndIsActiveTrue(req.getPatientId(), user)
-                        .orElseThrow(() -> new RuntimeException("Hồ sơ bệnh nhân này không tồn tại hoặc bạn không có quyền sử dụng!"));
-                DoctorSchedule schedule = doctorScheduleRepository.findById(req.getScheduleId())
-                        .orElseThrow(() -> new RuntimeException("Ca khám không tồn tại hoặc bạn không có quyền sử dụng!"));
-                if (schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE)
-                    throw new RuntimeException("Ca khám đã có người đặt hoặc đã đóng");
-                LocalDate today = LocalDate.now();
-                if (!schedule.getDateWorking().isAfter(today)) {
-                    throw new RuntimeException("Vui lòng đặt lịch từ ngày mai trở đi!");
-                }
-                if (appointmentRepository.existsOverlappingAppointment(
-                        profile.getPatientId(),
-                        schedule.getDateWorking(),
-                        schedule.getTimeSlot())) {
-                    throw new RuntimeException("Hồ sơ bệnh nhân này đã có một lịch hẹn khác vào cùng thời gian!");
-                }
-                schedule.setSlotStatus(DoctorSchedule.SlotStatus.BOOKED);
-                doctorScheduleRepository.save(schedule);
-
-                docbooking.models.Appointment appointment = docbooking.models.Appointment.builder()
-                        .patient(profile)
-                        .schedule(schedule)
-                        .reason(req.getReason())
-                        .bookingStatus(docbooking.models.Appointment.BookingStatus.PENDING)
-                        .createdAt(LocalDateTime.now())
-                        .build();
-                docbooking.models.Appointment savedAppointment = appointmentRepository.save(appointment);
-                return mapToResponseDTO(savedAppointment);
-            } catch (ObjectOptimisticLockingFailureException e) {
-                if (retry >= 2) {
-                    throw new RuntimeException("Hệ thống hiện đang quá tải do có nhiều người cùng đặt lịch, vui lòng thử lại sau vài giây!");
-                }
-                log.warn("Phát hiện xung đột Version khi đặt lịch, đang thử lại lần thứ: {}", retry + 1);
-            }
-
+        if (activeCount >= 3) {
+            throw new RuntimeException("Bạn chỉ được đặt tối đa 3 lịch hẹn!");
         }
-        throw new RuntimeException("Đã xảy ra lỗi không xác định khi đặt lịch");
+        PatientProfile profile = patientProfileRepository.findByPatientIdAndUserAndIsActiveTrue(req.getPatientId(), user)
+                .orElseThrow(() -> new RuntimeException("Hồ sơ bệnh nhân này không tồn tại hoặc bạn không có quyền sử dụng!"));
+        DoctorSchedule schedule = doctorScheduleRepository.findById(req.getScheduleId())
+                .orElseThrow(() -> new RuntimeException("Ca khám không tồn tại hoặc bạn không có quyền sử dụng!"));
+        if (schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE)
+            throw new RuntimeException("Ca khám đã có người đặt hoặc đã đóng");
+        LocalDate today = LocalDate.now();
+        if (!schedule.getDateWorking().isAfter(today)) {
+            throw new RuntimeException("Vui lòng đặt lịch từ ngày mai trở đi!");
+        }
+        if (appointmentRepository.existsOverlappingAppointment(
+                profile.getPatientId(),
+                schedule.getDateWorking(),
+                schedule.getTimeSlot())) {
+            throw new RuntimeException("Hồ sơ bệnh nhân này đã có một lịch hẹn khác vào cùng thời gian!");
+        }
+        schedule.setSlotStatus(DoctorSchedule.SlotStatus.BOOKED);
+        doctorScheduleRepository.save(schedule);
+
+        docbooking.models.Appointment appointment = docbooking.models.Appointment.builder()
+                .patient(profile)
+                .schedule(schedule)
+                .reason(req.getReason())
+                .bookingStatus(docbooking.models.Appointment.BookingStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
+        docbooking.models.Appointment savedAppointment = appointmentRepository.save(appointment);
+        return mapToResponseDTO(savedAppointment);
     }
     private docbooking.patient.responses.Appointment mapToResponseDTO(docbooking.models.Appointment app) {
         var schedule = app.getSchedule();

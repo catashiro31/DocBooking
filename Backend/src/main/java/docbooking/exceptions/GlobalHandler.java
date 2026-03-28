@@ -3,6 +3,7 @@ package docbooking.exceptions;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,6 +39,13 @@ public class GlobalHandler {
 
         // Trả về 403 Forbidden
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(message);
+    }
+
+    // Xử lý xung đột khi 2 người đặt cùng lúc (409)
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<String> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Ca khám vừa được người khác đặt, vui lòng chọn ca khác!");
     }
 
     // Xử lý lỗi nghiệp vụ chung (400)
