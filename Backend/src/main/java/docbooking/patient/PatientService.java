@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -135,8 +137,9 @@ public class PatientService {
                 if (schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE)
                     throw new RuntimeException("Ca khám đã có người đặt hoặc đã đóng");
                 LocalDate today = LocalDate.now();
-                if (schedule.getDateWorking().isBefore(today))
-                    throw new RuntimeException("Không thể đặt lịch cho những ngày trong quá khứ!");
+                if (!schedule.getDateWorking().isAfter(today)) {
+                    throw new RuntimeException("Vui lòng đặt lịch từ ngày mai trở đi!");
+                }
                 if (appointmentRepository.existsOverlappingAppointment(
                         profile.getPatientId(),
                         schedule.getDateWorking(),
@@ -211,7 +214,11 @@ public class PatientService {
         if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.COMPLETED) {
             throw new RuntimeException("Không thể hủy lịch hẹn đã hoàn thành.");
         }
-        if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.CONFIRMED) {
+        if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.NO_SHOW) {
+            throw new RuntimeException("Không thể hủy lịch hẹn đã bị đánh dấu vắng mặt!");
+        }
+        if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.CONFIRMED
+        || appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.PENDING) {
             LocalDate dateWorking = appointment.getSchedule().getDateWorking();
             LocalTime slotTime = Time.parseTimeSlot(appointment.getSchedule().getTimeSlot());
             LocalDateTime appointmentDateTime = dateWorking.atTime(slotTime);
@@ -313,7 +320,10 @@ public class PatientService {
         DoctorDetail doctor = doctorDetailRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
 
-        List<docbooking.models.Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorId(doctorId);
+        List<docbooking.models.Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorId(doctorId)
+                                                                 .stream()
+                                                                 .filter(r -> r.getIsVisible())
+                                                                 .toList();
         doctor.setReviewCount(reviews.size());
 
         double average = reviews.stream()
