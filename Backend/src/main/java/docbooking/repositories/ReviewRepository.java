@@ -10,11 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review,Integer> {
-    List<Review> findByAppointment_Schedule_Doctor_DoctorIdOrderByCreatedAtDesc(Integer doctorId);
     List<Review> findByAppointment_Schedule_Doctor_DoctorIdAndIsVisibleTrueOrderByCreatedAtDesc(Integer doctorId);
 
     Optional<Review> findByAppointment_Id(Integer id);
     List<Review> findByAppointment_Schedule_Doctor_DoctorId(Integer doctorId);
-    List<Review>findByAppointment_Schedule_Doctor_UserOrderByCreatedAtDesc(User user);
     List<Review>findByAppointment_Schedule_Doctor_UserAndIsVisibleTrueOrderByCreatedAtDesc(User user);
 }

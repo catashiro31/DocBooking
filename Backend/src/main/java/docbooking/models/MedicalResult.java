@@ -31,7 +31,7 @@ public class MedicalResult {
     @Column(name = "prescription_url")
     private String prescriptionUrl;
 
-    @Column(name = "doctorNotes", columnDefinition = "TEXT")
+    @Column(name = "doctor_notes", columnDefinition = "TEXT")
     private String doctorNotes;
 
     @CreationTimestamp

@@ -161,7 +161,6 @@ public class PatientService {
                 .schedule(schedule)
                 .reason(req.getReason())
                 .bookingStatus(docbooking.models.Appointment.BookingStatus.PENDING)
-                .createdAt(LocalDateTime.now())
                 .build();
         docbooking.models.Appointment savedAppointment = appointmentRepository.save(appointment);
         return mapToResponseDTO(savedAppointment);

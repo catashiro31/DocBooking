@@ -69,7 +69,6 @@ public class AuthService {
                 .fullName(req.getFullName())
                 .phoneNumber(req.getPhoneNumber())
                 .role(req.getRole())
-                .createdAt(LocalDateTime.now())
                 .build();
 
         String randomCode = UUID.randomUUID().toString();
