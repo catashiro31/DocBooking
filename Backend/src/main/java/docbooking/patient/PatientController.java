@@ -6,41 +6,41 @@ import docbooking.patient.requests.Relative;
 import docbooking.patient.requests.Review;
 import docbooking.utils.Security;
 import jakarta.validation.Valid;
-import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/v1/patient")
-@Builder
+@RequestMapping("/api/v1/patient")
+@RequiredArgsConstructor
 @PreAuthorize("hasAnyAuthority('PATIENT')")
 public class PatientController {
     private final PatientService patientService;
-    @PostMapping("relatives")
+    @PostMapping("/relatives")
     public ResponseEntity<?> createRelative(@RequestBody Relative req) {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(patientService.addRelative(currentUser, req));
     }
 
-    @GetMapping("relatives/{id}")
+    @GetMapping("/relatives/{id}")
     public ResponseEntity<?> getRelativeDetail(@PathVariable Integer id) {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(patientService.getRelativeById(id, currentUser));
     }
 
-    @GetMapping("relatives")
+    @GetMapping("/relatives")
     public ResponseEntity<?> getAllRelatives() {
         User currentUser = Security.getCurrentUser();
         return  ResponseEntity.ok(patientService.getMyRelatives(currentUser));
     }
 
-    @PutMapping("relatives/{id}")
+    @PutMapping("/relatives/{id}")
     public ResponseEntity<?> updateRelative(@PathVariable Integer id, @RequestBody Relative req) {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(patientService.updateRelative(id, currentUser, req));
     }
-    @DeleteMapping("relatives/{id}")
+    @DeleteMapping("/relatives/{id}")
     public ResponseEntity<?> deleteRelative(@PathVariable Integer id) {
         User currentUser = Security.getCurrentUser();
         patientService.deleteRelative(currentUser, id);
