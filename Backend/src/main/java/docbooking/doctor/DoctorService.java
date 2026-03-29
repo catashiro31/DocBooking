@@ -70,6 +70,10 @@ public class DoctorService {
         DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
 
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
+            throw new RuntimeException("Hồ sơ bác sĩ chưa được duyệt, không thể tạo lịch làm việc!");
+        }
+
         for(String slotName: schedule.getSlotIds()){
             DoctorSchedule.TimeSlot timeSlot = DoctorSchedule.TimeSlot.valueOf(slotName);
 
