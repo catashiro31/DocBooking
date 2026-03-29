@@ -103,7 +103,7 @@ public class PublicService {
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .createdAt(review.getCreatedAt())
-                .patientName(review.getAppointment().getPatient().getUser().getFullName())
+                .patientName(review.getAppointment().getPatient().getFullName())
                 .build()
         ).collect(Collectors.toList());
     }
