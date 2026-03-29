@@ -129,6 +129,10 @@ public class PatientService {
                 .orElseThrow(() -> new RuntimeException("Hồ sơ bệnh nhân này không tồn tại hoặc bạn không có quyền sử dụng!"));
         DoctorSchedule schedule = doctorScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(() -> new RuntimeException("Ca khám không tồn tại hoặc bạn không có quyền sử dụng!"));
+        DoctorDetail doctor = schedule.getDoctor();
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
+            throw new RuntimeException("Bác sĩ chưa được xác minh, không thể đặt lịch!");
+        }
         if (schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE)
             throw new RuntimeException("Ca khám đã có người đặt hoặc đã đóng");
         LocalDate today = LocalDate.now();
