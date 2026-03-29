@@ -11,7 +11,7 @@ public class Security {
         if (authentication != null && authentication.getPrincipal() instanceof User) {
             return  (User) authentication.getPrincipal();
         }
-        return null;
+        throw new RuntimeException("Không thể xác định người dùng hiện tại! Vui lòng đăng nhập lại.");
     }
 
     public static boolean hasRole(User.RoleStatus role) {
