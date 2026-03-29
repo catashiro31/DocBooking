@@ -20,7 +20,8 @@ const AdminFacilities = () => {
         try {
             setLoading(true)
             const data = await adminService.getAllFacilities()
-            setFacilities(Array.isArray(data) ? data : [])
+            const list = Array.isArray(data) ? data : []
+            setFacilities(list.map(f => ({ ...f, id: f.facilityId || f.id, name: f.facilityName || f.name })))
         } catch (err) {
             setError("Không thể tải danh sách cơ sở y tế")
             console.error(err)

@@ -139,6 +139,7 @@ function DoctorProfile() {
   const { user } = useAuth()
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(user?.verificationStatus === "PENDING")
+  const [approved, setApproved] = useState(user?.verificationStatus === "APPROVED")
   const [loading, setLoading] = useState(false)
 
   const [form, setForm] = useState({
@@ -151,6 +152,14 @@ function DoctorProfile() {
   const [loadingOptions, setLoadingOptions] = useState(true)
 
   useEffect(() => {
+    // Kiem tra trang thai ho so hien tai
+    api.get("/doctor/profile")
+      .then(res => {
+        if (res.data?.verificationStatus === "APPROVED") setApproved(true)
+        else if (res.data?.verificationStatus === "PENDING") setSubmitted(true)
+      })
+      .catch(() => {}) // 404 neu chua lap ho so
+
     Promise.all([api.get("/portal/specialties"), api.get("/portal/facilities")])
       .then(([specRes, facRes]) => {
         setSpecialties(specRes.data?.content || specRes.data || [])
@@ -186,8 +195,8 @@ function DoctorProfile() {
       formData.append("price", form.price)
       formData.append("specialtyId", form.specialtyId)
       formData.append("facilityId", form.facilityId)
-      if (files.idCard) formData.append("idCard", files.idCard)
-      if (files.certificate) formData.append("certificate", files.certificate)
+      if (files.idCard) formData.append("idCardImage", files.idCard)
+      if (files.certificate) formData.append("certificatePdf", files.certificate)
 
       await api.post("/doctor/profile", formData, {
         transformRequest: (data) => data,
@@ -273,7 +282,7 @@ function DoctorProfile() {
   }
 
   // ===== APPROVED SCREEN =====
-  if (user?.verificationStatus === "APPROVED") {
+  if (approved) {
     return (
       <div style={pageWrapStyle}>
         <div style={{ width: '100%', maxWidth: '440px', background: '#fff', borderRadius: '24px', border: '1px solid #f0f0f0', boxShadow: '0 4px 24px rgba(0,0,0,0.07)', padding: '3rem 2.5rem', textAlign: 'center' }}>

@@ -136,6 +136,11 @@ const PatientHistory = () => {
                                     <span style={{ fontWeight: '600', fontSize: '16px' }}>
                                         BS. {apt.doctorName}
                                     </span>
+                                    {apt.patientName && (
+                                        <span style={{ fontWeight: '500', fontSize: '15px', color: '#4b5563' }}>
+                                            - BN: {apt.patientName}
+                                        </span>
+                                    )}
                                     <span style={{
                                         padding: '4px 12px',
                                         borderRadius: '20px',
@@ -220,6 +225,7 @@ const PatientHistory = () => {
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
                             <div><strong>Bác sĩ:</strong> {detail.doctorName}</div>
+                            <div><strong>Bệnh nhân:</strong> {detail.patientName}</div>
                             <div><strong>Ngày khám:</strong> {detail.dateWorking}</div>
                             <div><strong>Giờ khám:</strong> {detail.timeSlot}</div>
                             <div><strong>Cơ sở:</strong> {detail.facilityName || 'N/A'}</div>

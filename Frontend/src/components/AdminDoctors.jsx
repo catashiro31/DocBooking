@@ -209,9 +209,9 @@ const AdminDoctors = () => {
                                     <div>
                                         <div style={{ marginBottom: '20px' }}>
                                             <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Thông tin cá nhân</h4>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Họ tên:</strong> {detailModal.data.user.fullName}</p>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Email:</strong> {detailModal.data.user.email}</p>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>SĐT:</strong> {detailModal.data.user.phoneNumber}</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Họ tên:</strong> {detailModal.data?.user?.fullName}</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Email:</strong> {detailModal.data?.user?.email}</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>SĐT:</strong> {detailModal.data?.user?.phoneNumber || 'Không có'}</p>
                                         </div>
 
                                         <div style={{ marginBottom: '20px' }}>
@@ -265,7 +265,7 @@ const AdminDoctors = () => {
                                     <button
                                         onClick={() => {
                                             const doc = detailModal.data;
-                                            setRejectModal({ show: true, doctor: { doctorId: doc.doctorId, fullName: doc.user.fullName }, reason: "" });
+                                            setRejectModal({ show: true, doctor: { doctorId: doc.doctorId, fullName: doc?.user?.fullName || doc.doctorId }, reason: "" });
                                         }}
                                         style={{ padding: '12px 30px', borderRadius: '8px', border: '1px solid #ef4444', background: 'white', color: '#ef4444', fontWeight: '600', cursor: 'pointer' }}
                                     >

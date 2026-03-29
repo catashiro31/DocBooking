@@ -39,6 +39,18 @@ function UserProfile() {
         e.preventDefault()
         setLoading(true)
         setMessage({ text: "", type: "" })
+        if (!form.fullName.trim()) {
+            setMessage({ text: "Họ và tên không được để trống.", type: "error" })
+            setLoading(false)
+            return
+        }
+        const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/
+        if (form.phoneNumber && !phoneRegex.test(form.phoneNumber)) {
+            setMessage({ text: "Số điện thoại không hợp lệ.", type: "error" })
+            setLoading(false)
+            return
+        }
+
         try {
             const formData = new FormData()
             if (form.fullName) formData.append("fullName", form.fullName)
@@ -60,16 +72,30 @@ function UserProfile() {
             <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <h2 style={{ fontSize: '24px', fontWeight: 700, margin: 0, color: '#0f172a' }}>Thông tin cá nhân</h2>
-                    <button 
-                        onClick={() => navigate(-1)} 
-                        style={{
-                            padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0',
-                            background: 'white', color: '#64748b', fontSize: '13px', fontWeight: 600,
-                            cursor: 'pointer', transition: 'all 0.2s'
-                        }}
-                    >
-                        Quay lại
-                    </button>
+                    <div>
+                        <button 
+                            type="button"
+                            onClick={() => navigate('/')} 
+                            style={{
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                                background: '#f1f5f9', color: '#64748b', fontSize: '13px', fontWeight: 600,
+                                cursor: 'pointer', transition: 'all 0.2s', marginRight: '8px'
+                            }}
+                        >
+                            Trang chủ
+                        </button>
+                        <button 
+                            type="button"
+                            onClick={() => navigate(-1)} 
+                            style={{
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                                background: 'white', color: '#64748b', fontSize: '13px', fontWeight: 600,
+                                cursor: 'pointer', transition: 'all 0.2s'
+                            }}
+                        >
+                            Quay lại
+                        </button>
+                    </div>
                 </div>
                 
                 {message.text && (

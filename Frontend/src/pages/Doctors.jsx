@@ -88,41 +88,34 @@ export default function Doctors() {
   const [specialties, setSpecialties] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSpecId, setSelectedSpecId] = useState(null);
-  const [selectedFacilityId, setSelectedFacilityId] = useState(null);
-  const [minPrice, setMinPrice] = useState(null);
-  const [maxPrice, setMaxPrice] = useState(null);
-  const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [selectedSpecId, setSelectedSpecId] = useState(() => searchParams.get('specId') ? Number(searchParams.get('specId')) : null);
+  const [selectedFacilityId, setSelectedFacilityId] = useState(() => searchParams.get('facilityId') ? Number(searchParams.get('facilityId')) : null);
+  const [minPrice, setMinPrice] = useState(() => searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : null);
+  const [maxPrice, setMaxPrice] = useState(() => searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : null);
+  const [search, setSearch] = useState(() => searchParams.get('keyword') || '');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   // Load filters
   useEffect(() => {
     doctorService.getSpecialties()
-      .then(data => setSpecialties(Array.isArray(data) ? data : []))
+      .then(data => {
+        const specs = Array.isArray(data) ? data : [];
+        setSpecialties(specs.map(s => ({ ...s, id: s.specialtyId || s.id, name: s.specialtyName || s.name })));
+      })
       .catch(err => console.error("Error loading specialties:", err));
       
     doctorService.getFacilities()
-      .then(data => setFacilities(Array.isArray(data) ? data : []))
+      .then(data => {
+        const facs = Array.isArray(data) ? data : [];
+        setFacilities(facs.map(f => ({ ...f, id: f.facilityId || f.id, name: f.facilityName || f.name })));
+      })
       .catch(err => console.error("Error loading facilities:", err));
   }, []);
 
-  // Load URL params ON MOUNT
-  useEffect(() => {
-    const sId = searchParams.get('specId');
-    const fId = searchParams.get('facilityId');
-    const minP = searchParams.get('minPrice');
-    const maxP = searchParams.get('maxPrice');
-    const kw = searchParams.get('keyword');
-    
-    // Use explicit existence checks to handle 0 and other values correctly
-    if (sId !== null) setSelectedSpecId(Number(sId));
-    if (fId !== null) setSelectedFacilityId(Number(fId));
-    if (minP !== null) setMinPrice(Number(minP));
-    if (maxP !== null) setMaxPrice(Number(maxP));
-    if (kw !== null) setSearch(kw);
-  }, []);
+  // States initialized synchronously from searchParams
 
   // Fetch doctors with filters
   const fetchDoctors = useCallback(async () => {

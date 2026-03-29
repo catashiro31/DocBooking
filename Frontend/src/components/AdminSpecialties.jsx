@@ -19,7 +19,8 @@ const AdminSpecialties = () => {
         try {
             setLoading(true)
             const data = await adminService.getAllSpecialties()
-            setSpecialties(Array.isArray(data) ? data : [])
+            const list = Array.isArray(data) ? data : []
+            setSpecialties(list.map(s => ({ ...s, id: s.specialtyId || s.id, name: s.specialtyName || s.name })))
         } catch (err) {
             setError("Không thể tải danh sách chuyên khoa")
             console.error(err)

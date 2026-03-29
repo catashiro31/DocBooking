@@ -335,11 +335,18 @@ function HomePage() {
         const specs = Array.isArray(specialtiesData) ? specialtiesData : []
         setSpecialties(specs.slice(0, 6).map((s, i) => ({
           ...s,
+          id: s.specialtyId || s.id,
+          name: s.specialtyName || s.name,
           image: s.imageUrl || defaultImages[i % defaultImages.length]
         })))
         
         const facs = Array.isArray(facilitiesData) ? facilitiesData : []
-        setFacilities(facs.slice(0, 15))
+        setFacilities(facs.slice(0, 15).map(f => ({
+          ...f,
+          id: f.facilityId || f.id,
+          name: f.facilityName || f.name,
+          image: f.imageUrl
+        })))
 
         if (statsData) setStats(statsData)
 
@@ -442,7 +449,7 @@ function HomePage() {
                 <div className="hp-marquee-track">
                   {/* Duplicated 3 times for seamless infinite loop effect with width: -33% */}
                   {[...facilities, ...facilities, ...facilities].map((fac, i) => (
-                    <div key={i} className="hp-facility-card" onClick={() => navigate('/facilities')}>
+                    <div key={i} className="hp-facility-card" onClick={() => navigate(`/doctors?facilityId=${fac.id}`)}>
                       <img 
                         src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fac.name || 'HOS')}&background=eef2ff&color=6366f1`} 
                         alt={fac.name} 

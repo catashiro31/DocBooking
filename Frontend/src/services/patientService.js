@@ -54,10 +54,10 @@ export const patientService = {
         return res.data;
     },
 
-    createAppointment: async ({ scheduleId, relativeId, reason }) => {
+    createAppointment: async ({ scheduleId, patientId, reason }) => {
         const res = await api.post("/patient/appointments", {
             scheduleId,
-            relativeId,
+            patientId,
             reason
         });
         return res.data;
