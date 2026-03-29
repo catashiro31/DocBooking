@@ -9,12 +9,10 @@ import docbooking.models.User;
 import docbooking.utils.Security;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -61,15 +59,23 @@ public class DoctorController {
     }
 
     @GetMapping("/reviews")
-    public ResponseEntity<?> getReviews() {
+    public ResponseEntity<?> getReviews(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         User currentUser = Security.getCurrentUser();
-        return ResponseEntity.ok(doctorService.getDoctorReviews(currentUser));
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(doctorService.getDoctorReviews(currentUser, pageable));
     }
 
     @GetMapping("/appointment")
-    public ResponseEntity<?> getAppointment() {
+    public ResponseEntity<?> getAppointment(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         User currentUser = Security.getCurrentUser();
-        return ResponseEntity.ok(doctorService.getDoctorAppointment(currentUser));
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(doctorService.getDoctorAppointment(currentUser, pageable));
     }
 
     @PutMapping("/appointment/{id}/status")

@@ -9,6 +9,8 @@ import docbooking.repositories.*;
 import docbooking.utils.ContextEmail;
 import docbooking.utils.ConvertUrl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +62,9 @@ public class AdminService {
         if (doctor == null) {
             throw new RuntimeException("Không tìm thấy thông tin bác sĩ với ID: " + doctorId);
         }
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.PENDING) {
+            throw new RuntimeException("Chỉ có thể duyệt bác sĩ đang ở trạng thái chờ duyệt!");
+        }
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.APPROVED);
         String email = doctor.getUser().getEmail();
         String fullName = doctor.getUser().getFullName();
@@ -72,6 +77,9 @@ public class AdminService {
         if (doctor == null) {
             throw new RuntimeException("Không tìm thấy thông tin bác sĩ với ID: " + doctorId);
         }
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.PENDING) {
+            throw new RuntimeException("Chỉ có thể từ chối bác sĩ đang ở trạng thái chờ duyệt!");
+        }
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.REJECTED);
         doctor.setReasonReject(reason);
         String email = doctor.getUser().getEmail();
@@ -81,8 +89,9 @@ public class AdminService {
         return doctor;
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.getAllUsers();
+    // Phân trang: nhận Pageable, trả về Page<User>
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     @Transactional
@@ -234,18 +243,15 @@ public class AdminService {
         return "Đã xóa thành công cơ sở!";
     }
 
-    public List<Appointment> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo, Appointment.BookingStatus status) {
+    public Page<Appointment> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo, Appointment.BookingStatus status, Pageable pageable) {
         if (dateFrom.isAfter(dateTo)) {
             throw new RuntimeException("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
         }
-
-        List<Appointment> appointments = appointmentRepository.findAllByPeriodAndStatus(dateFrom, dateTo, status);
-
-        return appointments;
+        return appointmentRepository.findAllByPeriodAndStatus(dateFrom, dateTo, status, pageable);
     }
 
-    public List<Review> getAllReviews() {
-        return reviewRepository.findAll();
+    public Page<Review> getAllReviews(Pageable pageable) {
+        return reviewRepository.findAll(pageable);
     }
 
     @Transactional

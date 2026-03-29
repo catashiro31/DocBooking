@@ -5,13 +5,16 @@ import docbooking.admin.requests.Specialty;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -94,8 +97,12 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity.ok().body(adminService.getAllUsers());
+    public ResponseEntity<?> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ResponseEntity.ok().body(adminService.getAllUsers(pageable));
     }
 
     @PatchMapping("/users/{id}/block")
@@ -105,18 +112,26 @@ public class AdminController {
 
     @GetMapping("/appointments")
     public ResponseEntity<?> getAllAppointments(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime dateTo,
-            @RequestParam(required = false) Appointment.BookingStatus status
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) Appointment.BookingStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        if (dateFrom == null) dateFrom = LocalDateTime.now().minusMonths(1);
-        if (dateTo== null) dateTo = LocalDateTime.now();
-        return ResponseEntity.ok().body(adminService.getAllAppointments(dateFrom, dateTo, status));
+        if (dateFrom == null) dateFrom = LocalDate.now().minusMonths(1);
+        if (dateTo == null) dateTo = LocalDate.now();
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok().body(adminService.getAllAppointments(
+                dateFrom.atStartOfDay(), dateTo.plusDays(1).atStartOfDay(), status, pageable));
     }
 
     @GetMapping("/reviews")
-    public ResponseEntity<?> getAllReviews() {
-        return ResponseEntity.ok().body(adminService.getAllReviews());
+    public ResponseEntity<?> getAllReviews(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ResponseEntity.ok().body(adminService.getAllReviews(pageable));
     }
 
     @PatchMapping("/reviews/{id}/hide")

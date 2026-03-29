@@ -1,10 +1,11 @@
 package docbooking.open;
 
 import docbooking.doctor.responses.Review;
-import docbooking.open.responses.DoctorCards;
 import docbooking.open.responses.DoctorDetails;
 import docbooking.open.responses.DoctorSlots;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +23,12 @@ public class PublicController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer specId,
             @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double priceTo
+            @RequestParam(required = false) Double priceTo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ){
-        List <DoctorCards> response = portalService.getDoctors(keyword, specId, minPrice, priceTo);
-        return ResponseEntity.ok(response);
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(portalService.getDoctors(keyword, specId, minPrice, priceTo, pageable));
     }
 
     @GetMapping("/doctors/{id}")

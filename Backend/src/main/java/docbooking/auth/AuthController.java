@@ -46,6 +46,9 @@ public class AuthController {
             if (e.getMessage().contains("đã bị khóa")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
             }
+            if (e.getMessage().contains("chưa được xác thực")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
@@ -75,6 +78,16 @@ public class AuthController {
     public ResponseEntity<?> verifyAccount(@RequestParam String email, @RequestParam String code) {
         try {
             String result = authService.verifyAccount(email, code);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        try {
+            String result = authService.forgotPassword(email);
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

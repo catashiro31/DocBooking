@@ -17,6 +17,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 @RequiredArgsConstructor
 public class DoctorService {
@@ -201,21 +204,21 @@ public class DoctorService {
         return getDoctorProfile(currentUser);
     }
 
-    public List<Review> getDoctorReviews(User user) {
-        List<docbooking.models.Review> review = reviewRepository.findByAppointment_Schedule_Doctor_UserAndIsVisibleTrueOrderByCreatedAtDesc(user);
+    public Page<Review> getDoctorReviews(User user, Pageable pageable) {
+        Page<docbooking.models.Review> reviewPage = reviewRepository.findByAppointment_Schedule_Doctor_UserAndIsVisibleTrueOrderByCreatedAtDesc(user, pageable);
 
-        return review.stream().map(reviews -> Review.builder()
+        return reviewPage.map(reviews -> Review.builder()
                 .reviewId(reviews.getReviewId())
                 .rating(reviews.getRating())
                 .comment(reviews.getComment())
                 .patientName(reviews.getAppointment().getPatient().getFullName())
                 .createdAt(reviews.getCreatedAt())
-                .build()).toList();
+                .build());
     }
 
-    public List<Appointment> getDoctorAppointment(User user) {
-        List<docbooking.models.Appointment> appointment = appointmentRepository.findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(user);
-        return appointment.stream().map(app -> {
+    public Page<Appointment> getDoctorAppointment(User user, Pageable pageable) {
+        Page<docbooking.models.Appointment> appointmentPage = appointmentRepository.findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(user, pageable);
+        return appointmentPage.map(app -> {
             DoctorSchedule schedule = app.getSchedule();
             PatientProfile patient = app.getPatient();
             return Appointment.builder()
@@ -229,7 +232,7 @@ public class DoctorService {
                     .bookingStatus(app.getBookingStatus().name())
                     .createdAt(app.getCreatedAt())
                     .build();
-        }).toList();
+        });
     }
 
     @Transactional

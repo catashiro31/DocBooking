@@ -5,6 +5,8 @@ import docbooking.models.DoctorSchedule;
 import docbooking.open.responses.*;
 import docbooking.repositories.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +47,7 @@ public class PublicService {
                         .build())
                 .toList();
     }
-    public List<DoctorCards> getDoctors(String name , Integer specialityId, Double minPrice, Double maxPrice) {
+    public Page<DoctorCards> getDoctors(String name , Integer specialityId, Double minPrice, Double maxPrice, Pageable pageable) {
         Specification<docbooking.models.DoctorDetail> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -55,7 +57,7 @@ public class PublicService {
             }
 
             if (specialityId != null) {
-                predicates.add(cb.equal(root.get("specialty").get("id"), specialityId));
+                predicates.add(cb.equal(root.get("specialty").get("specialtyId"), specialityId));
             }
 
             if (minPrice != null) {
@@ -66,8 +68,8 @@ public class PublicService {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        List <docbooking.models.DoctorDetail> doctors = doctorDetailRepository.findAll(specification);
-        return doctors.stream().map(doctor -> DoctorCards.builder()
+        Page<docbooking.models.DoctorDetail> doctors = doctorDetailRepository.findAll(specification, pageable);
+        return doctors.map(doctor -> DoctorCards.builder()
                 .doctorId(doctor.getDoctorId())
                 .doctorName(doctor.getUser().getFullName())
                 .specialtyName(doctor.getSpecialty().getSpecialtyName())
@@ -75,7 +77,7 @@ public class PublicService {
                 .doctorPhone(doctor.getUser().getPhoneNumber())
                 .avatarUrl(doctor.getUser().getAvatarUrl())
                 .build()
-        ).collect(Collectors.toList());
+        );
     }
 
     public DoctorDetails getDoctorById(Integer doctorId){

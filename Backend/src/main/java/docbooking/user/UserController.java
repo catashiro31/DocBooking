@@ -5,11 +5,11 @@ import docbooking.user.requests.UpdateProfile;
 import docbooking.user.responses.Profile;
 import docbooking.utils.Security;
 import jakarta.validation.Valid;
-import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Builder
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {

@@ -69,7 +69,6 @@ public class AuthService {
                 .fullName(req.getFullName())
                 .phoneNumber(req.getPhoneNumber())
                 .role(req.getRole())
-                .createdAt(LocalDateTime.now())
                 .build();
 
         String randomCode = UUID.randomUUID().toString();
@@ -116,5 +115,40 @@ public class AuthService {
         }
 
         return "Xác thực tài khoản thành công! Bây giờ bạn có thể đăng nhập.";
+    }
+
+    @Transactional
+    public String forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại trong hệ thống!"));
+
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            if (user.getVerificationCode() != null) {
+                throw new RuntimeException("Tài khoản chưa được xác thực. Vui lòng xác thực email trước!");
+            }
+            throw new RuntimeException("Tài khoản đã bị khóa. Không thể đặt lại mật khẩu!");
+        }
+
+        // Tạo mật khẩu random 8 ký tự (chữ + số)
+        String newPassword = generateRandomPassword(8);
+
+        // Cập nhật mật khẩu trong database
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Gửi email với mật khẩu mới
+        contextEmail.sendPasswordResetEmail(user.getEmail(), user.getFullName(), newPassword);
+
+        return "Mật khẩu mới đã được gửi đến email của bạn!";
+    }
+
+    private String generateRandomPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 }
