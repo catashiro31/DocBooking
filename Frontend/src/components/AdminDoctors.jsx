@@ -107,7 +107,7 @@ const AdminDoctors = () => {
                                 width: '80px',
                                 height: '80px',
                                 borderRadius: '12px',
-                                background: doctor.avatarUrl 
+                                background: doctor.avatarUrl
                                     ? `url(${doctor.avatarUrl}) center/cover`
                                     : 'linear-gradient(135deg, #5f6dfc, #a78bfa)',
                                 display: 'flex',
@@ -124,7 +124,7 @@ const AdminDoctors = () => {
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <h4 style={{ margin: '0 0 8px', fontSize: '18px' }}>
-                                        BS. {doctor.fullName}
+                                        BS. {doctor.user?.fullName || doctor.fullName || "Đang cập nhật..."}
                                     </h4>
                                     <button
                                         onClick={() => handleViewDetail(doctor.doctorId)}
@@ -142,12 +142,12 @@ const AdminDoctors = () => {
                                         📄 Xem hồ sơ
                                     </button>
                                 </div>
-                                
+
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#6b7280', fontSize: '14px', marginBottom: '12px' }}>
-                                    <span>📧 {doctor.email}</span>
-                                    {doctor.phoneNumber && <span>📱 {doctor.phoneNumber}</span>}
-                                    {doctor.specialtyName && <span>🏥 {doctor.specialtyName}</span>}
-                                    {doctor.facilityName && <span>📍 {doctor.facilityName}</span>}
+                                    <span>📧 {doctor.user?.email || doctor.email || "N/A"}</span>
+                                    {(doctor.user?.phoneNumber || doctor.phoneNumber) && <span>📱 {doctor.user?.phoneNumber || doctor.phoneNumber}</span>}
+                                    {(doctor.specialty?.specialtyName || doctor.specialtyName) && <span>🏥 {doctor.specialty?.specialtyName || doctor.specialtyName}</span>}
+                                    {(doctor.facility?.facilityName || doctor.facilityName) && <span>📍 {doctor.facility?.facilityName || doctor.facilityName}</span>}
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -234,22 +234,22 @@ const AdminDoctors = () => {
                                     {/* Right: Documents */}
                                     <div>
                                         <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Tài liệu xác minh</h4>
-                                        
+
                                         <div style={{ marginBottom: '20px' }}>
                                             <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600 }}>Ảnh CCCD / Hộ chiếu:</p>
-                                            <img 
-                                                src={detailModal.data.idCardUrl} 
-                                                alt="CCCD" 
-                                                style={{ width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }} 
+                                            <img
+                                                src={detailModal.data.idCardUrl}
+                                                alt="CCCD"
+                                                style={{ width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }}
                                             />
                                         </div>
 
                                         <div style={{ marginBottom: '20px' }}>
                                             <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600 }}>Chứng chỉ hành nghề:</p>
-                                            <img 
-                                                src={detailModal.data.certificateUrl} 
-                                                alt="Chứng chỉ" 
-                                                style={{ width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }} 
+                                            <img
+                                                src={detailModal.data.certificateUrl}
+                                                alt="Chứng chỉ"
+                                                style={{ width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }}
                                             />
                                         </div>
                                     </div>

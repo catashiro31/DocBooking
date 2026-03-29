@@ -253,11 +253,7 @@ function LoginPage() {
       if (user?.role === "ADMIN") {
         navigate(from === "/" ? "/admin" : from)
       } else if (user?.role === "DOCTOR") {
-        if (user?.verificationStatus === "APPROVED") {
-          navigate(from === "/" ? "/doctor/appointments" : from)
-        } else {
-          navigate("/doctor/profile")
-        }
+        navigate(from === "/" ? "/doctor" : from)
       } else {
         navigate(from)
       }

@@ -89,7 +89,14 @@ public class PatientService {
         if (req.getGender() != null) profile.setGender(req.getGender());
         if (req.getPhoneNumber() != null) profile.setPhoneNumber(req.getPhoneNumber());
         if (req.getAddress() != null) profile.setAddress(req.getAddress());
-        if (req.getRelationship() != null) profile.setRelationship(req.getRelationship());
+        
+        // Chỉ chặn sửa 'relationship' nếu nó là SELF, vẫn cho phép sửa các trường khác
+        if (req.getRelationship() != null && !req.getRelationship().equals(profile.getRelationship())) {
+            if ("SELF".equals(profile.getRelationship()) || "SELF".equals(req.getRelationship())) {
+                throw new RuntimeException("Không thể thay đổi kiểu quan hệ 'Bản thân (SELF)'!");
+            }
+            profile.setRelationship(req.getRelationship());
+        }
 
         return mapToResponseDTO(patientProfileRepository.save(profile));
     }

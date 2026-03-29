@@ -20,7 +20,7 @@ const DoctorDashboard = () => {
     }
 
     const [activeTab, setActiveTab] = useState(getTabFromUrl())
-    
+
     useEffect(() => {
         setActiveTab(getTabFromUrl())
     }, [location.pathname])
@@ -73,28 +73,38 @@ const DoctorDashboard = () => {
     }
 
     const renderContent = () => {
-        const isApproved = profile?.verificationStatus === 'APPROVED' || user?.verificationStatus === 'APPROVED'
+        const currentStatus = profile?.verificationStatus || user?.verificationStatus;
+        const isApproved = currentStatus === 'APPROVED';
 
         if (!isApproved) {
+            let icon = '✨';
+            let title = 'Chào mừng bạn đến với DocBooking!';
+            let desc = 'Để bắt đầu nhận lịch hẹn từ bệnh nhân, bạn cần hoàn thiện hồ sơ chuyên môn và thông tin xác thực.';
+            let buttonText = 'Bắt đầu hoàn thiện hồ sơ';
+            let showButton = true;
+
+            if (currentStatus === 'PENDING') {
+                icon = '⏳';
+                title = 'Hồ sơ của bạn đang được duyệt';
+                desc = 'Ban quản trị đang xem xét hồ sơ năng lực của bạn. Vui lòng quay lại sau khi nhận được thông báo phê duyệt.';
+                showButton = false;
+            } else if (currentStatus === 'REJECTED') {
+                icon = '❌';
+                title = 'Hồ sơ bị từ chối';
+                desc = 'Rất tiếc, hồ sơ của bạn không đủ điều kiện phê duyệt lúc này. Vui lòng cập nhật lại thông tin theo yêu cầu của Admin.';
+                buttonText = 'Cập nhật lại hồ sơ';
+                showButton = true;
+            }
+
             return (
                 <div style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     minHeight: '400px', textAlign: 'center', padding: '40px'
                 }}>
-                    <div style={{ fontSize: '64px', marginBottom: '20px' }}>
-                        {profile?.verificationStatus === 'PENDING' ? '⏳' : '✨'}
-                    </div>
-                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '12px' }}>
-                        {profile?.verificationStatus === 'PENDING' 
-                            ? 'Hồ sơ của bạn đang được duyệt' 
-                            : 'Chào mừng bạn đến với DocBooking!'}
-                    </h2>
-                    <p style={{ color: '#6b7280', maxWidth: '400px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-                        {profile?.verificationStatus === 'PENDING'
-                            ? 'Ban quản trị đang xem xét hồ sơ năng lực của bạn. Vui lòng quay lại sau khi nhận được thông báo phê duyệt.'
-                            : 'Để bắt đầu nhận lịch hẹn từ bệnh nhân, bạn cần hoàn thiện hồ sơ chuyên môn và thông tin xác thực.'}
-                    </p>
-                    {profile?.verificationStatus !== 'PENDING' && (
+                    <div style={{ fontSize: '64px', marginBottom: '20px' }}>{icon}</div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '12px' }}>{title}</h2>
+                    <p style={{ color: '#6b7280', maxWidth: '400px', margin: '0 auto 24px', lineHeight: 1.6 }}>{desc}</p>
+                    {showButton && (
                         <button
                             onClick={() => navigate('/doctor/profile')}
                             style={{
@@ -103,7 +113,7 @@ const DoctorDashboard = () => {
                                 boxShadow: '0 4px 14px rgba(95,109,252,0.3)'
                             }}
                         >
-                            Bắt đầu hoàn thiện hồ sơ
+                            {buttonText}
                         </button>
                     )}
                 </div>
@@ -111,16 +121,11 @@ const DoctorDashboard = () => {
         }
 
         switch (activeTab) {
-            case "appointments":
-                return <DoctorAppointments />
-            case "schedule":
-                return <DoctorScheduleManager />
-            case "overdue":
-                return <DoctorOverdueAppointments />
-            case "reviews":
-                return <DoctorReviews />
-            default:
-                return <DoctorAppointments />
+            case "appointments": return <DoctorAppointments />
+            case "schedule": return <DoctorScheduleManager />
+            case "overdue": return <DoctorOverdueAppointments />
+            case "reviews": return <DoctorReviews />
+            default: return <DoctorAppointments />
         }
     }
 
@@ -137,9 +142,9 @@ const DoctorDashboard = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <Link to="/" style={{ textDecoration: 'none' }}>
-                        <h1 style={{ 
-                            margin: 0, 
-                            fontSize: '24px', 
+                        <h1 style={{
+                            margin: 0,
+                            fontSize: '24px',
                             background: 'linear-gradient(135deg, #5f6dfc, #a78bfa)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent'
@@ -147,10 +152,10 @@ const DoctorDashboard = () => {
                             DocBooking
                         </h1>
                     </Link>
-                    <span style={{ 
-                        padding: '4px 12px', 
-                        background: '#dbeafe', 
-                        color: '#2563eb', 
+                    <span style={{
+                        padding: '4px 12px',
+                        background: '#dbeafe',
+                        color: '#2563eb',
                         borderRadius: '20px',
                         fontSize: '13px',
                         fontWeight: '500'
@@ -160,9 +165,9 @@ const DoctorDashboard = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: '12px',
                         padding: '8px 16px',
                         background: '#f3f4f6',
@@ -203,7 +208,7 @@ const DoctorDashboard = () => {
                             width: '100px',
                             height: '100px',
                             borderRadius: '50%',
-                            background: profile?.avatarUrl 
+                            background: profile?.avatarUrl
                                 ? `url(${profile.avatarUrl}) center/cover`
                                 : 'linear-gradient(135deg, #5f6dfc, #a78bfa)',
                             display: 'flex',
@@ -226,7 +231,7 @@ const DoctorDashboard = () => {
                                 📍 {profile.facilityName}
                             </p>
                         )}
-                        
+
                         {profile?.verificationStatus === 'PENDING' && (
                             <div style={{
                                 marginTop: '12px',
@@ -328,8 +333,24 @@ const DoctorDashboard = () => {
                                 fontSize: '15px'
                             }}
                         >
-                            <span>👤</span>
+                            <span>👩‍⚕️</span>
                             <span>Hồ sơ chuyên môn</span>
+                        </Link>
+                        <Link
+                            to="/profile"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '12px 16px',
+                                borderRadius: '10px',
+                                color: '#374151',
+                                textDecoration: 'none',
+                                fontSize: '15px'
+                            }}
+                        >
+                            <span>👤</span>
+                            <span>Thông tin cá nhân</span>
                         </Link>
                         <Link
                             to="/change-password"

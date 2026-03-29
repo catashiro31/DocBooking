@@ -75,14 +75,18 @@ function UserProfile() {
                     <div>
                         <button 
                             type="button"
-                            onClick={() => navigate('/')} 
+                            onClick={() => {
+                                if (contextUser?.role === 'ADMIN') navigate('/admin/board');
+                                else if (contextUser?.role === 'DOCTOR') navigate('/doctor');
+                                else navigate('/');
+                            }} 
                             style={{
                                 padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0',
                                 background: '#f1f5f9', color: '#64748b', fontSize: '13px', fontWeight: 600,
                                 cursor: 'pointer', transition: 'all 0.2s', marginRight: '8px'
                             }}
                         >
-                            Trang chủ
+                            {contextUser?.role === 'ADMIN' ? 'Bảng điều khiển' : contextUser?.role === 'DOCTOR' ? 'Dashboard' : 'Trang chủ'}
                         </button>
                         <button 
                             type="button"

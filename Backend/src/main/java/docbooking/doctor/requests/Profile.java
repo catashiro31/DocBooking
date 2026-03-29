@@ -23,6 +23,7 @@ public class Profile {
     private Integer experienceYears;
 
     @NotNull(message = "Vui lòng nhập giá khám")
+    @Min(value = 0, message = "Giá khám không được là số âm")
     private Double price;
 
     @NotNull(message = "Vui lòng tải lên ảnh CCCD")

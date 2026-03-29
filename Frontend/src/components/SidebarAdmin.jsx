@@ -10,6 +10,7 @@ const SIDEBAR_ITEMS = [
   { path: "/admin/specialties", icon: "⚕️", label: "Quản lý chuyên khoa" },
   { path: "/admin/facilities", icon: "🏥", label: "Quản lý cơ sở y tế" },
   { path: "/admin/reviews", icon: "⭐", label: "Quản lý đánh giá" },
+  { path: "/profile", icon: "👤", label: "Tài khoản của tôi" },
 ];
 
 const Sidebar = () => {
@@ -28,20 +29,20 @@ const Sidebar = () => {
       }}>
 
         {SIDEBAR_ITEMS.map(item => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => isActive ? "sidebar-item active" : "sidebar-item"}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '14px',
-                padding: '13px 22px', margin: '4px 12px', borderRadius: '12px',
-                textDecoration: 'none', color: '#4a5568', fontSize: '15px',
-                fontWeight: 600, transition: 'all 0.22s ease'
-              }}
-            >
-              <span style={{ fontSize: '19px', lineHeight: 1 }}>{item.icon}</span>
-              <p style={{ margin: 0 }}>{item.label}</p>
-            </NavLink>
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className={({ isActive }) => isActive ? "sidebar-item active" : "sidebar-item"}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '14px',
+              padding: '13px 22px', margin: '4px 12px', borderRadius: '12px',
+              textDecoration: 'none', color: '#4a5568', fontSize: '15px',
+              fontWeight: 600, transition: 'all 0.22s ease'
+            }}
+          >
+            <span style={{ fontSize: '19px', lineHeight: 1 }}>{item.icon}</span>
+            <p style={{ margin: 0 }}>{item.label}</p>
+          </NavLink>
         ))}
 
       </div>

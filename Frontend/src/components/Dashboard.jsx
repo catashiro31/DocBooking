@@ -51,9 +51,9 @@ function Dashboard() {
         <div className="dash-cards" style={{ display: 'flex', gap: '18px', marginBottom: '26px' }}>
 
           {[
-            { img: admin1, number: stats.totalDoctors || 0,  label: 'Bác sĩ' },
+            { img: admin1, number: stats.totalDoctors || 0, label: 'Bác sĩ' },
             { img: admin2, number: stats.totalAppointments || 0, label: 'Lịch hẹn' },
-            { img: admin3, number: stats.totalPatients || 0,  label: 'Bệnh nhân' },
+            { img: admin3, number: stats.totalPatients || 0, label: 'Bệnh nhân' },
           ].map((c) => (
             <div
               key={c.label}
@@ -70,53 +70,7 @@ function Dashboard() {
 
         </div>
 
-        {/* ===== BOOKING CARD ===== */}
-        <div style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #ececf0', boxShadow: '0 1px 6px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '16px 20px', borderBottom: '1px solid #f2f3f7' }}>
-            <img src={icon} alt="" style={{ width: '20px', height: '20px', opacity: 0.6 }} />
-            <p style={{ fontWeight: 800, fontSize: '18px', color: '#374151', margin: 0 }}>Đặt chỗ mới nhất</p>
-          </div>
-
-          <div style={{ padding: '4px 0' }}>
-            {bookings.map((item) => (
-              <div
-                key={item.id}
-                className="booking-item-row"
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #f7f8fa', transition: 'background 0.15s ease' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', fontWeight: 'bold' }}>
-                    {item.patientName ? item.patientName.charAt(0) : 'U'}
-                  </div>
-                  <div>
-                    <p style={{ fontWeight: 600, fontSize: '13.5px', color: '#595c60', margin: '0 0 2px' }}>{item.patientName || 'BN'}</p>
-                    <p style={{ fontSize: '12px', color: '#b0b7c3', margin: 0 }}>
-                      BS: {item.doctorName || 'Chưa xếp'} | {new Date(item.appointmentDate || item.date).toLocaleDateString("vi-VN")}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  {item.status?.toLowerCase() === "cancelled" ? (
-                    <span style={{ color: '#f87171', fontWeight: 600, fontSize: '12px', background: '#fff5f5', padding: '4px 10px', borderRadius: '20px', border: '1px solid #fecaca' }}>
-                      Đã hủy
-                    </span>
-                  ) : (
-                    <button
-                      className="cancel-btn"
-                      onClick={() => handleCancel(item.id)}
-                      style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #fca5a5', background: '#fff5f5', color: '#f87171', fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', lineHeight: 1 }}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
+        {/* Lịch hẹn gần đây đã được xoá theo yêu cầu để giảm tải và sửa lỗi Invalid date */}
       </div>
     </>
   );

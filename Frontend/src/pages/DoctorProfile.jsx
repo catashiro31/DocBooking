@@ -141,6 +141,14 @@ function DoctorProfile() {
   const [submitted, setSubmitted] = useState(user?.verificationStatus === "PENDING")
   const [approved, setApproved] = useState(user?.verificationStatus === "APPROVED")
   const [loading, setLoading] = useState(false)
+  
+  // Du lieu ho so (khi da duoc duyet)
+  const [profileData, setProfileData] = useState(null)
+  
+  // Form sua gia, tieu su (Khi da duoc duyet)
+  const [editMode, setEditMode] = useState(false)
+  const [editForm, setEditForm] = useState({ bio: "", price: "" })
+  const [savingEdit, setSavingEdit] = useState(false)
 
   const [form, setForm] = useState({
     bio: "", degree: "", experienceYears: "", price: "",
@@ -155,8 +163,30 @@ function DoctorProfile() {
     // Kiem tra trang thai ho so hien tai
     api.get("/doctor/profile")
       .then(res => {
-        if (res.data?.verificationStatus === "APPROVED") setApproved(true)
-        else if (res.data?.verificationStatus === "PENDING") setSubmitted(true)
+        const status = res.data?.verificationStatus;
+        if (status === "APPROVED") {
+            setApproved(true)
+            setProfileData(res.data)
+            setEditForm({ bio: res.data.bio || "", price: res.data.price || "" })
+        }
+        else if (status === "PENDING") {
+            setSubmitted(true)
+        }
+        else if (status === "REJECTED") {
+            setSubmitted(false);
+            setApproved(false);
+            // Pre-fill form with rejected data to help them fix it
+            setForm({
+                bio: res.data.bio || "",
+                degree: res.data.degree || "",
+                experienceYears: res.data.experienceYears || "",
+                price: res.data.price || "",
+                specialtyId: res.data.specialty?.id || "",
+                facilityId: res.data.facility?.id || "",
+                idCardUrl: res.data.idCardUrl || "",
+                certificateUrl: res.data.certificateUrl || ""
+            });
+        }
       })
       .catch(() => {}) // 404 neu chua lap ho so
 
@@ -170,6 +200,28 @@ function DoctorProfile() {
   }, [])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+
+  const handleEditChange = (e) => setEditForm({ ...editForm, [e.target.name]: e.target.value })
+  
+  const handleSaveEdit = async () => {
+    if (Number(editForm.price) < 0) {
+        toast.error("Giá khám không được là số âm")
+        return
+    }
+    setSavingEdit(true)
+    try {
+        await api.put("/doctor/profile", {
+            bio: editForm.bio,
+            price: Number(editForm.price)
+        })
+        toast.success("Cập nhật hồ sơ thành công")
+        setProfileData(prev => ({ ...prev, bio: editForm.bio, price: Number(editForm.price) }))
+        setEditMode(false)
+    } catch (err) {
+        toast.error(err.response?.data || "Đã xảy ra lỗi khi cập nhật")
+    }
+    setSavingEdit(false)
+  }
 
   const handleUpload = (e, type) => {
     const file = e.target.files[0]
@@ -186,6 +238,10 @@ function DoctorProfile() {
   }
 
   const handleSubmit = async () => {
+    if (Number(form.experienceYears) < 0 || Number(form.price) < 0) {
+        toast.error("Số năm kinh nghiệm và giá khám không được âm")
+        return
+    }
     setLoading(true)
     try {
       const formData = new FormData()
@@ -235,6 +291,71 @@ function DoctorProfile() {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
   }
 
+  // ===== APPROVED SCREEN =====
+  if (approved && profileData) {
+      return (
+          <div style={{...pageWrapStyle, display: 'block', padding: '40px 20px'}}>
+              <div style={{ maxWidth: '800px', margin: '0 auto', background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                      <h2 style={{ fontSize: '24px', fontWeight: 700, margin: 0, color: '#0f172a' }}>Hồ sơ chuyên môn</h2>
+                      <div>
+                          {!editMode ? (
+                              <button onClick={() => setEditMode(true)} style={{ padding: '8px 16px', background: '#0ea47a', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Cập nhật hồ sơ</button>
+                          ) : (
+                              <>
+                                  <button onClick={() => setEditMode(false)} style={{ padding: '8px 16px', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, marginRight: '8px' }}>Hủy</button>
+                                  <button onClick={handleSaveEdit} disabled={savingEdit} style={{ padding: '8px 16px', background: '#0ea47a', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>{savingEdit ? "Đang lưu..." : "Lưu"}</button>
+                              </>
+                          )}
+                      </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                      <div>
+                          <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#64748b' }}>Bằng cấp</p>
+                          <p style={{ margin: 0, fontWeight: 500 }}>{profileData.degree}</p>
+                      </div>
+                      <div>
+                          <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#64748b' }}>Kinh nghiệm</p>
+                          <p style={{ margin: 0, fontWeight: 500 }}>{profileData.experienceYears} năm</p>
+                      </div>
+                      <div>
+                          <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#64748b' }}>Chuyên khoa</p>
+                          <p style={{ margin: 0, fontWeight: 500 }}>{profileData.specialty?.specialtyName}</p>
+                      </div>
+                      <div>
+                          <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#64748b' }}>Cơ sở khám</p>
+                          <p style={{ margin: 0, fontWeight: 500 }}>{profileData.facility?.facilityName}</p>
+                      </div>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '24px' }}>
+                      <div style={{ marginBottom: '20px' }}>
+                          <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>GÍA KHÁM (VNĐ)</p>
+                          {editMode ? (
+                              <input type="number" min="0" name="price" value={editForm.price} onChange={handleEditChange} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }} />
+                          ) : (
+                              <p style={{ margin: 0, fontWeight: 600, color: '#0ea47a', fontSize: '16px' }}>{Number(profileData.price).toLocaleString('vi-VN')} đ</p>
+                          )}
+                      </div>
+
+                      <div>
+                          <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>TIỂU SỬ BÁC SĨ</p>
+                          {editMode ? (
+                              <textarea name="bio" value={editForm.bio} onChange={handleEditChange} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', minHeight: '120px', resize: 'vertical' }} />
+                          ) : (
+                              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', fontSize: '14px', lineHeight: 1.6, color: '#334155' }}>
+                                  {profileData.bio || "Chưa có tiểu sử"}
+                              </div>
+                          )}
+                      </div>
+                  </div>
+
+              </div>
+          </div>
+      )
+  }
+
   // ===== SUCCESS SCREEN =====
   if (submitted) {
     return (
@@ -281,29 +402,6 @@ function DoctorProfile() {
     )
   }
 
-  // ===== APPROVED SCREEN =====
-  if (approved) {
-    return (
-      <div style={pageWrapStyle}>
-        <div style={{ width: '100%', maxWidth: '440px', background: '#fff', borderRadius: '24px', border: '1px solid #f0f0f0', boxShadow: '0 4px 24px rgba(0,0,0,0.07)', padding: '3rem 2.5rem', textAlign: 'center' }}>
-          <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', boxShadow: '0 8px 24px rgba(59,130,246,0.3)' }}>
-            <span style={{ fontSize: '36px' }}>👨‍⚕️</span>
-          </div>
-          <h2 style={{ margin: '0 0 10px', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>Hồ sơ đã được duyệt!</h2>
-          <p style={{ margin: '0 0 2rem', fontSize: '14px', color: '#6b7280', lineHeight: 1.7 }}>
-            Tài khoản bác sĩ của bạn đã được xác thực và đang hoạt động bình thường.
-          </p>
-          <button
-            onClick={() => navigate("/doctor/appointments")}
-            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 14px rgba(59,130,246,0.35)' }}
-          >
-            Đến bảng điều khiển →
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   // ===== MAIN FORM =====
   const selectStyle = {
     width: '100%', padding: '12px 40px 12px 14px', borderRadius: '10px',
@@ -347,8 +445,8 @@ function DoctorProfile() {
               </SectionCard>
               <SectionCard icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea47a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>} title="Kinh nghiệm & Chi phí">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
-                  <FloatingInput label="Số năm kinh nghiệm" type="number" name="experienceYears" placeholder="VD: 10" value={form.experienceYears} onChange={handleChange} required />
-                  <FloatingInput label="Giá tư vấn (VNĐ)" type="number" name="price" placeholder="VD: 200000" value={form.price} onChange={handleChange} required />
+                  <FloatingInput label="Số năm kinh nghiệm" type="number" min="0" name="experienceYears" placeholder="VD: 10" value={form.experienceYears} onChange={handleChange} required />
+                  <FloatingInput label="Giá tư vấn (VNĐ)" type="number" min="0" name="price" placeholder="VD: 200000" value={form.price} onChange={handleChange} required />
                 </div>
               </SectionCard>
             </>
