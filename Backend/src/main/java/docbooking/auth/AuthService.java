@@ -34,6 +34,10 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
         if (!Boolean.TRUE.equals(user.getIsActive())) {
+            // Phân biệt: chưa verify email vs bị khóa
+            if (user.getVerificationCode() != null) {
+                throw new RuntimeException("Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác thực!");
+            }
             String reason = user.getReasonBanned() != null ? user.getReasonBanned() : "Vi phạm chính sách";
             throw new RuntimeException("Tài khoản đã bị khóa. Lý do: " + reason);
         }
