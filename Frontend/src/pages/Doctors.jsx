@@ -6,64 +6,81 @@ import { useSearchParams } from 'react-router-dom';
 import Footer from '../components/Footer';
 
 const css = `
-.page { min-height: 100vh; background: #f8fafc; font-family: 'DM Sans', 'Inter', sans-serif; }
+.page { min-height: 100vh; background: #f8fafc; font-family: 'Inter', -apple-system, sans-serif; }
 
 /* ===== HERO ===== */
-.hero-wrapper { max-width: 1280px; margin: 32px auto 0; padding: 0 40px; }
+.hero-wrapper { max-width: 1280px; margin: 0 auto; padding: 24px 40px; }
 .hero {
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  padding: 40px 48px; border-radius: 24px; color: #fff;
-  box-shadow: 0 12px 32px rgba(99,102,241,0.15);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 32px;
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  padding: 60px 80px; border-radius: 32px; color: #fff;
+  box-shadow: 0 20px 50px rgba(99,102,241,0.2);
   position: relative; overflow: hidden;
 }
 .hero::after {
   content: ''; position: absolute; top: -50%; right: -10%;
-  width: 300px; height: 300px; background: rgba(255,255,255,0.1);
+  width: 400px; height: 400px; background: rgba(255,255,255,0.08);
   border-radius: 50%; pointer-events: none;
 }
-.hero-text-wrap { position: relative; z-index: 1; }
-.hero-title { font-size: 28px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.02em; }
-.hero-desc { font-size: 15px; color: rgba(255,255,255,0.85); margin: 0; max-width: 400px; line-height: 1.6; }
+.hero-text-wrap { position: relative; z-index: 1; flex: 1; }
+.hero-title { font-size: 36px; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.03em; line-height: 1.1; }
+.hero-desc { font-size: 16px; color: rgba(255,255,255,0.85); margin: 0; max-width: 440px; line-height: 1.6; }
 
-.search-wrap { position: relative; z-index: 1; width: 340px; max-width: 100%; }
+.search-wrap { position: relative; z-index: 1; width: 400px; max-width: 100%; }
 .search-input { 
-  width: 100%; border: none; border-radius: 14px; 
-  padding: 14px 20px 14px 48px; font-size: 15px; outline: none; 
-  color: #1e293b; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  transition: all 0.3s;
+  width: 100%; border: none; border-radius: 18px; 
+  padding: 16px 24px 16px 56px; font-size: 16px; outline: none; 
+  color: #0f172a; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
 }
-.search-input:focus { box-shadow: 0 12px 32px rgba(0,0,0,0.15); transform: translateY(-2px); }
+.search-input:focus { box-shadow: 0 15px 40px rgba(0,0,0,0.15); transform: translateY(-3px); }
 .search-icon { 
-  position: absolute; left: 18px; top: 50%; transform: translateY(-50%); 
-  color: #94a3b8; width: 20px; height: 20px; 
+  position: absolute; left: 22px; top: 50%; transform: translateY(-50%); 
+  color: #94a3b8; width: 22px; height: 22px; 
 }
 
 /* ===== MAIN CONTENT ===== */
-.main { max-width: 1280px; margin: 32px auto 60px; padding: 0 40px; display: flex; gap: 32px; align-items: flex-start; }
-.sidebar { width: 240px; flex-shrink: 0; background: #fff; padding: 24px; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); position: sticky; top: 100px; }
-.sidebar h3 { margin: 0 0 16px; font-size: 16px; color: #0f172a; font-weight: 700; }
+.main { max-width: 1280px; margin: 40px auto 100px; padding: 0 40px; display: flex; gap: 40px; align-items: flex-start; }
+.sidebar { 
+  width: 280px; flex-shrink: 0; background: #fff; padding: 32px; 
+  border-radius: 28px; border: 1px solid #e2e8f0; 
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); position: sticky; top: 100px; 
+}
+.sidebar-group { margin-bottom: 36px; }
+.sidebar-group:last-child { margin-bottom: 0; }
+.sidebar h3 { 
+  margin: 0 0 20px; font-size: 12px; color: #94a3b8; font-weight: 800; 
+  text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px;
+}
 .spec-list { display: flex; flex-direction: column; gap: 6px; }
 .spec-item { 
-  padding: 12px 16px; border-radius: 12px; border: none; background: transparent; 
-  cursor: pointer; font-size: 14px; transition: all 0.2s; text-align: left; 
-  color: #475569; font-weight: 500; font-family: inherit;
+  padding: 12px 16px; border-radius: 14px; border: none; background: transparent; 
+  cursor: pointer; font-size: 14px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-align: left; 
+  color: #475569; font-weight: 600; font-family: inherit;
 }
-.spec-item:hover { background: #f1f5f9; color: #1e293b; }
-.spec-item.active { background: #eef2ff; color: #6366f1; font-weight: 600; }
+.spec-item:hover { background: #f8fafc; color: #1e293b; padding-left: 20px; }
+.spec-item.active { background: #f5f3ff; color: #6366f1; }
 
-.grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
-.empty { grid-column: 1 / -1; text-align: center; padding: 80px; color: #64748b; font-size: 15px; background: #fff; border-radius: 20px; border: 1px dashed #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+.grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 32px; }
+.empty { 
+  grid-column: 1 / -1; text-align: center; padding: 100px 40px; color: #64748b; 
+  background: #fff; border-radius: 28px; border: 2px dashed #e2e8f0;
+}
 
-.pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; grid-column: 1 / -1; padding-bottom: 20px; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 60px; grid-column: 1 / -1; }
 .pagination button { 
-  display: flex; align-items: center; justify-content: center; min-width: 40px; height: 40px; padding: 0 16px; 
-  border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: #475569; font-weight: 600; font-size: 14px;
-  cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.02); font-family: inherit;
+  display: flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; padding: 0 18px; 
+  border-radius: 14px; border: 1px solid #e2e8f0; background: #fff; color: #475569; font-weight: 700; font-size: 14px;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: inherit;
 }
-.pagination button:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99,102,241,0.15); }
-.pagination button:disabled { opacity: 0.5; cursor: not-allowed; background: #f8fafc; }
-.pagination button.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+.pagination button:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(99,102,241,0.15); }
+.pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+.pagination button.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-color: transparent; box-shadow: 0 10px 20px rgba(99,102,241,0.3); }
+
+/* SKELETON */
+.skeleton-doc { height: 420px; width: 100%; border-radius: 24px; }
+
 
 @media (max-width: 640px) {
   .hero-wrapper { padding: 0 16px; }
@@ -106,7 +123,7 @@ export default function Doctors() {
         setSpecialties(specs.map(s => ({ ...s, id: s.specialtyId || s.id, name: s.specialtyName || s.name })));
       })
       .catch(err => console.error("Error loading specialties:", err));
-      
+
     doctorService.getFacilities()
       .then(data => {
         const facs = Array.isArray(data) ? data : [];
@@ -203,14 +220,14 @@ export default function Doctors() {
       <style>{css}</style>
       <Header />
       <div className="page">
-        <div className="hero-wrapper">
+        <div className="hero-wrapper reveal">
           <div className="hero">
             <div className="hero-text-wrap">
               <h1 className="hero-title">Đội ngũ bác sĩ</h1>
-              <p className="hero-desc">Duyệt qua danh sách các bác sĩ chuyên khoa giàu kinh nghiệm và đặt lịch khám ngay hôm nay.</p>
+              <p className="hero-desc">Hơn {doctors.length}+ bác sĩ chuyên khoa hàng đầu sẵn sàng tư vấn và chăm sóc sức khỏe cho bạn.</p>
             </div>
             <div className="search-wrap">
-              <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -226,18 +243,18 @@ export default function Doctors() {
         </div>
 
         <div className="main">
-          <aside className="sidebar">
-            <div style={{ marginBottom: '32px' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <aside className="sidebar reveal">
+            <div className="sidebar-group">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                 Chuyên khoa
               </h3>
               <div className="spec-list">
-                <button 
+                <button
                   className={`spec-item ${!selectedSpecId ? 'active' : ''}`}
                   onClick={() => handleSpecialtySelect(null)}
                 >
-                  Tất cả chuyên khoa
+                  Tất cả
                 </button>
                 {specialties.map(spec => (
                   <button
@@ -251,13 +268,13 @@ export default function Doctors() {
               </div>
             </div>
 
-            <div style={{ marginBottom: '32px' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <div className="sidebar-group">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 Cơ sở y tế
               </h3>
               <div className="spec-list">
-                <button 
+                <button
                   className={`spec-item ${!selectedFacilityId ? 'active' : ''}`}
                   onClick={() => handleFacilitySelect(null)}
                 >
@@ -275,13 +292,13 @@ export default function Doctors() {
               </div>
             </div>
 
-            <div>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <div className="sidebar-group">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 Khoảng giá
               </h3>
               <div className="spec-list">
-                <button 
+                <button
                   className={`spec-item ${minPrice === null && maxPrice === null ? 'active' : ''}`}
                   onClick={() => handlePriceSelect(null, null)}
                 >
@@ -302,29 +319,30 @@ export default function Doctors() {
 
           <section className="grid">
             {loading ? (
-              <div className="empty">Đang tải...</div>
+              Array(8).fill(0).map((_, i) => <div key={i} className="skeleton skeleton-doc" />)
             ) : doctors.length === 0 ? (
-              <div className="empty">Không tìm thấy bác sĩ</div>
+              <div className="empty reveal">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 20 }}>
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><path d="M8 11h6" />
+                </svg>
+                <p style={{ margin: 0, fontWeight: 600 }}>Không tìm thấy bác sĩ phù hợp</p>
+                <p style={{ margin: '8px 0 0', fontSize: '14px', opacity: 0.7 }}>Vui lòng thử lại với các tiêu chí lọc khác.</p>
+              </div>
             ) : (
               <>
-                {doctors.map(doc => (
-                  <DoctorCard key={doc.doctorId || doc.id} doctor={doc} />
+                {doctors.map((doc, i) => (
+                  <div key={doc.doctorId || doc.id} className="reveal-delayed" style={{ animationDelay: `${0.1 * i}s` }}>
+                    <DoctorCard doctor={doc} />
+                  </div>
                 ))}
-                
+
                 {totalPages > 1 && (
-                  <div className="pagination">
-                    <button 
-                      onClick={() => setPage(0)}
-                      disabled={page === 0}
-                      style={{ fontSize: '12px' }}
-                    >
-                      Đầu
-                    </button>
-                    <button 
+                  <div className="pagination reveal">
+                    <button
                       onClick={() => setPage(p => Math.max(0, p - 1))}
                       disabled={page === 0}
                     >
-                      Trước
+                      ←
                     </button>
                     {getPageRange().map(i => (
                       <button
@@ -335,18 +353,11 @@ export default function Doctors() {
                         {i + 1}
                       </button>
                     ))}
-                    <button 
+                    <button
                       onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                       disabled={page >= totalPages - 1}
                     >
-                      Sau
-                    </button>
-                    <button 
-                      onClick={() => setPage(totalPages - 1)}
-                      disabled={page >= totalPages - 1}
-                      style={{ fontSize: '12px' }}
-                    >
-                      Cuối
+                      →
                     </button>
                   </div>
                 )}

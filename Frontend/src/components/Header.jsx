@@ -7,51 +7,64 @@ const css = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 .hdr {
-  background: #fff;
-  border-bottom: 1px solid #f0f0f5;
+  background: transparent;
   position: sticky;
   top: 0;
   z-index: 200;
   font-family: 'Inter', -apple-system, sans-serif;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  transition: all 0.3s ease;
+  height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.hdr.scrolled {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  height: 72px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .hdr-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 72px;
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 80px;
+  padding: 0 40px;
 }
 
 /* ===== Logo ===== */
 .hdr-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   text-decoration: none;
   flex-shrink: 0;
 }
 
 .hdr-logo-icon {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+  box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  transition: transform 0.3s ease;
 }
+.hdr-logo:hover .hdr-logo-icon { transform: rotate(-5deg) scale(1.05); }
 
 .hdr-logo-text {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   color: #0f172a;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 /* ===== Nav links ===== */
@@ -64,56 +77,55 @@ const css = `
 .hdr-nav {
   display: flex;
   list-style: none;
-  gap: 16px;
-  margin: 0 auto; /* Tự động căn giữa */
+  gap: 8px;
+  margin: 0 auto;
   padding: 0;
 }
 
 .hdr-nav a {
   text-decoration: none;
   font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
-  padding: 8px 14px;
-  border-radius: 8px;
-  transition: all 0.2s;
+  font-weight: 600;
+  color: #475569;
+  padding: 10px 18px;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.hdr-nav a:hover { color: #6366f1; background: #f5f3ff; }
-.hdr-nav a.active { color: #6366f1; font-weight: 600; background: #eef2ff; }
+.hdr-nav a:hover { color: #6366f1; background: rgba(99, 102, 241, 0.05); }
+.hdr-nav a.active { color: #6366f1; background: rgba(99, 102, 241, 0.08); }
 
 /* ===== Auth buttons ===== */
-.hdr-auth { display: flex; gap: 8px; align-items: center; }
+.hdr-auth { display: flex; gap: 12px; align-items: center; }
 
 .hdr-btn-login {
-  padding: 8px 20px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 10px;
-  background: #fff;
-  color: #374151;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 12px;
+  background: transparent;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
   text-decoration: none;
   font-family: inherit;
 }
-.hdr-btn-login:hover { border-color: #6366f1; color: #6366f1; }
+.hdr-btn-login:hover { color: #6366f1; background: rgba(99, 102, 241, 0.05); }
 
 .hdr-btn-register {
-  padding: 8px 20px;
+  padding: 10px 24px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: #fff;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   text-decoration: none;
   font-family: inherit;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+  box-shadow: 0 4px 12px rgba(99,102,241,0.25);
 }
-.hdr-btn-register:hover { box-shadow: 0 4px 14px rgba(99,102,241,0.35); transform: translateY(-1px); }
+.hdr-btn-register:hover { box-shadow: 0 8px 20px rgba(99,102,241,0.4); transform: translateY(-2px); }
 
 /* ===== User menu ===== */
 .hdr-user { position: relative; }
@@ -343,9 +355,23 @@ const DOCTOR_UNVERIFIED_MENU = [
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [ddOpen, setDdOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const ddRef = useRef(null);
+
+  // Scroll listener for sticky effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -389,7 +415,7 @@ export default function Header() {
   return (
     <>
       <style>{css}</style>
-      <header className="hdr">
+      <header className={`hdr ${scrolled ? 'scrolled' : ''}`}>
         <div className="hdr-container">
           {/* Logo */}
           <Logo onClick={() => navigate('/')} />

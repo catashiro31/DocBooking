@@ -2,27 +2,66 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const css = `
-.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-.card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border-color: #8b5cf6; }
-.avatar-wrap { background: linear-gradient(180deg, #f8fafc 0%, #e0e7ff 100%); display: flex; align-items: flex-end; justify-content: center; height: 180px; overflow: hidden; }
-.avatar { height: 90%; width: 90%; object-fit: cover; object-position: top; transition: transform 0.3s ease; }
-.card:hover .avatar { transform: scale(1.05); }
-.card-body { padding: 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; border-top: 1px solid #f1f5f9; }
-.avail-badge { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.doc-name { margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; line-height: 1.3; }
-.doc-spec { margin: 0; font-size: 14px; color: #64748b; display: flex; align-items: center; gap: 6px; }
-.meta-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-.meta-badge { 
-  font-size: 12px; padding: 5px 10px; background: #f8fafc; border: 1px solid #f1f5f9; 
-  border-radius: 10px; color: #475569; font-weight: 600; display: flex; align-items: center; gap: 5px; 
+.card { 
+  background: #fff; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 24px; 
+  overflow: hidden; 
+  cursor: pointer; 
+  display: flex; 
+  flex-direction: column; 
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
 }
+.card:hover { 
+  transform: translateY(-8px); 
+  box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.15); 
+  border-color: #6366f1; 
+}
+.avatar-wrap { 
+  background: linear-gradient(180deg, #f8fafc 0%, #e0e7ff 100%); 
+  display: flex; 
+  align-items: flex-end; 
+  justify-content: center; 
+  height: 200px; 
+  overflow: hidden; 
+  position: relative;
+}
+.avatar { 
+  height: 95%; 
+  width: 90%; 
+  object-fit: cover; 
+  object-position: top; 
+  transition: transform 0.5s ease; 
+}
+.card:hover .avatar { transform: scale(1.08); }
+.card-body { padding: 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; border-top: 1px solid #f1f5f9; }
+.avail-badge { display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.doc-name { margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.2; letter-spacing: -0.01em; }
+.doc-spec { margin: 0; font-size: 14px; color: #64748b; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.meta-badge { 
+  font-size: 13px; padding: 6px 12px; background: #f8fafc; border: 1px solid #f1f5f9; 
+  border-radius: 12px; color: #334155; font-weight: 700; display: flex; align-items: center; gap: 6px; 
+  transition: all 0.2s;
+}
+.card:hover .meta-badge { background: #fff; border-color: #e2e8f0; }
 .meta-badge svg { width: 14px; height: 14px; }
 .badge-star { color: #f59e0b; }
 .badge-exp { color: #6366f1; }
 .badge-fee { color: #10b981; }
-.book-btn { margin-top: auto; padding: 12px 0; background: #f1f5f9; color: #475569; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.2s; }
-.card:hover .book-btn { background: #6366f1; color: #fff; transform: scale(1.02); }
+.book-btn { 
+  margin-top: 12px; padding: 12px 0; 
+  background: #f8fafc; color: #6366f1; 
+  border: none; border-radius: 14px; 
+  font-size: 14px; font-weight: 800; 
+  cursor: pointer; width: 100%; 
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+  font-family: inherit;
+}
+.card:hover .book-btn { background: #6366f1; color: #fff; box-shadow: 0 8px 20px rgba(99,102,241,0.3); }
+
 `;
 
 export default function DoctorCard({ doctor }) {
