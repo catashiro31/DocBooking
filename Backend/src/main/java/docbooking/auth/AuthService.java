@@ -67,6 +67,7 @@ public class AuthService {
 
         String randomCode = UUID.randomUUID().toString();
         newUser.setVerificationCode(randomCode);
+        newUser.setCodeExpiry(LocalDateTime.now().plusHours(24));
         newUser.setIsActive(false);
 
         userRepository.save(newUser);
@@ -84,25 +85,29 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại!"));
 
-        // 2. Kiểm tra mã code có khớp không
-        if (user.getVerificationCode() != null && user.getVerificationCode().equals(code)) {
-            user.setIsActive(true);
-            user.setVerificationCode(null);
-            userRepository.save(user);
+        // 2. Kiểm tra mã code có khớp và chưa hết hạn không
+        if (user.getVerificationCode() == null || !user.getVerificationCode().equals(code)) {
+            throw new RuntimeException("Đường link xác thực không hợp lệ!");
+        }
+        if (user.getCodeExpiry() == null || LocalDateTime.now().isAfter(user.getCodeExpiry())) {
+            throw new RuntimeException("Đường link xác thực đã hết hạn! Vui lòng đăng ký lại.");
+        }
 
-            if (user.getRole() == User.RoleStatus.PATIENT) {
-                PatientProfile selfProfile = PatientProfile.builder()
+        user.setIsActive(true);
+        user.setVerificationCode(null);
+        user.setCodeExpiry(null);
+        userRepository.save(user);
+
+        if (user.getRole() == User.RoleStatus.PATIENT) {
+            PatientProfile selfProfile = PatientProfile.builder()
                     .fullName(user.getFullName())
                     .phoneNumber(user.getPhoneNumber())
                     .relationship("SELF") // Đánh dấu đây là hồ sơ chính bản thân mình
                     .user(user) // Liên kết với tài khoản vừa tạo
                     .build();
-                patientProfileRepository.save(selfProfile);
-            }
-
-            return "Xác thực tài khoản thành công! Bây giờ bạn có thể đăng nhập.";
-        } else {
-            throw new RuntimeException("Đường link xác thực không hợp lệ hoặc đã hết hạn!");
+            patientProfileRepository.save(selfProfile);
         }
+
+        return "Xác thực tài khoản thành công! Bây giờ bạn có thể đăng nhập.";
     }
 }
