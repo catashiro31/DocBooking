@@ -32,8 +32,35 @@ public class DoctorService {
 
     @Transactional
     public String completeProfile(User user, Profile req) {
-        if (doctorDetailRepository.existsByUser(user)) {
-            throw new RuntimeException("Hồ sơ đã tồn tại, vui lòng đợi duyệt!");
+        Optional<DoctorDetail> existingProfile = doctorDetailRepository.findByUser(user);
+
+        if (existingProfile.isPresent()) {
+            DoctorDetail existing = existingProfile.get();
+            if (existing.getVerificationStatus() == DoctorDetail.VerificationStatus.PENDING) {
+                throw new RuntimeException("Hồ sơ đang chờ duyệt, vui lòng đợi!");
+            }
+            if (existing.getVerificationStatus() == DoctorDetail.VerificationStatus.APPROVED) {
+                throw new RuntimeException("Hồ sơ đã được duyệt, không thể gửi lại!");
+            }
+            // Nếu REJECTED, cho phép cập nhật và gửi lại
+            Specialty specialty = specialtyRepository.findById(req.getSpecialtyId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa"));
+            Facility facility = facilityRepository.findById(req.getFacilityId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
+
+            existing.setSpecialty(specialty);
+            existing.setFacility(facility);
+            existing.setBio(req.getBio());
+            existing.setDegree(req.getDegree());
+            existing.setExperienceYears(req.getExperienceYears());
+            existing.setPrice(req.getPrice());
+            existing.setIdCardUrl(convertUrl.getUrlFile(req.getIdCardImage()));
+            existing.setCertificateUrl(convertUrl.getUrlFile(req.getCertificatePdf()));
+            existing.setVerificationStatus(DoctorDetail.VerificationStatus.PENDING);
+            existing.setReasonReject(null);
+
+            doctorDetailRepository.save(existing);
+            return "Hồ sơ của bạn đã được cập nhật và gửi lại thành công!";
         }
 
         Specialty specialty = specialtyRepository.findById(req.getSpecialtyId())
