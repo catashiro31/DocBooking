@@ -55,7 +55,7 @@ public class PublicService {
             }
 
             if (specialityId != null) {
-                predicates.add(cb.equal(root.get("specialty").get("id"), specialityId));
+                predicates.add(cb.equal(root.get("specialty").get("specialtyId"), specialityId));
             }
 
             if (minPrice != null) {

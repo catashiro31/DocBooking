@@ -1,27 +1,22 @@
 package docbooking.user;
 
-import com.cloudinary.Cloudinary;
 import docbooking.auth.requests.ChangePassword;
 import docbooking.models.User;
 import docbooking.repositories.UserRepository;
 import docbooking.user.requests.UpdateProfile;
 import docbooking.user.responses.Profile;
 import docbooking.utils.ConvertUrl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConvertUrl convertUrl;
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, Cloudinary cloudinary, ConvertUrl convertUrl) {
-        this.passwordEncoder = passwordEncoder;
-        this.userRepository = userRepository;
-        this.convertUrl = convertUrl;
-    }
 
     public Profile getProfile(UserDetails userDetails) {
         String email = userDetails.getUsername();

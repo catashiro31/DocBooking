@@ -11,7 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -105,13 +105,14 @@ public class AdminController {
 
     @GetMapping("/appointments")
     public ResponseEntity<?> getAllAppointments(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime dateTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(required = false) Appointment.BookingStatus status
     ) {
-        if (dateFrom == null) dateFrom = LocalDateTime.now().minusMonths(1);
-        if (dateTo== null) dateTo = LocalDateTime.now();
-        return ResponseEntity.ok().body(adminService.getAllAppointments(dateFrom, dateTo, status));
+        if (dateFrom == null) dateFrom = LocalDate.now().minusMonths(1);
+        if (dateTo == null) dateTo = LocalDate.now();
+        return ResponseEntity.ok().body(adminService.getAllAppointments(
+                dateFrom.atStartOfDay(), dateTo.plusDays(1).atStartOfDay(), status));
     }
 
     @GetMapping("/reviews")
