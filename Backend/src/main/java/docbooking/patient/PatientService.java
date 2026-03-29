@@ -136,8 +136,16 @@ public class PatientService {
         if (schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE)
             throw new RuntimeException("Ca khám đã có người đặt hoặc đã đóng");
         LocalDate today = LocalDate.now();
-        if (!schedule.getDateWorking().isAfter(today)) {
-            throw new RuntimeException("Vui lòng đặt lịch từ ngày mai trở đi!");
+        if (schedule.getDateWorking().isBefore(today)) {
+            throw new RuntimeException("Không thể đặt lịch cho ngày đã qua!");
+        }
+        // Nếu đặt lịch cùng ngày, kiểm tra slot chưa qua giờ (phải trước ít nhất 1 tiếng)
+        if (schedule.getDateWorking().isEqual(today)) {
+            LocalTime slotTime = Time.parseTimeSlot(schedule.getTimeSlot());
+            LocalTime minBookingTime = LocalTime.now().plusHours(1);
+            if (slotTime.isBefore(minBookingTime)) {
+                throw new RuntimeException("Không thể đặt lịch cho slot đã qua hoặc sắp diễn ra trong vòng 1 tiếng!");
+            }
         }
         if (appointmentRepository.existsOverlappingAppointment(
                 profile.getPatientId(),

@@ -118,11 +118,24 @@ public class PublicService {
         }
         List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctor_DoctorIdAndDateWorkingAndSlotStatus(
                 doctorId, dateWorking, DoctorSchedule.SlotStatus.AVAILABLE);
-        return schedules.stream().map(schedule -> DoctorSlots.builder()
-                .scheduleId(schedule.getScheduleId())
-                .timeSlot(schedule.getTimeSlot().getDisplayValue())
-                .slotStatus(schedule.getSlotStatus().name())
-                .build()
-        ).collect(Collectors.toList());
+
+        LocalDate today = LocalDate.now();
+        LocalTime minBookingTime = LocalTime.now().plusHours(1);
+
+        return schedules.stream()
+                .filter(schedule -> {
+                    // Nếu là ngày hôm nay, chỉ hiển thị slot còn ít nhất 1 tiếng nữa mới bắt đầu
+                    if (dateWorking.isEqual(today)) {
+                        LocalTime slotTime = docbooking.utils.Time.parseTimeSlot(schedule.getTimeSlot());
+                        return slotTime.isAfter(minBookingTime);
+                    }
+                    return true;
+                })
+                .map(schedule -> DoctorSlots.builder()
+                        .scheduleId(schedule.getScheduleId())
+                        .timeSlot(schedule.getTimeSlot().getDisplayValue())
+                        .slotStatus(schedule.getSlotStatus().name())
+                        .build()
+                ).collect(Collectors.toList());
     }
 }
