@@ -56,6 +56,9 @@ public class UserService {
         if (!passwordEncoder.matches(req.getOldPassword(), user.getPasswordHash())){
             throw new RuntimeException("Mật khẩu cũ không chính xác");
         }
+        if (passwordEncoder.matches(req.getNewPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("Mật khẩu mới phải khác mật khẩu cũ!");
+        }
         user.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(user);
     }

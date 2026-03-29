@@ -46,6 +46,9 @@ public class AuthController {
             if (e.getMessage().contains("đã bị khóa")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
             }
+            if (e.getMessage().contains("chưa được xác thực")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
