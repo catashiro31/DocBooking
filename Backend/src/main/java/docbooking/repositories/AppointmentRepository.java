@@ -71,8 +71,21 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     @Query("SELECT a FROM Appointment a JOIN a.schedule s " +
             "WHERE s.dateWorking < :today " +
-            "AND a.bookingStatus IN ('PENDING', 'CONFIRMED')")
+            "AND a.bookingStatus = 'PENDING'")
     List<Appointment> findPastDueAppointments(@Param("today") LocalDate today);
+
+    @Query("SELECT a FROM Appointment a JOIN a.schedule s " +
+            "WHERE s.dateWorking < :today " +
+            "AND a.bookingStatus = 'CONFIRMED'")
+    List<Appointment> findOverdueConfirmedAppointments(@Param("today") LocalDate today);
+
+    @Query("SELECT a FROM Appointment a JOIN a.schedule s " +
+            "WHERE s.doctor.user.userId = :doctorUserId " +
+            "AND s.dateWorking < :today " +
+            "AND a.bookingStatus = 'CONFIRMED'")
+    List<Appointment> findOverdueConfirmedByDoctorUserId(
+            @Param("doctorUserId") Integer doctorUserId,
+            @Param("today") LocalDate today);
 
     long countByPatient_User_UserIdAndBookingStatusIn(
             Integer userId,

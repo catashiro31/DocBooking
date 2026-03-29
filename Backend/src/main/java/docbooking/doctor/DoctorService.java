@@ -341,4 +341,26 @@ public class DoctorService {
         return "Đã cập nhật kết quả khám!";
     }
 
+    public List<Appointment> getOverdueConfirmedAppointments(User user) {
+        LocalDate today = LocalDate.now();
+        List<docbooking.models.Appointment> overdueAppointments = 
+                appointmentRepository.findOverdueConfirmedByDoctorUserId(user.getUserId(), today);
+        
+        return overdueAppointments.stream().map(app -> {
+            DoctorSchedule schedule = app.getSchedule();
+            PatientProfile patient = app.getPatient();
+            return Appointment.builder()
+                    .appointmentId(app.getId())
+                    .patientName(patient.getFullName())
+                    .patientPhoneNumber(patient.getPhoneNumber())
+                    .patientGender(patient.getGender() != null ? patient.getGender().name() : null)
+                    .dateWorking(schedule.getDateWorking())
+                    .timeSlot(schedule.getTimeSlot().name())
+                    .reason(app.getReason())
+                    .bookingStatus(app.getBookingStatus().name())
+                    .createdAt(app.getCreatedAt())
+                    .build();
+        }).toList();
+    }
+
 }
