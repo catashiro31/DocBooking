@@ -17,6 +17,9 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 @Service
 @RequiredArgsConstructor
@@ -190,11 +193,9 @@ public class PatientService {
                 .build();
 
     }
-    public List<docbooking.patient.responses.Appointment> getMyAppointments(User user) {
-        return appointmentRepository.findByPatient_UserOrderByCreatedAtDesc(user)
-                .stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+    public Page<docbooking.patient.responses.Appointment> getMyAppointments(User user, Pageable pageable) {
+        return appointmentRepository.findByPatient_UserOrderByCreatedAtDesc(user, pageable)
+                .map(this::mapToResponseDTO);
     }
     @Transactional
     public docbooking.patient.responses.Appointment cancelAppointment(User user, Integer id) {
@@ -235,12 +236,10 @@ public class PatientService {
         return mapToResponseDTO(appointment);
     }
 
-    public List<docbooking.patient.responses.Appointment> getPatientHistory(User user) {
-        List<docbooking.models.Appointment> history = appointmentRepository
-                .findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(user, docbooking.models.Appointment.BookingStatus.COMPLETED);
-        return history.stream()
-                .map(this::mapToResponseDTO)
-                .toList();
+    public Page<docbooking.patient.responses.Appointment> getPatientHistory(User user, Pageable pageable) {
+        return appointmentRepository
+                .findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(user, docbooking.models.Appointment.BookingStatus.COMPLETED, pageable)
+                .map(this::mapToResponseDTO);
     }
 
     public AppointmentDetail getAppointmentDetail(User user, Integer id) {
