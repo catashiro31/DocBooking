@@ -52,6 +52,9 @@ public class AuthService {
     }
     @Transactional
     public String signUp(SignUp req) {
+        if (req.getRole() == User.RoleStatus.ADMIN) {
+            throw new RuntimeException("Không thể đăng ký tài khoản với quyền quản trị!");
+        }
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new RuntimeException("Email đã được sử dụng!");
         }
