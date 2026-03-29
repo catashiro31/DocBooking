@@ -8,12 +8,16 @@ import docbooking.models.*;
 import docbooking.repositories.*;
 import docbooking.utils.ContextEmail;
 import docbooking.utils.ConvertUrl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@org.springframework.stereotype.Service
+@Service
+@RequiredArgsConstructor
 public class AdminService {
     private final DoctorDetailRepository doctorDetail;
     private final AppointmentRepository appointmentRepository;
@@ -23,19 +27,9 @@ public class AdminService {
     private final ConvertUrl convertUrl;
     private final ContextEmail contextEmail;
     private final ReviewRepository reviewRepository;
+    private final DoctorScheduleRepository doctorScheduleRepository;
 
-    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, ConvertUrl convertUrl, ContextEmail contextEmail, ReviewRepository reviewRepository) {
-        this.doctorDetail = doctorDetail;
-        this.appointmentRepository = appointmentRepository;
-        this.userRepository = userRepository;
-        this.specialtyRepository = specialtyRepository;
-        this.facilityRepository = facilityRepository;
-        this.convertUrl = convertUrl;
-        this.contextEmail = contextEmail;
-        this.reviewRepository = reviewRepository;
-    }
-
-    public Stat getStats(LocalDateTime start, LocalDateTime end) {
+    public Stat getStats(LocalDate start, LocalDate end) {
         // 1. Lấy dữ liệu gộp từ Repo (Chỉ 1 lần truy vấn DB)
         AppointmentStats appStats = appointmentRepository.getAppointmentStatsByPeriod(start, end);
 
@@ -44,10 +38,13 @@ public class AdminService {
             appStats = new AppointmentStats(0, 0, 0);
         }
 
+        LocalDateTime startDT = start.atStartOfDay();
+        LocalDateTime endDT = end.plusDays(1).atStartOfDay();
+
         // 3. Đóng gói vào kết quả trả về
         return Stat.builder()
-                .numberOfDoctors(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.DOCTOR, start, end))
-                .numberOfPatients(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.PATIENT, start, end))
+                .numberOfDoctors(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.DOCTOR, startDT, endDT))
+                .numberOfPatients(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.PATIENT, startDT, endDT))
                 .numberOfSuccessAppointments(appStats.getCompleted())
                 .numberOfPendingAppointments(appStats.getPending())
                 .numberOfFailingAppointments(appStats.getCancelled())
@@ -88,7 +85,7 @@ public class AdminService {
         return userRepository.getAllUsers();
     }
 
-    @Transactional // Đảm bảo tính nhất quán dữ liệu
+    @Transactional
     public String setBlockedUser(Integer userId, String reason) {
         User user = userRepository.findByUserId(userId);
         if (user == null) {
@@ -97,6 +94,38 @@ public class AdminService {
         user.setIsActive(false);
         user.setReasonBanned(reason);
         User savedUser = userRepository.save(user);
+
+        // Hủy tất cả lịch hẹn đang active của user này (với tư cách bệnh nhân)
+        List<Appointment.BookingStatus> activeStatuses = List.of(
+                Appointment.BookingStatus.PENDING,
+                Appointment.BookingStatus.CONFIRMED
+        );
+        List<Appointment> activeAppointments = appointmentRepository.findByPatient_User_UserIdAndBookingStatusIn(
+                userId, activeStatuses);
+        for (Appointment app : activeAppointments) {
+            app.setBookingStatus(Appointment.BookingStatus.CANCELLED);
+            appointmentRepository.save(app);
+            // Mở lại slot nếu ngày khám chưa qua
+            DoctorSchedule schedule = app.getSchedule();
+            if (schedule != null && !schedule.getDateWorking().isBefore(LocalDate.now())) {
+                schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
+                doctorScheduleRepository.save(schedule);
+            }
+        }
+
+        // Nếu user là bác sĩ, hủy tất cả lịch hẹn của bệnh nhân với bác sĩ này và đóng các slot
+        if (savedUser.getRole() == User.RoleStatus.DOCTOR) {
+            // Hủy tất cả appointment đang active của bác sĩ
+            List<Appointment> doctorAppointments = appointmentRepository.findBySchedule_Doctor_User_UserIdAndBookingStatusIn(
+                    userId, activeStatuses);
+            for (Appointment app : doctorAppointments) {
+                app.setBookingStatus(Appointment.BookingStatus.CANCELLED);
+                appointmentRepository.save(app);
+            }
+            // Đóng tất cả slot AVAILABLE của bác sĩ
+            doctorScheduleRepository.closeAllAvailableSlotsByDoctorUserId(userId);
+        }
+
         contextEmail.sendPermanentBanEmail(
                 savedUser.getEmail(),
                 savedUser.getFullName(),
@@ -140,14 +169,11 @@ public class AdminService {
     }
 
     public String deleteSpecialty(Integer specialtyId) {
-        try {
-            docbooking.models.Specialty specialty = specialtyRepository.findBySpecialtyId(specialtyId);
-            specialty.setIsActive(false);
-            specialtyRepository.save(specialty);
-            return "Đã xóa chuyên ngành!";
-        } catch (Exception e) {
-            return e.getMessage();
-        }
+        docbooking.models.Specialty specialty = specialtyRepository.findById(specialtyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa với ID: " + specialtyId));
+        specialty.setIsActive(false);
+        specialtyRepository.save(specialty);
+        return "Đã xóa chuyên ngành!";
     }
 
     @Transactional
@@ -201,14 +227,11 @@ public class AdminService {
     }
 
     public String deleteFacility(Integer facilityId) {
-        try {
-            docbooking.models.Facility facility = facilityRepository.findByFacilityId(facilityId);
-            facility.setIsActive(false);
-            facilityRepository.save(facility);
-            return "Đã xóa thành công cơ sở!";
-        } catch (Exception e) {
-            return e.getMessage();
-        }
+        docbooking.models.Facility facility = facilityRepository.findById(facilityId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế với ID: " + facilityId));
+        facility.setIsActive(false);
+        facilityRepository.save(facility);
+        return "Đã xóa thành công cơ sở!";
     }
 
     public List<Appointment> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo, Appointment.BookingStatus status) {
@@ -232,7 +255,30 @@ public class AdminService {
         review.setIsVisible(false);
         reviewRepository.save(review);
 
+        // Cập nhật lại rating bác sĩ sau khi ẩn review
+        Integer doctorId = review.getAppointment().getSchedule().getDoctor().getDoctorId();
+        updateDoctorStats(doctorId);
+
         return "Đã ẩn bài đánh giá thành công";
+    }
+
+    private void updateDoctorStats(Integer doctorId) {
+        DoctorDetail doctor = doctorDetail.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
+
+        List<Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorId(doctorId)
+                .stream()
+                .filter(r -> r.getIsVisible())
+                .toList();
+        doctor.setReviewCount(reviews.size());
+
+        double average = reviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+        doctor.setRatingAverage(Math.round(average * 10.0) / 10.0);
+
+        doctorDetail.save(doctor);
     }
 
 }

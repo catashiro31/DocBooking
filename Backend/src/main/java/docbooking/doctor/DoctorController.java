@@ -95,4 +95,10 @@ public class DoctorController {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(doctorService.updateMedicalResult(currentUser,id,req));
     }
+
+    @GetMapping("/appointments/overdue")
+    public ResponseEntity<?> getOverdueAppointments() {
+        User currentUser = Security.getCurrentUser();
+        return ResponseEntity.ok(doctorService.getOverdueConfirmedAppointments(currentUser));
+    }
 }

@@ -21,11 +21,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "COUNT(CASE WHEN a.bookingStatus = 'COMPLETED' THEN 1 END), " +
             "COUNT(CASE WHEN a.bookingStatus IN('PENDING', 'CONFIRMED') THEN 1 END), " +
             "COUNT(CASE WHEN a.bookingStatus = 'CANCELLED' THEN 1 END)) " +
-            "FROM Appointment a " +
-            "WHERE a.createdAt BETWEEN :start AND :end")
+            "FROM Appointment a JOIN a.schedule s " +
+            "WHERE s.dateWorking BETWEEN :start AND :end")
     AppointmentStats getAppointmentStatsByPeriod(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
     );
 
     @Query("SELECT a FROM Appointment a " +
@@ -52,13 +52,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             Collection<Appointment.BookingStatus> statuses
     );
 
+    List<Appointment> findByPatient_User_UserIdAndBookingStatusIn(
+            Integer userId,
+            Collection<Appointment.BookingStatus> statuses
+    );
+
 
 
     @Query("SELECT COUNT(a) > 0 FROM Appointment a " +
             "WHERE a.patient.patientId = :patientId " +
             "AND a.schedule.dateWorking = :date " +
             "AND a.schedule.timeSlot = :timeSlot " +
-            "AND a.bookingStatus != 'CANCELLED'")
+            "AND a.bookingStatus IN ('PENDING', 'CONFIRMED')")
     boolean existsOverlappingAppointment(@Param("patientId") Integer patientId,
                                          @Param("date") LocalDate date,
                                          @Param("timeSlot") DoctorSchedule.TimeSlot timeSlot);
@@ -66,8 +71,21 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     @Query("SELECT a FROM Appointment a JOIN a.schedule s " +
             "WHERE s.dateWorking < :today " +
-            "AND a.bookingStatus IN ('PENDING', 'CONFIRMED')")
+            "AND a.bookingStatus = 'PENDING'")
     List<Appointment> findPastDueAppointments(@Param("today") LocalDate today);
+
+    @Query("SELECT a FROM Appointment a JOIN a.schedule s " +
+            "WHERE s.dateWorking < :today " +
+            "AND a.bookingStatus = 'CONFIRMED'")
+    List<Appointment> findOverdueConfirmedAppointments(@Param("today") LocalDate today);
+
+    @Query("SELECT a FROM Appointment a JOIN a.schedule s " +
+            "WHERE s.doctor.user.userId = :doctorUserId " +
+            "AND s.dateWorking < :today " +
+            "AND a.bookingStatus = 'CONFIRMED'")
+    List<Appointment> findOverdueConfirmedByDoctorUserId(
+            @Param("doctorUserId") Integer doctorUserId,
+            @Param("today") LocalDate today);
 
     long countByPatient_User_UserIdAndBookingStatusIn(
             Integer userId,
@@ -78,4 +96,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             Appointment.BookingStatus status
     );
 
+    @Query("SELECT COUNT(a) FROM Appointment a " +
+            "WHERE a.patient.user.userId = :userId " +
+            "AND a.bookingStatus = :status " +
+            "AND a.schedule.dateWorking >= :fromDate")
+    long countNoShowInPeriod(
+            @Param("userId") Integer userId,
+            @Param("status") Appointment.BookingStatus status,
+            @Param("fromDate") LocalDate fromDate
+    );
+
+    List<Appointment> findBySchedule_Doctor_User_UserIdAndBookingStatusIn(
+            Integer userId,
+            Collection<Appointment.BookingStatus> statuses
+    );
 }

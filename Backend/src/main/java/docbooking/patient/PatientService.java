@@ -5,16 +5,18 @@ import docbooking.patient.requests.Relative;
 import docbooking.patient.requests.Review;
 import docbooking.patient.responses.AppointmentDetail;
 import docbooking.repositories.*;
+import docbooking.utils.Time;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -123,46 +125,53 @@ public class PatientService {
         if (activeCount >= 3) {
             throw new RuntimeException("Bạn chỉ được đặt tối đa 3 lịch hẹn!");
         }
-
-        try {
-            PatientProfile profile = patientProfileRepository.findByPatientIdAndUserAndIsActiveTrue(req.getPatientId(), user)
-                    .orElseThrow(() -> new RuntimeException("Hồ sơ bệnh nhân này không tồn tại hoặc bạn không có quyền sử dụng!"));
-            DoctorSchedule schedule = doctorScheduleRepository.findById(req.getScheduleId())
-                    .orElseThrow(() -> new RuntimeException("Ca khám không tồn tại hoặc bạn không có quyền sử dụng!"));
-            if (schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE)
-                throw new RuntimeException("Ca khám đã có người đặt hoặc đã đóng");
-            LocalDate today = LocalDate.now();
-            if (schedule.getDateWorking().isBefore(today))
-                throw new RuntimeException("Không thể đặt lịch cho những ngày trong quá khứ!");
-            if (appointmentRepository.existsOverlappingAppointment(
-                    profile.getPatientId(),
-                    schedule.getDateWorking(),
-                    schedule.getTimeSlot())) {
-                throw new RuntimeException("Hồ sơ bệnh nhân này đã có một lịch hẹn khác vào cùng thời gian!");
-            }
-            schedule.setSlotStatus(DoctorSchedule.SlotStatus.BOOKED);
-            doctorScheduleRepository.save(schedule);
-
-            docbooking.models.Appointment appointment = docbooking.models.Appointment.builder()
-                    .patient(profile)
-                    .schedule(schedule)
-                    .reason(req.getReason())
-                    .bookingStatus(docbooking.models.Appointment.BookingStatus.PENDING)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-            docbooking.models.Appointment savedAppointment = appointmentRepository.save(appointment);
-            return mapToResponseDTO(savedAppointment);
-        } catch (ObjectOptimisticLockingFailureException e) {
-            throw new RuntimeException("Hệ thống đang bận hoặc ca khám vừa được người khác đặt nhanh hơn một chút, vui lòng thử lại!");
+        PatientProfile profile = patientProfileRepository.findByPatientIdAndUserAndIsActiveTrue(req.getPatientId(), user)
+                .orElseThrow(() -> new RuntimeException("Hồ sơ bệnh nhân này không tồn tại hoặc bạn không có quyền sử dụng!"));
+        DoctorSchedule schedule = doctorScheduleRepository.findById(req.getScheduleId())
+                .orElseThrow(() -> new RuntimeException("Ca khám không tồn tại hoặc bạn không có quyền sử dụng!"));
+        DoctorDetail doctor = schedule.getDoctor();
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
+            throw new RuntimeException("Bác sĩ chưa được xác minh, không thể đặt lịch!");
         }
+        if (schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE)
+            throw new RuntimeException("Ca khám đã có người đặt hoặc đã đóng");
+        LocalDate today = LocalDate.now();
+        if (schedule.getDateWorking().isBefore(today)) {
+            throw new RuntimeException("Không thể đặt lịch cho ngày đã qua!");
+        }
+        // Nếu đặt lịch cùng ngày, kiểm tra slot chưa qua giờ (phải trước ít nhất 1 tiếng)
+        if (schedule.getDateWorking().isEqual(today)) {
+            LocalTime slotTime = Time.parseTimeSlot(schedule.getTimeSlot());
+            LocalTime minBookingTime = LocalTime.now().plusHours(1);
+            if (slotTime.isBefore(minBookingTime)) {
+                throw new RuntimeException("Không thể đặt lịch cho slot đã qua hoặc sắp diễn ra trong vòng 1 tiếng!");
+            }
+        }
+        if (appointmentRepository.existsOverlappingAppointment(
+                profile.getPatientId(),
+                schedule.getDateWorking(),
+                schedule.getTimeSlot())) {
+            throw new RuntimeException("Hồ sơ bệnh nhân này đã có một lịch hẹn khác vào cùng thời gian!");
+        }
+        schedule.setSlotStatus(DoctorSchedule.SlotStatus.BOOKED);
+        doctorScheduleRepository.save(schedule);
 
+        docbooking.models.Appointment appointment = docbooking.models.Appointment.builder()
+                .patient(profile)
+                .schedule(schedule)
+                .reason(req.getReason())
+                .bookingStatus(docbooking.models.Appointment.BookingStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
+        docbooking.models.Appointment savedAppointment = appointmentRepository.save(appointment);
+        return mapToResponseDTO(savedAppointment);
     }
     private docbooking.patient.responses.Appointment mapToResponseDTO(docbooking.models.Appointment app) {
         var schedule = app.getSchedule();
         var doctor = schedule.getDoctor();
         var facility = doctor.getFacility();
         var specialty = doctor.getSpecialty();
-
+        boolean exists = medicalResultRepository.findByAppointmentId(app.getId()).isPresent();
         return docbooking.patient.responses.Appointment.builder()
                 .appointmentId(app.getId())
                 .patientName(app.getPatient().getFullName())
@@ -178,6 +187,7 @@ public class PatientService {
 
                 .bookingStatus(app.getBookingStatus().name())
                 .createdAt(app.getCreatedAt())
+                .hasResult(exists)
                 .build();
 
     }
@@ -202,10 +212,15 @@ public class PatientService {
         if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.COMPLETED) {
             throw new RuntimeException("Không thể hủy lịch hẹn đã hoàn thành.");
         }
+        if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.NO_SHOW) {
+            throw new RuntimeException("Không thể hủy lịch hẹn đã bị đánh dấu vắng mặt!");
+        }
         if (appointment.getBookingStatus() == docbooking.models.Appointment.BookingStatus.CONFIRMED) {
             LocalDate dateWorking = appointment.getSchedule().getDateWorking();
-            if (!dateWorking.isAfter(LocalDate.now())) {
-                throw new RuntimeException("Không thể hủy lịch hẹn đã xác nhận trong vòng 24h trước giờ khám. Vui lòng liên hệ hotline!");
+            LocalTime slotTime = Time.parseTimeSlot(appointment.getSchedule().getTimeSlot());
+            LocalDateTime appointmentDateTime = dateWorking.atTime(slotTime);
+            if (LocalDateTime.now().isAfter(appointmentDateTime.minusHours(24))) {
+                throw new RuntimeException("Không thể hủy lịch hẹn đã xác nhận trong vòng 24h trước giờ khám!");
             }
         }
 
@@ -213,7 +228,7 @@ public class PatientService {
         appointmentRepository.save(appointment);
 
         DoctorSchedule schedule = appointment.getSchedule();
-        if (schedule != null) {
+        if (schedule != null && !schedule.getDateWorking().isBefore(LocalDate.now())) {
             schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
             doctorScheduleRepository.save(schedule);
         }
@@ -224,16 +239,14 @@ public class PatientService {
     public List<docbooking.patient.responses.Appointment> getPatientHistory(User user) {
         List<docbooking.models.Appointment> history = appointmentRepository
                 .findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(user, docbooking.models.Appointment.BookingStatus.COMPLETED);
-        return history.stream().map(app->{
-            docbooking.patient.responses.Appointment dto = mapToResponseDTO(app);
-            dto.setHasResult(app.getBookingStatus() == docbooking.models.Appointment.BookingStatus.COMPLETED);
-            return dto;
-        }).toList();
+        return history.stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     public AppointmentDetail getAppointmentDetail(User user, Integer id) {
         docbooking.models.Appointment app = appointmentRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Khoong tìm thấy lịch hẹn"));
+                .orElseThrow(()-> new RuntimeException("Không tìm thấy lịch hẹn"));
         if (!app.getPatient().getUser().getUserId().equals(user.getUserId()))
             throw new RuntimeException("Bạn không có quyền xem chi tiết lịch hẹn này");
         docbooking.patient.responses.Appointment basicInfo = mapToResponseDTO(app);
@@ -243,6 +256,7 @@ public class PatientService {
             detailDTO.setDiagnosis(res.getDiagnosis());
             detailDTO.setPrescriptionUrl(res.getPrescriptionUrl());
             detailDTO.setDoctorNotes(res.getDoctorNotes());
+            detailDTO.setHasResult(true);
         });
         reviewRepository.findByAppointment_Id(id).ifPresent(res->{
             detailDTO.setRating(res.getRating());
@@ -300,7 +314,10 @@ public class PatientService {
         DoctorDetail doctor = doctorDetailRepository.findById(doctorId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
 
-        List<docbooking.models.Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorId(doctorId);
+        List<docbooking.models.Review> reviews = reviewRepository.findByAppointment_Schedule_Doctor_DoctorId(doctorId)
+                                                                 .stream()
+                                                                 .filter(r -> r.getIsVisible())
+                                                                 .toList();
         doctor.setReviewCount(reviews.size());
 
         double average = reviews.stream()

@@ -48,7 +48,7 @@ public class PatientController {
     }
 
     @PostMapping("/appointments")
-    public ResponseEntity<?> bookAppointment(@RequestBody Appointment req) {
+    public ResponseEntity<?> bookAppointment(@Valid @RequestBody Appointment req) {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(patientService.createAppointment(currentUser, req));
     }
@@ -57,7 +57,7 @@ public class PatientController {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(patientService.getMyAppointments(currentUser));
     }
-    @PutMapping("/{id}/cancel")
+    @PutMapping("/appointments/{id}/cancel")
     public ResponseEntity<?> cancelAppointment(@PathVariable Integer id) {
         User currentUser = Security.getCurrentUser();
         docbooking.patient.responses.Appointment response = patientService.cancelAppointment(currentUser, id);

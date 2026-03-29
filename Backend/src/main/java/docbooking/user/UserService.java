@@ -44,7 +44,9 @@ public class UserService {
             user.setPhoneNumber(req.getPhoneNumber());
         }
 
-        user.setAvatarUrl(convertUrl.getUrlFile(req.getFile()));
+        if (req.getFile() != null && !req.getFile().isEmpty()) {
+            user.setAvatarUrl(convertUrl.getUrlFile(req.getFile()));
+        }
         User updatedUser = userRepository.save(user);
 
         return Profile.builder()
