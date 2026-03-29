@@ -13,6 +13,8 @@ import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 @Component
@@ -63,12 +65,21 @@ public class JwtTokenProvider {
         return false;
     }
 
-    // 🔥 Đổi tên hàm cho chuẩn vì giờ nó trả về ID
+    // Đổi tên hàm cho chuẩn vì giờ nó trả về ID
     public String getUserIdFromToken(String token) {
         return Jwts.parser()
                 .setSigningKey(getSigningKey())
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public LocalDateTime getExpiryDateFromToken(String token) {
+        Date expiration = Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+        return expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }

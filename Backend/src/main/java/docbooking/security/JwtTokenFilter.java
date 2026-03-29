@@ -1,5 +1,6 @@
 package docbooking.security;
 
+import docbooking.repositories.TokenBlacklistRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     // 🔥 Tiêm trực tiếp class này để dùng được hàm loadUserById
     private final CustomUserDetails customUserDetails;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -32,6 +34,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             String token = jwtTokenProvider.resolveToken(request);
 
             if (token != null && jwtTokenProvider.validateToken(token)) {
+
+                // Kiểm tra token có trong blacklist không
+                if (tokenBlacklistRepository.existsByToken(token)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\": \"Token đã bị vô hiệu hóa. Vui lòng đăng nhập lại.\"}");
+                    return;
+                }
 
                 // 🔥 1. Lấy ID (dạng String) từ Token và chuyển sang số nguyên
                 String userIdStr = jwtTokenProvider.getUserIdFromToken(token);
