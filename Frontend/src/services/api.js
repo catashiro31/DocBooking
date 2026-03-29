@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5020/api/v1', 
+  baseURL: 'https://docbooking-3ali.onrender.com/api/v1', 
   headers: {
     'Content-Type': 'application/json',
   },

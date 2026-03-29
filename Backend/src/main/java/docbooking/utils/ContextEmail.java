@@ -24,7 +24,7 @@ public class ContextEmail {
 
             // Tạo đường dẫn xác thực (Link này trỏ về API của bạn)
             // Lưu ý: Thay localhost:5020 bằng domain thật nếu bạn deploy lên server
-            String verifyLink = "http://localhost:5020/api/v1/auth/verify?email=" + toEmail + "&code=" + verificationCode;
+            String verifyLink = "https://docbooking-3ali.onrender.com/api/v1/auth/verify?email=" + toEmail + "&code=" + verificationCode;
 
             // Nội dung Email có chứa link
             String body = "Xin chào " + fullName + ",\n\n"
