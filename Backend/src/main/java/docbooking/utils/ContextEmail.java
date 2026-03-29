@@ -170,4 +170,31 @@ public class ContextEmail {
         }
     }
 
+    public void sendContactReplyEmail(String toEmail, String fullName,
+                                      String subject, String replyMessage) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("[DocBooking] Phản hồi: " + subject);
+
+            String body = "Xin chào " + fullName + ",\n\n"
+                    + "Cảm ơn bạn đã liên hệ với chúng tôi qua hệ thống DocBooking.\n"
+                    + "Chúng tôi đã xem xét lời nhắn của bạn và có phản hồi như sau:\n\n"
+                    + "--- NỘI DUNG PHẢN HỒI ---\n"
+                    + replyMessage + "\n"
+                    + "-------------------------\n\n"
+                    + "Nếu bạn có thêm thắc mắc, vui lòng liên hệ lại qua hệ thống.\n\n"
+                    + "Trân trọng,\n"
+                    + "Đội ngũ hỗ trợ DocBooking.";
+
+            message.setText(body);
+            mailSender.send(message);
+            System.out.println("Đã gửi email phản hồi contact tới: " + toEmail);
+
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi email phản hồi: " + e.getMessage());
+        }
+    }
+
 }

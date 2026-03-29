@@ -9,6 +9,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import docbooking.models.Contact;
+import docbooking.admin.requests.ContactReply;
 
 import java.time.LocalDateTime;
 
@@ -121,5 +123,36 @@ public class AdminController {
     @PatchMapping("/reviews/{id}/hide")
     public ResponseEntity<?> rejectReview(@PathVariable Integer id) {
         return ResponseEntity.ok().body(adminService.rejectReview(id));
+    }
+
+// Lấy danh sách tất cả lời nhắn. Có thể lọc theo ?status=UNREAD hoặc READ
+    @GetMapping("/contacts")
+    public ResponseEntity<?> getAllContacts(
+            @RequestParam(required = false) Contact.ContactStatus status
+    ) {
+        return ResponseEntity.ok(adminService.getAllContacts(status));
+    }
+
+// Đánh dấu tin nhắn đã đọc
+    @PatchMapping("/contacts/{id}/read")
+    public ResponseEntity<?> markContactAsRead(@PathVariable Integer id) {
+        try {
+            Contact contact = adminService.markContactAsRead(id);
+            return ResponseEntity.ok(contact);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/contacts/{id}/reply")
+    public ResponseEntity<?> replyContact(
+            @PathVariable Integer id,
+            @RequestBody ContactReply req) {
+        try {
+            String result = adminService.replyContact(id, req);
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

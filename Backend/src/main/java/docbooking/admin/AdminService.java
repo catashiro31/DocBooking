@@ -9,6 +9,7 @@ import docbooking.repositories.*;
 import docbooking.utils.ContextEmail;
 import docbooking.utils.ConvertUrl;
 import org.springframework.transaction.annotation.Transactional;
+import docbooking.admin.requests.ContactReply;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,8 +24,9 @@ public class AdminService {
     private final ConvertUrl convertUrl;
     private final ContextEmail contextEmail;
     private final ReviewRepository reviewRepository;
+    private final ContactRepository contactRepository;
 
-    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, ConvertUrl convertUrl, ContextEmail contextEmail, ReviewRepository reviewRepository) {
+    public AdminService(DoctorDetailRepository doctorDetail, PatientProfileRepository patientProfile, AppointmentRepository appointment, AppointmentRepository appointmentRepository, UserRepository userRepository, SpecialtyRepository specialtyRepository, FacilityRepository facilityRepository, ConvertUrl convertUrl, ContextEmail contextEmail, ReviewRepository reviewRepository, ContactRepository contactRepository) {
         this.doctorDetail = doctorDetail;
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
@@ -33,6 +35,7 @@ public class AdminService {
         this.convertUrl = convertUrl;
         this.contextEmail = contextEmail;
         this.reviewRepository = reviewRepository;
+        this.contactRepository = contactRepository;
     }
 
     public Stat getStats(LocalDateTime start, LocalDateTime end) {
@@ -233,6 +236,48 @@ public class AdminService {
         reviewRepository.save(review);
 
         return "Đã ẩn bài đánh giá thành công";
+    }
+
+
+    public List<Contact> getAllContacts(Contact.ContactStatus status) {
+        if (status != null) {
+            return contactRepository.findAllByStatusOrderByCreatedAtDesc(status);
+        }
+        return contactRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    /**
+     * Đánh dấu một contact là đã đọc (READ).
+     */
+    @Transactional
+    public Contact markContactAsRead(Integer contactId) {
+        Contact contact = contactRepository.findById(contactId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Không tìm thấy tin nhắn với ID: " + contactId));
+        contact.setStatus(Contact.ContactStatus.READ);
+        return contactRepository.save(contact);
+    }
+
+    @Transactional
+    public String replyContact(Integer contactId, ContactReply req) {
+        // 1. Tìm contact theo ID
+        Contact contact = contactRepository.findById(contactId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Không tìm thấy lời nhắn với ID: " + contactId));
+
+        // 2. Gửi email phản hồi tới người gửi
+        contextEmail.sendContactReplyEmail(
+                contact.getEmail(),
+                contact.getFullName(),
+                contact.getSubject(),
+                req.getReplyMessage()
+        );
+
+        // 3. Đánh dấu đã đọc sau khi phản hồi
+        contact.setStatus(Contact.ContactStatus.READ);
+        contactRepository.save(contact);
+
+        return "Đã gửi phản hồi tới " + contact.getEmail();
     }
 
 }
