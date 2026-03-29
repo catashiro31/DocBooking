@@ -171,7 +171,7 @@ const PatientDashboard = () => {
 
                     <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <Link
-                            to="/user/profile"
+                            to="/profile"
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -187,7 +187,7 @@ const PatientDashboard = () => {
                             <span>Cài đặt tài khoản</span>
                         </Link>
                         <Link
-                            to="/user/change-password"
+                            to="/change-password"
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

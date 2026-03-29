@@ -73,6 +73,43 @@ const DoctorDashboard = () => {
     }
 
     const renderContent = () => {
+        const isApproved = profile?.verificationStatus === 'APPROVED' || user?.verificationStatus === 'APPROVED'
+
+        if (!isApproved) {
+            return (
+                <div style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    minHeight: '400px', textAlign: 'center', padding: '40px'
+                }}>
+                    <div style={{ fontSize: '64px', marginBottom: '20px' }}>
+                        {profile?.verificationStatus === 'PENDING' ? '⏳' : '✨'}
+                    </div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '12px' }}>
+                        {profile?.verificationStatus === 'PENDING' 
+                            ? 'Hồ sơ của bạn đang được duyệt' 
+                            : 'Chào mừng bạn đến với DocBooking!'}
+                    </h2>
+                    <p style={{ color: '#6b7280', maxWidth: '400px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+                        {profile?.verificationStatus === 'PENDING'
+                            ? 'Ban quản trị đang xem xét hồ sơ năng lực của bạn. Vui lòng quay lại sau khi nhận được thông báo phê duyệt.'
+                            : 'Để bắt đầu nhận lịch hẹn từ bệnh nhân, bạn cần hoàn thiện hồ sơ chuyên môn và thông tin xác thực.'}
+                    </p>
+                    {profile?.verificationStatus !== 'PENDING' && (
+                        <button
+                            onClick={() => navigate('/doctor/profile')}
+                            style={{
+                                padding: '12px 32px', borderRadius: '12px', background: '#5f6dfc',
+                                color: 'white', border: 'none', fontWeight: '600', cursor: 'pointer',
+                                boxShadow: '0 4px 14px rgba(95,109,252,0.3)'
+                            }}
+                        >
+                            Bắt đầu hoàn thiện hồ sơ
+                        </button>
+                    )}
+                </div>
+            )
+        }
+
         switch (activeTab) {
             case "appointments":
                 return <DoctorAppointments />
@@ -206,44 +243,73 @@ const DoctorDashboard = () => {
 
                     {/* Navigation */}
                     <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => handleTabClick(tab.id)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '12px 16px',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    background: activeTab === tab.id ? '#5f6dfc' : 'transparent',
-                                    color: activeTab === tab.id ? 'white' : '#374151',
-                                    cursor: 'pointer',
-                                    fontSize: '15px',
-                                    fontWeight: activeTab === tab.id ? '500' : '400',
-                                    transition: 'all 0.2s',
-                                    textAlign: 'left'
-                                }}
-                            >
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <span>{tab.icon}</span>
-                                    <span>{tab.label}</span>
-                                </span>
-                                {tab.badge > 0 && (
-                                    <span style={{
-                                        padding: '2px 8px',
+                        {(profile?.verificationStatus === 'APPROVED' || user?.verificationStatus === 'APPROVED') ? (
+                            tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => handleTabClick(tab.id)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '12px 16px',
                                         borderRadius: '10px',
-                                        background: activeTab === tab.id ? 'white' : '#ef4444',
-                                        color: activeTab === tab.id ? '#5f6dfc' : 'white',
-                                        fontSize: '12px',
-                                        fontWeight: '600'
-                                    }}>
-                                        {tab.badge}
+                                        border: 'none',
+                                        background: activeTab === tab.id ? '#5f6dfc' : 'transparent',
+                                        color: activeTab === tab.id ? 'white' : '#374151',
+                                        cursor: 'pointer',
+                                        fontSize: '15px',
+                                        fontWeight: activeTab === tab.id ? '500' : '400',
+                                        transition: 'all 0.2s',
+                                        textAlign: 'left'
+                                    }}
+                                >
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <span>{tab.icon}</span>
+                                        <span>{tab.label}</span>
                                     </span>
-                                )}
-                            </button>
-                        ))}
+                                    {tab.badge > 0 && (
+                                        <span style={{
+                                            padding: '2px 8px',
+                                            borderRadius: '10px',
+                                            background: activeTab === tab.id ? 'white' : '#ef4444',
+                                            color: activeTab === tab.id ? '#5f6dfc' : 'white',
+                                            fontSize: '12px',
+                                            fontWeight: '600'
+                                        }}>
+                                            {tab.badge}
+                                        </span>
+                                    )}
+                                </button>
+                            ))
+                        ) : (
+                            <div style={{
+                                padding: '16px',
+                                background: '#f8fafc',
+                                borderRadius: '12px',
+                                border: '1px dashed #cbd5e1',
+                                textAlign: 'center'
+                            }}>
+                                <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 10px' }}>
+                                    Tính năng quản lý sẽ mở khi hồ sơ được phê duyệt.
+                                </p>
+                                <button
+                                    onClick={() => navigate('/doctor/profile')}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: '#5f6dfc',
+                                        color: 'white',
+                                        fontSize: '13px',
+                                        fontWeight: '500',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {profile?.verificationStatus === 'PENDING' ? 'Xem hồ sơ' : 'Hoàn thiện hồ sơ'}
+                                </button>
+                            </div>
+                        )}
                     </nav>
 
                     <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #e5e7eb' }} />
@@ -266,7 +332,7 @@ const DoctorDashboard = () => {
                             <span>Hồ sơ chuyên môn</span>
                         </Link>
                         <Link
-                            to="/user/change-password"
+                            to="/change-password"
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',

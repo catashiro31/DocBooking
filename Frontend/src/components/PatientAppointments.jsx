@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { patientService, unwrapPage } from "../services/patientService"
+import { toast } from 'react-toastify'
 
 const PatientAppointments = () => {
     const [appointments, setAppointments] = useState([])
@@ -34,7 +35,7 @@ const PatientAppointments = () => {
             await patientService.cancelAppointment(appointmentId)
             setAppointments(prev => prev.filter(apt => apt.appointmentId !== appointmentId))
         } catch (err) {
-            alert(err.response?.data || "Không thể hủy lịch hẹn")
+            toast.error(err.response?.data || "Không thể hủy lịch hẹn")
         } finally {
             setCancellingId(null)
         }

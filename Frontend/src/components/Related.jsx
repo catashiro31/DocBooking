@@ -37,45 +37,55 @@ const css = `
 }
 `;
 
-export default function RelatedDoctors({ doctors = [] }) {
+export default function RelatedDoctors({ doctors = [], title, sub }) {
   const navigate = useNavigate();
   if (doctors.length === 0) return null;
+
+  const displayTitle = title || "Bác sĩ liên quan";
+  const displaySub = sub || "Danh sách các bác sĩ cùng chuyên khoa được đề xuất cho bạn.";
 
   return (
     <>
       <style>{css}</style>
       <section className="related-section">
-        <h2 className="related-title">Bác sĩ liên quan</h2>
-        <p className="related-sub">Danh sách các bác sĩ cùng chuyên khoa được đề xuất cho bạn.</p>
+        <h2 className="related-title">{displayTitle}</h2>
+        <p className="related-sub">{displaySub}</p>
         <div className="related-grid">
-          {doctors.map(d => (
-            <div
-              key={d.id}
-              className="related-card"
-              onClick={() => navigate(`/appointment/${d.id}`)}
-            >
-              <div className="related-img-wrap">
-                <img
-                  src={d.photo ?? d.avatarUrl ?? d.imageUrl}
-                  alt={d.name}
-                  className="related-img"
-                  onError={e => {
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(d.name)}&background=dbeafe&color=1e40af&size=200`;
-                  }}
-                />
-              </div>
-              <div className="related-body">
-                <div className="avail-badge">
-                  <span className="dot" style={{ background: d.available !== false ? '#22c55e' : '#94a3b8' }} />
-                  <span style={{ color: d.available !== false ? '#16a34a' : '#64748b' }}>
-                    {d.available !== false ? 'Đang hoạt động' : 'Không có sẵn'}
-                  </span>
+          {doctors.map(d => {
+            const id = d.doctorId || d.id;
+            const name = d.doctorName || d.fullName || d.name;
+            const avatar = d.avatarUrl || d.photo || d.imageUrl;
+            const spec = d.specialtyName || d.specialty || d.specialization;
+
+            return (
+              <div
+                key={id}
+                className="related-card"
+                onClick={() => navigate(`/appointment/${id}`)}
+              >
+                <div className="related-img-wrap">
+                  <img
+                    src={avatar}
+                    alt={name}
+                    className="related-img"
+                    onError={e => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1e40af&size=200`;
+                    }}
+                  />
                 </div>
-                <p className="related-name">{d.name}</p>
-                <p className="related-spec">{d.specialty ?? d.specialization}</p>
+                <div className="related-body">
+                  <div className="avail-badge">
+                    <span className="dot" style={{ background: d.available !== false ? '#22c55e' : '#94a3b8' }} />
+                    <span style={{ color: d.available !== false ? '#16a34a' : '#64748b' }}>
+                      {d.available !== false ? 'Đang hoạt động' : 'Không có sẵn'}
+                    </span>
+                  </div>
+                  <p className="related-name">{name}</p>
+                  <p className="related-spec">{spec}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { doctorService } from "../services/doctorService"
+import { toast } from 'react-toastify'
 
 const TIME_SLOTS = [
     'SLOT_07_00', 'SLOT_07_30', 'SLOT_08_00', 'SLOT_08_30', 'SLOT_09_00', 'SLOT_09_30',
@@ -62,7 +63,7 @@ const DoctorScheduleManager = () => {
 
     const handleCreateSchedules = async () => {
         if (!selectedDate || selectedSlots.length === 0) {
-            alert("Vui lòng chọn ngày và ít nhất 1 khung giờ")
+            toast.warning("Vui lòng chọn ngày và ít nhất 1 khung giờ")
             return
         }
 
@@ -75,7 +76,7 @@ const DoctorScheduleManager = () => {
             setShowModal(false)
             fetchSchedules()
         } catch (err) {
-            alert(err.response?.data || "Không thể tạo lịch làm việc")
+            toast.error(err.response?.data || "Không thể tạo lịch làm việc")
         } finally {
             setSubmitting(false)
         }
@@ -88,7 +89,7 @@ const DoctorScheduleManager = () => {
             await doctorService.deleteSchedule(scheduleId)
             setSchedules(prev => prev.filter(s => s.scheduleId !== scheduleId))
         } catch (err) {
-            alert(err.response?.data || "Không thể xóa lịch (có thể đã có người đặt)")
+            toast.error(err.response?.data || "Không thể xóa lịch (có thể đã có người đặt)")
         }
     }
 

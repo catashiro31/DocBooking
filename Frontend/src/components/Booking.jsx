@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { doctorService } from '../services/doctorService';
 import { patientService } from '../services/patientService';
 import { useAuth } from '../context/AuthContext';
@@ -121,20 +122,20 @@ export default function BookingSlots({ docId, onBook }) {
       .catch(() => { setSlots([]); setLoadingSlots(false); });
   }, [docId, selectedDay]);
 
-  const handleBook = async () => {
+    const handleBook = async () => {
     if (!selectedSlot) return;
     if (!reason.trim()) {
-      alert('Vui lòng nhập lý do khám');
+      toast.warning('Vui lòng nhập lý do khám');
       return;
     }
     
     setBooking(true);
-    const relativeId = selectedPatient === 'self' ? null : selectedPatient;
+    const patientId = selectedPatient === 'self' ? null : selectedPatient;
     
     try {
       await onBook({
         scheduleId: selectedSlot.scheduleId || selectedSlot.id,
-        relativeId,
+        patientId, 
         reason: reason.trim()
       });
     } finally {

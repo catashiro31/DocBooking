@@ -256,12 +256,31 @@ const css = `
 .hp-cta-right { flex: 1; display: flex; justify-content: flex-end; align-items: flex-end; position: relative; z-index: 1; }
 .hp-cta-right img { width: 380px; transform: translateY(4px); }
 
-/* ===== LOADING ===== */
-.hp-loading { display: flex; justify-content: center; padding: 40px; }
-.hp-loading-dot { width: 8px; height: 8px; border-radius: 50%; background: #c7d2fe; margin: 0 4px; animation: hpBounce 0.6s alternate infinite; }
-.hp-loading-dot:nth-child(2) { animation-delay: 0.2s; }
-.hp-loading-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes hpBounce { to { transform: translateY(-12px); background: #6366f1; } }
+/* ===== MARQUEE (CƠ SỞ Y TẾ) ===== */
+.hp-marquee-wrapper { position: relative; overflow: hidden; margin-top: 40px; padding: 20px 0; }
+.hp-marquee-track {
+  display: flex; align-items: center; width: max-content;
+  animation: scrollMarquee 40s linear infinite;
+}
+.hp-marquee-track:hover { animation-play-state: paused; }
+.hp-facility-card {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border: 1.5px solid #f0f0f5; border-radius: 100px;
+  padding: 8px 24px 8px 8px; margin: 0 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: all 0.25s; cursor: pointer;
+}
+.hp-facility-card:hover { border-color: #c7d2fe; box-shadow: 0 8px 24px rgba(99,102,241,0.15); transform: translateY(-2px); }
+.hp-facility-img {
+  width: 44px; height: 44px; border-radius: 50%;
+  object-fit: cover; background: #eef2ff;
+}
+.hp-facility-name { font-size: 15px; font-weight: 700; color: #1e293b; white-space: nowrap; margin: 0; }
+
+@keyframes scrollMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.33%); }
+}
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
@@ -296,6 +315,8 @@ const css = `
 function HomePage() {
   const [topDoctors, setTopDoctors] = useState([])
   const [specialties, setSpecialties] = useState([])
+  const [facilities, setFacilities] = useState([])
+  const [stats, setStats] = useState({ totalDoctors: 0, totalAppointments: 0, averageRating: 5.0 })
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
@@ -303,9 +324,11 @@ function HomePage() {
   useEffect(() => {
     Promise.all([
       doctorService.getDoctors({ size: 8, sortBy: 'rating' }),
-      doctorService.getSpecialties()
+      doctorService.getSpecialties(),
+      doctorService.getFacilities(),
+      doctorService.getPortalStats()
     ])
-      .then(([doctorsData, specialtiesData]) => {
+      .then(([doctorsData, specialtiesData, facilitiesData, statsData]) => {
         const doctors = doctorsData?.content || doctorsData || []
         setTopDoctors(Array.isArray(doctors) ? doctors.slice(0, 8) : [])
 
@@ -314,6 +337,12 @@ function HomePage() {
           ...s,
           image: s.imageUrl || defaultImages[i % defaultImages.length]
         })))
+        
+        const facs = Array.isArray(facilitiesData) ? facilitiesData : []
+        setFacilities(facs.slice(0, 15))
+
+        if (statsData) setStats(statsData)
+
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -358,21 +387,21 @@ function HomePage() {
                 <div className="hp-stat-card">
                   <div className="hp-stat-icon">👨‍⚕️</div>
                   <div className="hp-stat-info">
-                    <p className="hp-hero-stat-num">100+</p>
+                    <p className="hp-hero-stat-num">{stats.totalDoctors}+</p>
                     <p className="hp-hero-stat-label">Bác sĩ chuyên khoa</p>
                   </div>
                 </div>
                 <div className="hp-stat-card">
                   <div className="hp-stat-icon">📅</div>
                   <div className="hp-stat-info">
-                    <p className="hp-hero-stat-num">50k+</p>
+                    <p className="hp-hero-stat-num">{stats.totalAppointments}</p>
                     <p className="hp-hero-stat-label">Lượt đặt lịch</p>
                   </div>
                 </div>
                 <div className="hp-stat-card">
                   <div className="hp-stat-icon">⭐</div>
                   <div className="hp-stat-info">
-                    <p className="hp-hero-stat-num">4.9/5</p>
+                    <p className="hp-hero-stat-num">{stats.averageRating}/5</p>
                     <p className="hp-hero-stat-label">Đánh giá trung bình</p>
                   </div>
                 </div>
@@ -402,6 +431,30 @@ function HomePage() {
               ))}
             </div>
           </div>
+
+          {/* ===== FACILITIES MARQUEE ===== */}
+          {facilities.length > 0 && (
+            <div className="hp-section" style={{ marginTop: '80px' }}>
+              <h2 className="hp-section-title">Cơ sở y tế đối tác</h2>
+              <p className="hp-section-sub">Chúng tôi đồng hành cùng các bệnh viện và phòng khám uy tín nhất.</p>
+              
+              <div className="hp-marquee-wrapper">
+                <div className="hp-marquee-track">
+                  {/* Duplicated 3 times for seamless infinite loop effect with width: -33% */}
+                  {[...facilities, ...facilities, ...facilities].map((fac, i) => (
+                    <div key={i} className="hp-facility-card" onClick={() => navigate('/facilities')}>
+                      <img 
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fac.name || 'HOS')}&background=eef2ff&color=6366f1`} 
+                        alt={fac.name} 
+                        className="hp-facility-img" 
+                      />
+                      <p className="hp-facility-name">{fac.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ===== TOP DOCTORS ===== */}
           <div className="hp-section">
@@ -490,7 +543,7 @@ function HomePage() {
               <p className="hp-cta-tag">Bắt đầu ngay hôm nay</p>
               <h2 className="hp-cta-title">
                 Đặt lịch hẹn với
-                <br />hơn 100 bác sĩ hàng đầu
+                <br />hơn {stats.totalDoctors} bác sĩ hàng đầu
               </h2>
               <button
                 className="hp-cta-btn"

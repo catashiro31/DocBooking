@@ -130,6 +130,11 @@ export const doctorService = {
         });
         return response.data;
     },
+
+    getPortalStats: async () => {
+        const response = await api.get('/portal/stats');
+        return response.data;
+    },
 };
 
 export default doctorService;

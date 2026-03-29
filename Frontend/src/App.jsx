@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom"
+import { ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 import LoginPage from "./pages/LoginPage"
 import HomePage from "./pages/HomePage"
 import RegisterPage from "./pages/RegisterPage"
@@ -22,53 +24,68 @@ function App() {
   if (loading) return null // Chờ AuthContext load xong
 
   return (
-    <Routes>
-
-      {/* ===== Auth routes (public) ===== */}
-      <Route path="/signin" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-
-      {/* Backward compat: /signout cũ trỏ đến register */}
-      <Route path="/signout" element={<Navigate to="/register" />} />
-
-      {/* ===== HOME ===== */}
-      <Route path="/" element={<HomePage />} />
-
-      {/* ===== Doctor Profile (hoàn thiện hồ sơ) ===== */}
-      <Route path="/doctor/profile" element={<DoctorProfile />} />
-
-      {/* ===== Patient Dashboard ===== */}
-      <Route path="/patient/*" element={user?.role === "PATIENT" ? <PatientDashboard /> : <Navigate to="/signin" />} />
-
-      {/* ===== Doctor Dashboard ===== */}
-      <Route path="/doctor/*" element={user?.role === "DOCTOR" ? <DoctorDashboard /> : <Navigate to="/signin" />} />
-
-      {/* ===== User Settings ===== */}
-      <Route path="/profile" element={user ? <UserProfile /> : <Navigate to="/signin" />} />
-      <Route path="/change-password" element={user ? <ChangePassword /> : <Navigate to="/signin" />} />
-
-      {/* ===== ADMIN ===== */}
-      <Route
-        path="/admin/*"
-        element={
-          user?.role === "ADMIN"
-            ? <Admin />
-            : <Navigate to="/signin" />
-        }
+    <>
+      <ToastContainer 
+        position="bottom-center"
+        autoClose={2500}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
       />
+      
+      <Routes>
 
-      {/* ===== Public pages ===== */}
-      <Route path="/doctors" element={<Doctors />} />
-      <Route path="/facilities" element={<Facilities />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/appointment/:docId" element={<Appointment />} />
+        {/* ===== Auth routes (public) ===== */}
+        <Route path="/signin" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      {/* ===== 404 ===== */}
-      <Route path="*" element={<NotFound />} />
+        {/* Backward compat: /signout cũ trỏ đến register */}
+        <Route path="/signout" element={<Navigate to="/register" />} />
 
-    </Routes>
+        {/* ===== HOME ===== */}
+        <Route path="/" element={<HomePage />} />
+
+        {/* ===== Doctor Profile (hoàn thiện hồ sơ) ===== */}
+        <Route path="/doctor/profile" element={<DoctorProfile />} />
+
+        {/* ===== Patient Dashboard ===== */}
+        <Route path="/patient/*" element={user?.role === "PATIENT" ? <PatientDashboard /> : <Navigate to="/signin" />} />
+
+        {/* ===== Doctor Dashboard ===== */}
+        <Route path="/doctor/*" element={user?.role === "DOCTOR" ? <DoctorDashboard /> : <Navigate to="/signin" />} />
+
+        {/* ===== User Settings ===== */}
+        <Route path="/profile" element={user ? <UserProfile /> : <Navigate to="/signin" />} />
+        <Route path="/change-password" element={user ? <ChangePassword /> : <Navigate to="/signin" />} />
+
+        {/* ===== ADMIN ===== */}
+        <Route
+          path="/admin/*"
+          element={
+            user?.role === "ADMIN"
+              ? <Admin />
+              : <Navigate to="/signin" />
+          }
+        />
+
+        {/* ===== Public pages ===== */}
+        <Route path="/doctors" element={<Doctors />} />
+        <Route path="/facilities" element={<Facilities />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/appointment/:docId" element={<Appointment />} />
+
+        {/* ===== 404 ===== */}
+        <Route path="*" element={<NotFound />} />
+
+      </Routes>
+    </>
   )
 }
 

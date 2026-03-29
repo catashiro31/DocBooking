@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { patientService } from "../services/patientService"
+import { toast } from 'react-toastify'
 
 const RelativeManagement = () => {
     const [relatives, setRelatives] = useState([])
@@ -72,7 +73,7 @@ const RelativeManagement = () => {
             setShowModal(false)
             fetchRelatives()
         } catch (err) {
-            alert(err.response?.data || "Không thể lưu thông tin")
+            toast.error(err.response?.data || "Không thể lưu thông tin")
         } finally {
             setSubmitting(false)
         }
@@ -85,7 +86,7 @@ const RelativeManagement = () => {
             await patientService.deleteRelative(id)
             setRelatives(prev => prev.filter(r => r.patientId !== id))
         } catch (err) {
-            alert(err.response?.data || "Không thể xóa hồ sơ")
+            toast.error(err.response?.data || "Không thể xóa hồ sơ")
         }
     }
 

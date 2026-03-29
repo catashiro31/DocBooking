@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { toast } from 'react-toastify'
 import api from "../services/api"
 
 const STEPS = ["Thông tin cơ bản", "Tài liệu xác minh", "Chuyên môn & Cơ sở"]
@@ -164,7 +165,7 @@ function DoctorProfile() {
   const handleUpload = (e, type) => {
     const file = e.target.files[0]
     if (!file) return
-    if (file.size > 5 * 1024 * 1024) { alert("File quá lớn! Tối đa 5MB."); return }
+    if (file.size > 5 * 1024 * 1024) { toast.warning("File quá lớn! Tối đa 5MB."); return }
     const localUrl = URL.createObjectURL(file)
     if (type === "idCard") {
       setFiles(prev => ({ ...prev, idCard: file }))
@@ -193,19 +194,26 @@ function DoctorProfile() {
         headers: { "Content-Type": undefined },
       })
 
-      const user = JSON.parse(localStorage.getItem("user") || "{}")
-      if (user) { user.verificationStatus = "PENDING"; localStorage.setItem("user", JSON.stringify(user)) }
+      const userObj = JSON.parse(localStorage.getItem("user") || "{}")
+      if (userObj) { 
+        userObj.verificationStatus = "PENDING"
+        localStorage.setItem("user", JSON.stringify(userObj))
+        // Cập nhật cả AuthContext để UI reflect ngay lập tức
+        if (window.dispatchEvent) {
+          window.dispatchEvent(new Event('storage')) 
+        }
+      }
       setSubmitted(true)
     } catch (err) {
       const status = err?.response?.status
       const msg = err?.response?.data?.message || err?.response?.data || err?.message
-      if (!status) alert("Không kết nối được server.")
-      else if (status === 401) alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.")
-      else if (status === 400) alert("Dữ liệu không hợp lệ: " + (typeof msg === "string" ? msg : JSON.stringify(msg)))
-      else if (status === 403) alert("Không có quyền thực hiện. Kiểm tra role tài khoản.")
-      else if (status === 404) alert("Endpoint /doctors/profile không tồn tại.")
-      else if (status === 500) alert("Lỗi server (500). Báo lại team BE.")
-      else alert(`Gửi thất bại (${status}).`)
+      if (!status) toast.error("Không kết nối được server.")
+      else if (status === 401) toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.")
+      else if (status === 400) toast.error("Dữ liệu không hợp lệ: " + (typeof msg === "string" ? msg : JSON.stringify(msg)))
+      else if (status === 403) toast.error("Không có quyền thực hiện. Kiểm tra role tài khoản.")
+      else if (status === 404) toast.error("Endpoint /doctors/profile không tồn tại.")
+      else if (status === 500) toast.error("Lỗi server (500). Báo lại team BE.")
+      else toast.error(`Gửi thất bại (${status}).`)
     }
     setLoading(false)
   }
@@ -261,6 +269,29 @@ function DoctorProfile() {
           </div>
         </div>
       </>
+    )
+  }
+
+  // ===== APPROVED SCREEN =====
+  if (user?.verificationStatus === "APPROVED") {
+    return (
+      <div style={pageWrapStyle}>
+        <div style={{ width: '100%', maxWidth: '440px', background: '#fff', borderRadius: '24px', border: '1px solid #f0f0f0', boxShadow: '0 4px 24px rgba(0,0,0,0.07)', padding: '3rem 2.5rem', textAlign: 'center' }}>
+          <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', boxShadow: '0 8px 24px rgba(59,130,246,0.3)' }}>
+            <span style={{ fontSize: '36px' }}>👨‍⚕️</span>
+          </div>
+          <h2 style={{ margin: '0 0 10px', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>Hồ sơ đã được duyệt!</h2>
+          <p style={{ margin: '0 0 2rem', fontSize: '14px', color: '#6b7280', lineHeight: 1.7 }}>
+            Tài khoản bác sĩ của bạn đã được xác thực và đang hoạt động bình thường.
+          </p>
+          <button
+            onClick={() => navigate("/doctor/appointments")}
+            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 14px rgba(59,130,246,0.35)' }}
+          >
+            Đến bảng điều khiển →
+          </button>
+        </div>
+      </div>
     )
   }
 

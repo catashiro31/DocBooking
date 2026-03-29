@@ -1,10 +1,12 @@
+import { toast } from 'react-toastify'
+
 const handleUpload = (e, type) => {
   const file = e.target.files[0]
   if (!file) return
  
   // Validate size (5MB)
   if (file.size > 5 * 1024 * 1024) {
-    alert("File quá lớn! Tối đa 5MB.")
+    toast.warning("File quá lớn! Tối đa 5MB.")
     return
   }
  
@@ -43,7 +45,7 @@ const handleSubmit = async () => {
     localStorage.setItem("user", JSON.stringify(user))
     navigate("/")
   } catch (err) {
-    alert("Gửi hồ sơ thất bại!")
+    toast.error("Gửi hồ sơ thất bại!")
   }
   setLoading(false)
 }

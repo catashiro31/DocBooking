@@ -2,6 +2,7 @@ package docbooking.admin;
 
 import docbooking.admin.requests.Facility;
 import docbooking.admin.requests.Specialty;
+import docbooking.admin.responses.AppointmentAdminResponse;
 import docbooking.admin.responses.AppointmentStats;
 import docbooking.admin.responses.Stat;
 import docbooking.models.*;
@@ -35,13 +36,16 @@ public class AdminService {
         // 1. Lấy dữ liệu gộp từ Repo (Chỉ 1 lần truy vấn DB)
         AppointmentStats appStats = appointmentRepository.getAppointmentStatsByPeriod(start, end);
 
-        // 2. Xử lý nếu appStats bị null (để tránh lỗi .getCompleted() bị null)
         if (appStats == null) {
             appStats = new AppointmentStats(0, 0, 0);
         }
 
         LocalDateTime startDT = start.atStartOfDay();
         LocalDateTime endDT = end.plusDays(1).atStartOfDay();
+
+        // Thống kê ngày hôm nay
+        LocalDate today = LocalDate.now();
+        AppointmentStats todayStats = appointmentRepository.getAppointmentStatsByPeriod(today, today);
 
         // 3. Đóng gói vào kết quả trả về
         return Stat.builder()
@@ -50,11 +54,32 @@ public class AdminService {
                 .numberOfSuccessAppointments(appStats.getCompleted())
                 .numberOfPendingAppointments(appStats.getPending())
                 .numberOfFailingAppointments(appStats.getCancelled())
+                
+                // Bổ sung các thông số tuyệt đối
+                .totalUsers(userRepository.count())
+                .totalDoctors(userRepository.countByRole(User.RoleStatus.DOCTOR))
+                .totalPatients(userRepository.countByRole(User.RoleStatus.PATIENT))
+                .totalAppointments(appointmentRepository.count())
+                .totalReviews(reviewRepository.count())
+                .pendingDoctors(doctorDetail.countByVerificationStatus(DoctorDetail.VerificationStatus.PENDING))
+                .todayAppointments(todayStats != null ? (todayStats.getCompleted() + todayStats.getPending() + todayStats.getCancelled()) : 0)
                 .build();
+    }
+
+    public Page<DoctorDetail> getAllDoctors(Pageable pageable) {
+        return doctorDetail.findAll(pageable);
     }
 
     public List<DoctorDetail> getPendingDoctors() {
         return doctorDetail.findDoctorDetailByVerificationStatus(DoctorDetail.VerificationStatus.PENDING);
+    }
+
+    public DoctorDetail getDoctorDetail(Integer id) {
+        DoctorDetail doctor = doctorDetail.findByDoctorId(id);
+        if (doctor == null) {
+            throw new RuntimeException("Không tìm thấy thông tin bác sĩ với ID: " + id);
+        }
+        return doctor;
     }
 
     public DoctorDetail approveDoctor(Integer doctorId) {
@@ -243,11 +268,38 @@ public class AdminService {
         return "Đã xóa thành công cơ sở!";
     }
 
-    public Page<Appointment> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo, Appointment.BookingStatus status, Pageable pageable) {
+    public Page<AppointmentAdminResponse> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo, Appointment.BookingStatus status, Pageable pageable) {
         if (dateFrom.isAfter(dateTo)) {
             throw new RuntimeException("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
         }
-        return appointmentRepository.findAllByPeriodAndStatus(dateFrom, dateTo, status, pageable);
+        Page<Appointment> appointments = appointmentRepository.findAllByPeriodAndStatus(dateFrom, dateTo, status, pageable);
+        
+        return appointments.map(this::mapToAdminResponse);
+    }
+
+    private AppointmentAdminResponse mapToAdminResponse(Appointment a) {
+        DoctorSchedule s = a.getSchedule();
+        DoctorDetail d = s != null ? s.getDoctor() : null;
+        User doctorUser = d != null ? d.getUser() : null;
+        PatientProfile p = a.getPatient();
+        User patientUser = p != null ? p.getUser() : null;
+
+        return AppointmentAdminResponse.builder()
+                .appointmentId(a.getId())
+                .patientId(p != null ? p.getPatientId() : null)
+                .patientName(patientUser != null ? patientUser.getFullName() : p != null ? p.getFullName() : "N/A")
+                .patientPhone(patientUser != null ? patientUser.getPhoneNumber() : "N/A")
+                .patientEmail(patientUser != null ? patientUser.getEmail() : "N/A")
+                .doctorId(d != null ? d.getDoctorId() : null)
+                .doctorName(doctorUser != null ? doctorUser.getFullName() : "N/A")
+                .specialtyName(d != null && d.getSpecialty() != null ? d.getSpecialty().getSpecialtyName() : "N/A")
+                .facilityName(d != null && d.getFacility() != null ? d.getFacility().getFacilityName() : "N/A")
+                .dateWorking(s != null ? s.getDateWorking() : null)
+                .timeSlot(s != null && s.getTimeSlot() != null ? s.getTimeSlot().name().replace("SLOT_", "").replace("_", ":") : "N/A")
+                .reason(a.getReason())
+                .bookingStatus(a.getBookingStatus())
+                .createdAt(a.getCreatedAt())
+                .build();
     }
 
     public Page<Review> getAllReviews(Pageable pageable) {

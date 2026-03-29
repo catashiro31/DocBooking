@@ -46,6 +46,20 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getPendingDoctors());
     }
 
+    @GetMapping("/doctor-all")
+    public ResponseEntity<?> getAllDoctors(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("doctorId").descending());
+        return ResponseEntity.ok(adminService.getAllDoctors(pageable));
+    }
+
+    @GetMapping("/doctor/{id}")
+    public ResponseEntity<?> getDoctorDetail(@PathVariable Integer id) {
+        return ResponseEntity.ok(adminService.getDoctorDetail(id));
+    }
+
     @PutMapping("/{id}/approve")
     public ResponseEntity<?> approveDoctor(@PathVariable Integer id) {
         try {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { doctorService, unwrapPage } from "../services/doctorService"
+import { toast } from 'react-toastify'
 
 const formatSlotLabel = (slot) => {
     if (!slot || typeof slot !== "string") return slot
@@ -51,7 +52,7 @@ const DoctorAppointments = () => {
             fetchAppointments()
         } catch (err) {
             const msg = err.response?.data
-            alert(typeof msg === "string" ? msg : "Không thể cập nhật trạng thái")
+            toast.error(typeof msg === "string" ? msg : "Không thể cập nhật trạng thái")
         }
     }
 
@@ -75,7 +76,7 @@ const DoctorAppointments = () => {
     const handleSubmitResult = async () => {
         if (!selectedAppointment) return
         if (!resultData.diagnosis?.trim()) {
-            alert("Vui lòng nhập chẩn đoán")
+            toast.warning("Vui lòng nhập chẩn đoán")
             return
         }
 
@@ -95,7 +96,7 @@ const DoctorAppointments = () => {
             fetchAppointments()
         } catch (err) {
             const msg = err.response?.data
-            alert(typeof msg === "string" ? msg : "Không thể lưu kết quả khám")
+            toast.error(typeof msg === "string" ? msg : "Không thể lưu kết quả khám")
         } finally {
             setSubmitting(false)
         }

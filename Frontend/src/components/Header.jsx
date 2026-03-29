@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from './Logo';
+import { useState, useRef, useEffect } from 'react';
 
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -335,6 +336,10 @@ const DOCTOR_PENDING_MENU = [
   { icon: '⏳', label: 'Hồ sơ đang duyệt', path: '/doctor/profile', bg: '#fffbeb' },
 ];
 
+const DOCTOR_UNVERIFIED_MENU = [
+  { icon: '✨', label: 'Hoàn thiện hồ sơ', path: '/doctor/profile', bg: '#fef2f2' },
+];
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [ddOpen, setDdOpen] = useState(false);
@@ -372,7 +377,13 @@ export default function Header() {
   
   let roleMenu = PATIENT_MENU;
   if (user?.role === 'DOCTOR') {
-    roleMenu = user?.verificationStatus === 'PENDING' ? DOCTOR_PENDING_MENU : DOCTOR_MENU;
+    if (user?.verificationStatus === 'APPROVED') {
+      roleMenu = DOCTOR_MENU;
+    } else if (user?.verificationStatus === 'PENDING') {
+      roleMenu = DOCTOR_PENDING_MENU;
+    } else {
+      roleMenu = DOCTOR_UNVERIFIED_MENU;
+    }
   }
 
   return (
@@ -381,14 +392,8 @@ export default function Header() {
       <header className="hdr">
         <div className="hdr-container">
           {/* Logo */}
-          <div className="hdr-logo" onClick={() => navigate('/')}>
-            <div className="hdr-logo-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
-            </div>
-            <span className="hdr-logo-text">DocBooking</span>
-          </div>
+          <Logo onClick={() => navigate('/')} />
+
 
           {/* Mobile toggle */}
           <button className="hdr-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)}>

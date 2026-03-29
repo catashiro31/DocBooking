@@ -1,7 +1,6 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import logo from "../images/logoAdmin.png";
+import Logo from "./Logo";
 
 const HeaderAdmin = () => {
   const navigate = useNavigate();
@@ -27,9 +26,7 @@ const HeaderAdmin = () => {
       }}>
 
         {/* Left */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src={logo} alt="logo" style={{ width: '180px', height: '52px', objectFit: 'contain' }} />
-        </div>
+        <Logo size="normal" onClick={() => navigate('/admin/board')} />
 
         {/* Center */}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>

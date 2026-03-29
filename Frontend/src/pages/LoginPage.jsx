@@ -1,6 +1,7 @@
 import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate, useLocation, Link } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { toast } from 'react-toastify'
 import bg from "../images/bg.png"
 
 const css = `
@@ -201,29 +202,7 @@ const css = `
 .login-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
 /* ============ ERROR / SUCCESS ============ */
-.login-error {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px 16px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  animation: shakeError 0.4s ease;
-}
-.login-error-icon { flex-shrink: 0; margin-top: 1px; }
-.login-error-text { font-size: 13px; color: #b91c1c; line-height: 1.5; }
 
-@keyframes shakeError {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
-}
-
-/* ============ REGISTER LINK ============ */
 .login-register {
   margin-top: 28px;
   text-align: center;
@@ -358,45 +337,52 @@ function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  
+  const from = location.state?.from || "/"
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError("")
 
     // Client-side validation
-    if (!email.trim()) { setError("Vui lòng nhập email"); return }
-    if (!password.trim()) { setError("Vui lòng nhập mật khẩu"); return }
+    if (!email.trim()) { toast.warning("Vui lòng nhập email"); return }
+    if (!password.trim()) { toast.warning("Vui lòng nhập mật khẩu"); return }
 
     setLoading(true)
     try {
       const result = await login(email, password)
       const user = result.user
 
+      toast.success("Đăng nhập thành công!")
+
       // Redirect dựa trên role
       if (user?.role === "ADMIN") {
-        navigate("/admin/board")
+        navigate(from === "/" ? "/admin" : from)
       } else if (user?.role === "DOCTOR") {
-        navigate("/doctor/profile")
+        if (user?.verificationStatus === "APPROVED") {
+          navigate(from === "/" ? "/doctor/appointments" : from)
+        } else {
+          navigate("/doctor/profile")
+        }
       } else {
-        navigate("/")
+        navigate(from)
       }
     } catch (err) {
       const status = err?.response?.status
       const msg = err?.response?.data
 
       if (status === 404) {
-        setError("Tài khoản không tồn tại. Vui lòng kiểm tra lại email.")
+        toast.error("Tài khoản không tồn tại. Vui lòng kiểm tra lại email.")
       } else if (status === 403) {
-        setError(typeof msg === "string" ? msg : "Tài khoản bị hạn chế truy cập.")
+        toast.error(typeof msg === "string" ? msg : "Tài khoản bị hạn chế truy cập.")
       } else if (status === 401) {
-        setError("Sai mật khẩu. Vui lòng thử lại.")
+        toast.error("Sai mật khẩu. Vui lòng thử lại.")
       } else {
-        setError("Đã có lỗi xảy ra. Vui lòng thử lại sau.")
+        toast.error("Đã có lỗi xảy ra. Vui lòng thử lại sau.")
       }
     }
     setLoading(false)
@@ -428,18 +414,6 @@ function LoginPage() {
 
             <h1 className="login-title">Đăng nhập</h1>
             <p className="login-subtitle">Chào mừng bạn trở lại! Hãy đăng nhập để tiếp tục.</p>
-
-            {/* Error Message */}
-            {error && (
-              <div className="login-error">
-                <svg className="login-error-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <span className="login-error-text">{error}</span>
-              </div>
-            )}
 
             <form onSubmit={handleSubmit}>
               {/* Email */}

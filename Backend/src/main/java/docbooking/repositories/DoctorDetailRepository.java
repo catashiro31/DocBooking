@@ -19,4 +19,6 @@ public interface DoctorDetailRepository  extends JpaRepository<DoctorDetail, Int
     Optional<DoctorDetail> findByUser_UserId(Integer userId);
 
     Optional<DoctorDetail> findByUser(User user);
+
+    long countByVerificationStatus(DoctorDetail.VerificationStatus status);
 }

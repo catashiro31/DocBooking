@@ -40,10 +40,10 @@ public class DoctorService {
         if (existingProfile.isPresent()) {
             DoctorDetail existing = existingProfile.get();
             if (existing.getVerificationStatus() == DoctorDetail.VerificationStatus.PENDING) {
-                throw new RuntimeException("Hồ sơ đang chờ duyệt, vui lòng đợi!");
+                throw new RuntimeException("Hồ sơ của bạn đang trong quá trình xét duyệt. Vui lòng chờ phản hồi từ Admin!");
             }
             if (existing.getVerificationStatus() == DoctorDetail.VerificationStatus.APPROVED) {
-                throw new RuntimeException("Hồ sơ đã được duyệt, không thể gửi lại!");
+                throw new RuntimeException("Hồ sơ bác sĩ của bạn đã được duyệt và đang hoạt động. Bạn không cần nộp lại hồ sơ xác minh!");
             }
             // Nếu REJECTED, cho phép cập nhật và gửi lại
             Specialty specialty = specialtyRepository.findById(req.getSpecialtyId())

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const api = axios.create({
   baseURL: 'http://localhost:5020/api/v1', 
@@ -35,7 +36,7 @@ api.interceptors.response.use(
     if (status === 403) {
       // Tài khoản bị khóa -> hiển thị lý do ban
       const reason = typeof message === 'string' ? message : "Bạn không có quyền truy cập";
-      alert(reason);
+      toast.error(reason);
     }
 
     return Promise.reject(error);

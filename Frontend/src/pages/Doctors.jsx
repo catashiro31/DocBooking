@@ -53,11 +53,17 @@ const css = `
 .spec-item.active { background: #eef2ff; color: #6366f1; font-weight: 600; }
 
 .grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
-.empty { grid-column: 1 / -1; text-align: center; padding: 80px; color: #64748b; font-size: 15px; background: #fff; border-radius: 20px; border: 1px dashed #e2e8f0; }
-.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 24px; grid-column: 1 / -1; }
-.pagination button { padding: 8px 16px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer; }
-.pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
-.pagination button.active { background: #5f6dfc; color: white; border-color: #5f6dfc; }
+.empty { grid-column: 1 / -1; text-align: center; padding: 80px; color: #64748b; font-size: 15px; background: #fff; border-radius: 20px; border: 1px dashed #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+
+.pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 40px; grid-column: 1 / -1; padding-bottom: 20px; }
+.pagination button { 
+  display: flex; align-items: center; justify-content: center; min-width: 40px; height: 40px; padding: 0 16px; 
+  border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: #475569; font-weight: 600; font-size: 14px;
+  cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(0,0,0,0.02); font-family: inherit;
+}
+.pagination button:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99,102,241,0.15); }
+.pagination button:disabled { opacity: 0.5; cursor: not-allowed; background: #f8fafc; }
+.pagination button.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
 
 @media (max-width: 640px) {
   .hero-wrapper { padding: 0 16px; }
@@ -80,26 +86,42 @@ const css = `
 export default function Doctors() {
   const [doctors, setDoctors] = useState([]);
   const [specialties, setSpecialties] = useState([]);
+  const [facilities, setFacilities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSpecId, setSelectedSpecId] = useState(null);
+  const [selectedFacilityId, setSelectedFacilityId] = useState(null);
+  const [minPrice, setMinPrice] = useState(null);
+  const [maxPrice, setMaxPrice] = useState(null);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Load specialties
+  // Load filters
   useEffect(() => {
     doctorService.getSpecialties()
       .then(data => setSpecialties(Array.isArray(data) ? data : []))
       .catch(err => console.error("Error loading specialties:", err));
+      
+    doctorService.getFacilities()
+      .then(data => setFacilities(Array.isArray(data) ? data : []))
+      .catch(err => console.error("Error loading facilities:", err));
   }, []);
 
-  // Load URL params
+  // Load URL params ON MOUNT
   useEffect(() => {
-    const specId = searchParams.get('specId');
-    const keyword = searchParams.get('keyword');
-    if (specId) setSelectedSpecId(Number(specId));
-    if (keyword) setSearch(keyword);
+    const sId = searchParams.get('specId');
+    const fId = searchParams.get('facilityId');
+    const minP = searchParams.get('minPrice');
+    const maxP = searchParams.get('maxPrice');
+    const kw = searchParams.get('keyword');
+    
+    // Use explicit existence checks to handle 0 and other values correctly
+    if (sId !== null) setSelectedSpecId(Number(sId));
+    if (fId !== null) setSelectedFacilityId(Number(fId));
+    if (minP !== null) setMinPrice(Number(minP));
+    if (maxP !== null) setMaxPrice(Number(maxP));
+    if (kw !== null) setSearch(kw);
   }, []);
 
   // Fetch doctors with filters
@@ -110,9 +132,13 @@ export default function Doctors() {
         page,
         size: 12,
         ...(search && { keyword: search }),
-        ...(selectedSpecId && { specId: selectedSpecId })
+        ...(selectedSpecId && { specId: selectedSpecId }),
+        ...(selectedFacilityId && { facilityId: selectedFacilityId }),
+        ...(minPrice !== null && { minPrice }),
+        ...(maxPrice !== null && { maxPrice })
       };
       const data = await doctorService.getDoctors(params);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       const doctorList = data.content || data || [];
       setDoctors(doctorList);
       setTotalPages(data.totalPages || 1);
@@ -122,7 +148,7 @@ export default function Doctors() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, selectedSpecId]);
+  }, [page, search, selectedSpecId, selectedFacilityId, minPrice, maxPrice]);
 
   useEffect(() => {
     fetchDoctors();
@@ -132,18 +158,51 @@ export default function Doctors() {
   useEffect(() => {
     const params = {};
     if (selectedSpecId) params.specId = selectedSpecId;
+    if (selectedFacilityId) params.facilityId = selectedFacilityId;
+    if (minPrice !== null) params.minPrice = minPrice;
+    if (maxPrice !== null) params.maxPrice = maxPrice;
     if (search) params.keyword = search;
     setSearchParams(params);
-  }, [selectedSpecId, search, setSearchParams]);
+  }, [selectedSpecId, selectedFacilityId, minPrice, maxPrice, search, setSearchParams]);
 
   const handleSpecialtySelect = (specId) => {
     setSelectedSpecId(specId === selectedSpecId ? null : specId);
     setPage(0);
   };
 
+  const handleFacilitySelect = (facilityId) => {
+    setSelectedFacilityId(facilityId === selectedFacilityId ? null : facilityId);
+    setPage(0);
+  };
+
+  const handlePriceSelect = (min, max) => {
+    if (min === minPrice && max === maxPrice) {
+      setMinPrice(null);
+      setMaxPrice(null);
+    } else {
+      setMinPrice(min);
+      setMaxPrice(max);
+    }
+    setPage(0);
+  };
+
+  const PRICE_PRESETS = [
+    { label: 'Dưới 200k', min: 0, max: 200000 },
+    { label: '200k - 500k', min: 200000, max: 500000 },
+    { label: '500k - 1tr', min: 500000, max: 1000000 },
+    { label: 'Trên 1tr', min: 1000000, max: null },
+  ];
+
   const handleSearch = (e) => {
     setSearch(e.target.value);
     setPage(0);
+  };
+
+  const getPageRange = () => {
+    let start = Math.max(0, page - 2);
+    let end = Math.min(totalPages - 1, start + 4);
+    start = Math.max(0, end - 4);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
   return (
@@ -175,23 +234,76 @@ export default function Doctors() {
 
         <div className="main">
           <aside className="sidebar">
-            <h3>Chuyên khoa</h3>
-            <div className="spec-list">
-              <button 
-                className={`spec-item ${!selectedSpecId ? 'active' : ''}`}
-                onClick={() => handleSpecialtySelect(null)}
-              >
-                Tất cả
-              </button>
-              {specialties.map(spec => (
-                <button
-                  key={spec.id}
-                  className={`spec-item ${selectedSpecId === spec.id ? 'active' : ''}`}
-                  onClick={() => handleSpecialtySelect(spec.id)}
+            <div style={{ marginBottom: '32px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                Chuyên khoa
+              </h3>
+              <div className="spec-list">
+                <button 
+                  className={`spec-item ${!selectedSpecId ? 'active' : ''}`}
+                  onClick={() => handleSpecialtySelect(null)}
                 >
-                  {spec.name}
+                  Tất cả chuyên khoa
                 </button>
-              ))}
+                {specialties.map(spec => (
+                  <button
+                    key={spec.id}
+                    className={`spec-item ${selectedSpecId === spec.id ? 'active' : ''}`}
+                    onClick={() => handleSpecialtySelect(spec.id)}
+                  >
+                    {spec.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '32px' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Cơ sở y tế
+              </h3>
+              <div className="spec-list">
+                <button 
+                  className={`spec-item ${!selectedFacilityId ? 'active' : ''}`}
+                  onClick={() => handleFacilitySelect(null)}
+                >
+                  Tất cả cơ sở
+                </button>
+                {facilities.map(fac => (
+                  <button
+                    key={fac.id}
+                    className={`spec-item ${selectedFacilityId === fac.id ? 'active' : ''}`}
+                    onClick={() => handleFacilitySelect(fac.id)}
+                  >
+                    {fac.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                Khoảng giá
+              </h3>
+              <div className="spec-list">
+                <button 
+                  className={`spec-item ${minPrice === null && maxPrice === null ? 'active' : ''}`}
+                  onClick={() => handlePriceSelect(null, null)}
+                >
+                  Tất cả giá
+                </button>
+                {PRICE_PRESETS.map(preset => (
+                  <button
+                    key={preset.label}
+                    className={`spec-item ${minPrice === preset.min && maxPrice === preset.max ? 'active' : ''}`}
+                    onClick={() => handlePriceSelect(preset.min, preset.max)}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </aside>
 
@@ -209,12 +321,19 @@ export default function Doctors() {
                 {totalPages > 1 && (
                   <div className="pagination">
                     <button 
+                      onClick={() => setPage(0)}
+                      disabled={page === 0}
+                      style={{ fontSize: '12px' }}
+                    >
+                      Đầu
+                    </button>
+                    <button 
                       onClick={() => setPage(p => Math.max(0, p - 1))}
                       disabled={page === 0}
                     >
                       Trước
                     </button>
-                    {[...Array(Math.min(5, totalPages))].map((_, i) => (
+                    {getPageRange().map(i => (
                       <button
                         key={i}
                         className={page === i ? 'active' : ''}
@@ -228,6 +347,13 @@ export default function Doctors() {
                       disabled={page >= totalPages - 1}
                     >
                       Sau
+                    </button>
+                    <button 
+                      onClick={() => setPage(totalPages - 1)}
+                      disabled={page >= totalPages - 1}
+                      style={{ fontSize: '12px' }}
+                    >
+                      Cuối
                     </button>
                   </div>
                 )}

@@ -26,6 +26,25 @@ public class PublicService {
     private final ReviewRepository reviewRepository;
     private final SpecialtyRepository specialtyRepository;
     private final FacilityRepository facilityRepository;
+    private final AppointmentRepository appointmentRepository;
+
+    public PortalStats getPortalStats() {
+        long totalDoctors = doctorDetailRepository.countByVerificationStatus(docbooking.models.DoctorDetail.VerificationStatus.APPROVED);
+        long totalAppointments = appointmentRepository.count();
+        
+        // Calculate global average rating from approved doctors
+        List<docbooking.models.DoctorDetail> approvedDoctors = doctorDetailRepository.findDoctorDetailByVerificationStatus(docbooking.models.DoctorDetail.VerificationStatus.APPROVED);
+        double totalRating = approvedDoctors.stream()
+                .mapToDouble(d -> d.getRatingAverage() != null ? d.getRatingAverage() : 5.0)
+                .sum();
+        double avgRating = approvedDoctors.isEmpty() ? 5.0 : totalRating / approvedDoctors.size();
+        
+        return PortalStats.builder()
+                .totalDoctors(totalDoctors)
+                .totalAppointments(totalAppointments)
+                .averageRating(Math.round(avgRating * 10.0) / 10.0)
+                .build();
+    }
 
     public List<Facilities> getAllFacilities() {
         return facilityRepository.findAllByIsActiveTrue().stream()
@@ -47,7 +66,7 @@ public class PublicService {
                         .build())
                 .toList();
     }
-    public Page<DoctorCards> getDoctors(String name , Integer specialityId, Double minPrice, Double maxPrice, Pageable pageable) {
+    public Page<DoctorCards> getDoctors(String name , Integer specialityId, Integer facilityId, Double minPrice, Double maxPrice, Pageable pageable) {
         Specification<docbooking.models.DoctorDetail> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -58,6 +77,10 @@ public class PublicService {
 
             if (specialityId != null) {
                 predicates.add(cb.equal(root.get("specialty").get("specialtyId"), specialityId));
+            }
+
+            if (facilityId != null) {
+                predicates.add(cb.equal(root.get("facility").get("facilityId"), facilityId));
             }
 
             if (minPrice != null) {
@@ -95,8 +118,13 @@ public class PublicService {
                 .id(doctor.getDoctorId())
                 .fullName(doctor.getUser().getFullName())
                 .specialtyName(doctor.getSpecialty().getSpecialtyName())
+                .specialtyId(doctor.getSpecialty().getSpecialtyId())
+                .degree(doctor.getDegree())
+                .experienceYears(doctor.getExperienceYears())
                 .price(doctor.getPrice())
                 .bio(doctor.getBio())
+                .facilityName(doctor.getFacility() != null ? doctor.getFacility().getFacilityName() : null)
+                .facilityAddress(doctor.getFacility() != null ? doctor.getFacility().getAddress() : null)
                 .doctorEmail(doctor.getUser().getEmail())
                 .doctorPhone(doctor.getUser().getPhoneNumber())
                 .avatarUrl(doctor.getUser().getAvatarUrl())

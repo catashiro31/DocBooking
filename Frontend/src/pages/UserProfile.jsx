@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { userService } from "../services/userService"
 
 function UserProfile() {
+    const navigate = useNavigate()
     const { user: contextUser, refreshUser } = useAuth()
     const [form, setForm] = useState({ fullName: "", phoneNumber: "", email: "" })
     const [file, setFile] = useState(null)
@@ -56,7 +58,19 @@ function UserProfile() {
     return (
         <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '40px 20px', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 24px', color: '#0f172a' }}>Thông tin cá nhân</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                    <h2 style={{ fontSize: '24px', fontWeight: 700, margin: 0, color: '#0f172a' }}>Thông tin cá nhân</h2>
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        style={{
+                            padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                            background: 'white', color: '#64748b', fontSize: '13px', fontWeight: 600,
+                            cursor: 'pointer', transition: 'all 0.2s'
+                        }}
+                    >
+                        Quay lại
+                    </button>
+                </div>
                 
                 {message.text && (
                     <div style={{ padding: '12px 16px', borderRadius: '8px', marginBottom: '24px', fontSize: '14px', background: message.type === 'success' ? '#ecfdf5' : '#fef2f2', color: message.type === 'success' ? '#059669' : '#dc2626' }}>

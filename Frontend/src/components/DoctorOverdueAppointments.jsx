@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { doctorService } from "../services/doctorService"
+import { toast } from 'react-toastify'
 
 const DoctorOverdueAppointments = () => {
     const [appointments, setAppointments] = useState([])
@@ -34,7 +35,7 @@ const DoctorOverdueAppointments = () => {
             await doctorService.updateAppointmentStatus(appointmentId, status)
             setAppointments(prev => prev.filter(apt => apt.appointmentId !== appointmentId))
         } catch (err) {
-            alert(err.response?.data || "Không thể cập nhật trạng thái")
+            toast.error(err.response?.data || "Không thể cập nhật trạng thái")
         }
     }
 

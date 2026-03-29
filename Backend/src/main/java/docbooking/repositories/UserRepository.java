@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByEmailAndIsActiveTrue(String email);
 
     long countByRoleAndCreatedAtBetween(User.RoleStatus role, LocalDateTime start, LocalDateTime end);
+
+    long countByRole(User.RoleStatus role);
 }

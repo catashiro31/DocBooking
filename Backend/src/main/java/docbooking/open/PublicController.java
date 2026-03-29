@@ -18,12 +18,17 @@ import java.util.List;
 @RequestMapping("/api/v1/portal")
 public class PublicController {
     private final PublicService portalService;
+    @GetMapping("/stats")
+    public ResponseEntity<?> getPortalStats() {
+        return ResponseEntity.ok(portalService.getPortalStats());
+    }
     @GetMapping("/doctors")
     public ResponseEntity<?> getDoctors(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer specId,
+            @RequestParam(required = false) Integer facilityId,
             @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double priceTo,
+            @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -40,7 +45,7 @@ public class PublicController {
         }
         
         Pageable pageable = PageRequest.of(page, size, sort);
-        return ResponseEntity.ok(portalService.getDoctors(keyword, specId, minPrice, priceTo, pageable));
+        return ResponseEntity.ok(portalService.getDoctors(keyword, specId, facilityId, minPrice, maxPrice, pageable));
     }
 
     @GetMapping("/doctors/{id}")

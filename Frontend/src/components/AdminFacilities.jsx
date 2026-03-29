@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { adminService } from "../services/adminService"
+import { toast } from 'react-toastify'
 
 const AdminFacilities = () => {
     const [facilities, setFacilities] = useState([])
@@ -47,11 +48,11 @@ const AdminFacilities = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         if (!formData.name.trim()) {
-            alert("Vui lòng nhập tên cơ sở")
+            toast.warning("Vui lòng nhập tên cơ sở")
             return
         }
         if (!formData.address?.trim()) {
-            alert("Vui lòng nhập địa chỉ")
+            toast.warning("Vui lòng nhập địa chỉ")
             return
         }
 
@@ -66,7 +67,7 @@ const AdminFacilities = () => {
             setShowModal(false)
             fetchFacilities()
         } catch (err) {
-            alert(err.response?.data || "Không thể lưu cơ sở y tế")
+            toast.error(err.response?.data || "Không thể lưu cơ sở y tế")
         } finally {
             setSubmitting(false)
         }
@@ -79,7 +80,7 @@ const AdminFacilities = () => {
             await adminService.deleteFacility(id)
             setFacilities(prev => prev.filter(f => f.id !== id))
         } catch (err) {
-            alert(err.response?.data || "Không thể xóa cơ sở (có thể đang được sử dụng)")
+            toast.error(err.response?.data || "Không thể xóa cơ sở (có thể đang được sử dụng)")
         }
     }
 

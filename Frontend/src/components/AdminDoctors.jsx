@@ -1,15 +1,28 @@
 import { useState, useEffect } from "react"
 import { adminService } from "../services/adminService"
+import { toast } from 'react-toastify'
 
 const AdminDoctors = () => {
     const [doctors, setDoctors] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
+    const [detailModal, setDetailModal] = useState({ show: false, data: null, loading: false })
     const [rejectModal, setRejectModal] = useState({ show: false, doctor: null, reason: "" })
 
     useEffect(() => {
         fetchPendingDoctors()
     }, [])
+
+    const handleViewDetail = async (doctorId) => {
+        try {
+            setDetailModal({ show: true, data: null, loading: true })
+            const data = await adminService.getDoctorDetail(doctorId)
+            setDetailModal({ show: true, data, loading: false })
+        } catch (err) {
+            toast.error("Không thể tải chi tiết hồ sơ")
+            setDetailModal({ show: false, data: null, loading: false })
+        }
+    }
 
     const fetchPendingDoctors = async () => {
         try {
@@ -30,8 +43,9 @@ const AdminDoctors = () => {
         try {
             await adminService.approveDoctor(doctorId)
             setDoctors(prev => prev.filter(d => d.doctorId !== doctorId))
+            setDetailModal({ show: false, data: null, loading: false })
         } catch (err) {
-            alert(err.response?.data || "Không thể phê duyệt")
+            toast.error(err.response?.data || "Không thể phê duyệt")
         }
     }
 
@@ -42,8 +56,9 @@ const AdminDoctors = () => {
             await adminService.rejectDoctor(rejectModal.doctor.doctorId, rejectModal.reason)
             setRejectModal({ show: false, doctor: null, reason: "" })
             setDoctors(prev => prev.filter(d => d.doctorId !== rejectModal.doctor.doctorId))
+            setDetailModal({ show: false, data: null, loading: false })
         } catch (err) {
-            alert(err.response?.data || "Không thể từ chối")
+            toast.error(err.response?.data || "Không thể từ chối")
         }
     }
 
@@ -107,9 +122,26 @@ const AdminDoctors = () => {
 
                             {/* Info */}
                             <div style={{ flex: 1 }}>
-                                <h4 style={{ margin: '0 0 8px', fontSize: '18px' }}>
-                                    BS. {doctor.fullName}
-                                </h4>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <h4 style={{ margin: '0 0 8px', fontSize: '18px' }}>
+                                        BS. {doctor.fullName}
+                                    </h4>
+                                    <button
+                                        onClick={() => handleViewDetail(doctor.doctorId)}
+                                        style={{
+                                            padding: '6px 12px',
+                                            borderRadius: '6px',
+                                            border: '1px solid #5f6dfc',
+                                            background: '#f5f6ff',
+                                            color: '#5f6dfc',
+                                            fontSize: '13px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        📄 Xem hồ sơ
+                                    </button>
+                                </div>
                                 
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#6b7280', fontSize: '14px', marginBottom: '12px' }}>
                                     <span>📧 {doctor.email}</span>
@@ -117,12 +149,6 @@ const AdminDoctors = () => {
                                     {doctor.specialtyName && <span>🏥 {doctor.specialtyName}</span>}
                                     {doctor.facilityName && <span>📍 {doctor.facilityName}</span>}
                                 </div>
-
-                                {doctor.bio && (
-                                    <p style={{ margin: '0 0 12px', color: '#4b5563', fontSize: '14px', lineHeight: 1.5 }}>
-                                        {doctor.bio}
-                                    </p>
-                                )}
 
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     <button
@@ -137,7 +163,7 @@ const AdminDoctors = () => {
                                             fontWeight: '500'
                                         }}
                                     >
-                                        ✓ Phê duyệt
+                                        ✓ Duyệt nhanh
                                     </button>
                                     <button
                                         onClick={() => setRejectModal({ show: true, doctor, reason: "" })}
@@ -159,6 +185,98 @@ const AdminDoctors = () => {
                     </div>
                 ))}
             </div>
+
+            {/* Detail Modal */}
+            {detailModal.show && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1001, padding: '20px'
+                }} onClick={() => setDetailModal({ show: false, data: null, loading: false })}>
+                    <div style={{
+                        background: 'white', borderRadius: '16px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '30px'
+                    }} onClick={e => e.stopPropagation()}>
+                        {detailModal.loading ? (
+                            <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải chi tiết...</div>
+                        ) : detailModal.data && (
+                            <>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #eee', paddingBottom: '16px' }}>
+                                    <h2 style={{ margin: 0, fontSize: '22px' }}>Chi tiết Hồ sơ Bác sĩ</h2>
+                                    <button onClick={() => setDetailModal({ show: false, data: null, loading: false })} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}>×</button>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                                    {/* Left: Info */}
+                                    <div>
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Thông tin cá nhân</h4>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Họ tên:</strong> {detailModal.data.user.fullName}</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Email:</strong> {detailModal.data.user.email}</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>SĐT:</strong> {detailModal.data.user.phoneNumber}</p>
+                                        </div>
+
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Chuyên môn & Công tác</h4>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Bằng cấp:</strong> {detailModal.data.degree}</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Kinh nghiệm:</strong> {detailModal.data.experienceYears} năm</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Giá khám:</strong> {Number(detailModal.data.price).toLocaleString('vi-VN')} VNĐ</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Chuyên khoa:</strong> {detailModal.data.specialty?.specialtyName}</p>
+                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Cơ sở:</strong> {detailModal.data.facility?.facilityName}</p>
+                                        </div>
+
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Tiểu sử</h4>
+                                            <p style={{ margin: 0, fontSize: '14px', color: '#4b5563', lineHeight: 1.6, background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                                                {detailModal.data.bio}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Right: Documents */}
+                                    <div>
+                                        <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Tài liệu xác minh</h4>
+                                        
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600 }}>Ảnh CCCD / Hộ chiếu:</p>
+                                            <img 
+                                                src={detailModal.data.idCardUrl} 
+                                                alt="CCCD" 
+                                                style={{ width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }} 
+                                            />
+                                        </div>
+
+                                        <div style={{ marginBottom: '20px' }}>
+                                            <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600 }}>Chứng chỉ hành nghề:</p>
+                                            <img 
+                                                src={detailModal.data.certificateUrl} 
+                                                alt="Chứng chỉ" 
+                                                style={{ width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }} 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                    <button
+                                        onClick={() => handleApprove(detailModal.data.doctorId)}
+                                        style={{ padding: '12px 30px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: '600', cursor: 'pointer' }}
+                                    >
+                                        ✓ Phê duyệt hồ sơ
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const doc = detailModal.data;
+                                            setRejectModal({ show: true, doctor: { doctorId: doc.doctorId, fullName: doc.user.fullName }, reason: "" });
+                                        }}
+                                        style={{ padding: '12px 30px', borderRadius: '8px', border: '1px solid #ef4444', background: 'white', color: '#ef4444', fontWeight: '600', cursor: 'pointer' }}
+                                    >
+                                        ✗ Từ chối
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Reject Modal */}
             {rejectModal.show && (

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { adminService } from "../services/adminService"
+import { toast } from 'react-toastify'
 
 const AdminSpecialties = () => {
     const [specialties, setSpecialties] = useState([])
@@ -41,7 +42,7 @@ const AdminSpecialties = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         if (!formData.name.trim()) {
-            alert("Vui lòng nhập tên chuyên khoa")
+            toast.warning("Vui lòng nhập tên chuyên khoa")
             return
         }
 
@@ -55,7 +56,7 @@ const AdminSpecialties = () => {
             setShowModal(false)
             fetchSpecialties()
         } catch (err) {
-            alert(err.response?.data || "Không thể lưu chuyên khoa")
+            toast.error(err.response?.data || "Không thể lưu chuyên khoa")
         } finally {
             setSubmitting(false)
         }
@@ -68,7 +69,7 @@ const AdminSpecialties = () => {
             await adminService.deleteSpecialty(id)
             setSpecialties(prev => prev.filter(s => s.id !== id))
         } catch (err) {
-            alert(err.response?.data || "Không thể xóa chuyên khoa (có thể đang được sử dụng)")
+            toast.error(err.response?.data || "Không thể xóa chuyên khoa (có thể đang được sử dụng)")
         }
     }
 

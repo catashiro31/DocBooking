@@ -1,6 +1,6 @@
 import React from "react"
-import { NavLink } from "react-router-dom"
-import ft from "../images/footer.png"
+import { NavLink, useNavigate } from "react-router-dom"
+import Logo from "./Logo"
 
 const css = `
 .footer { background-color: #ffffff; padding: 60px 80px 0 80px; border-top: none; }
@@ -29,13 +29,14 @@ const css = `
 `;
 
 function Footer() {
+    const navigate = useNavigate();
     return (
         <>
             <style>{css}</style>
             <div className="footer">
                 <div className="footer-top">
                     <div className="footer-left">
-                        <img src={ft} alt="footer" className="footer-logo" />
+                        <Logo onClick={() => navigate('/')} className="footer-logo" />
                         <p className="footer-desc">
                             Người bạn đồng hành đáng tin cậy trong chăm sóc sức khỏe của bạn. 
                             Đặt lịch hẹn khám bác sĩ, quản lý lịch trình và tiếp cận các dịch vụ y tế một cách dễ dàng. 

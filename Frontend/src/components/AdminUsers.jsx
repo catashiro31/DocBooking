@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { adminService } from "../services/adminService"
+import { toast } from 'react-toastify'
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([])
@@ -29,7 +30,7 @@ const AdminUsers = () => {
 
     const handleBlock = async () => {
         if (!blockModal.user || !blockModal.reason.trim()) {
-            alert("Vui lòng nhập lý do khóa tài khoản")
+            toast.warning("Vui lòng nhập lý do khóa tài khoản")
             return
         }
 
@@ -38,7 +39,7 @@ const AdminUsers = () => {
             setBlockModal({ show: false, user: null, reason: "" })
             fetchUsers()
         } catch (err) {
-            alert(err.response?.data || "Không thể khóa tài khoản")
+            toast.error(err.response?.data || "Không thể khóa tài khoản")
         }
     }
 

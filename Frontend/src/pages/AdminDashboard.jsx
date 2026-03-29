@@ -7,6 +7,8 @@ import AdminDoctors from "../components/AdminDoctors"
 import AdminSpecialties from "../components/AdminSpecialties"
 import AdminFacilities from "../components/AdminFacilities"
 import AdminReviews from "../components/AdminReviews"
+import AdminAppointments from "../components/AdminAppointments"
+import Logo from "../components/Logo"
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState("stats")
@@ -17,6 +19,7 @@ const AdminDashboard = () => {
         { id: "stats", label: "Tổng quan", icon: "📊" },
         { id: "users", label: "Người dùng", icon: "👥" },
         { id: "doctors", label: "Phê duyệt BS", icon: "👨‍⚕️" },
+        { id: "appointments", label: "Lịch hẹn", icon: "📅" },
         { id: "reviews", label: "Đánh giá", icon: "⭐" },
         { id: "specialties", label: "Chuyên khoa", icon: "🏥" },
         { id: "facilities", label: "Cơ sở y tế", icon: "🏢" }
@@ -35,6 +38,8 @@ const AdminDashboard = () => {
                 return <AdminUsers />
             case "doctors":
                 return <AdminDoctors />
+            case "appointments":
+                return <AdminAppointments />
             case "reviews":
                 return <AdminReviews />
             case "specialties":
@@ -58,17 +63,7 @@ const AdminDashboard = () => {
                 alignItems: 'center'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <Link to="/" style={{ textDecoration: 'none' }}>
-                        <h1 style={{ 
-                            margin: 0, 
-                            fontSize: '24px', 
-                            background: 'linear-gradient(135deg, #5f6dfc, #a78bfa)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent'
-                        }}>
-                            DocBooking
-                        </h1>
-                    </Link>
+                    <Logo onClick={() => navigate('/')} />
                     <span style={{ 
                         padding: '4px 12px', 
                         background: '#fef3c7', 

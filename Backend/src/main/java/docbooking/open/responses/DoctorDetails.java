@@ -13,8 +13,13 @@ public class DoctorDetails {
     private Integer id;
     private String fullName;
     private String specialtyName;
+    private Integer specialtyId;
+    private String degree;
+    private Integer experienceYears;
     private Double price;
     private String bio;
+    private String facilityName;
+    private String facilityAddress;
     private String doctorEmail;
     private String doctorPhone;
     private String avatarUrl;

@@ -26,6 +26,16 @@ export const adminService = {
         return res.data;
     },
 
+    getAllDoctors: async (page = 0, size = 10) => {
+        const res = await api.get("/admin/doctor-all", { params: { page, size } });
+        return res.data;
+    },
+
+    getDoctorDetail: async (id) => {
+        const res = await api.get(`/admin/doctor/${id}`);
+        return res.data;
+    },
+
     approveDoctor: async (doctorId) => {
         const res = await api.put(`/admin/${doctorId}/approve`);
         return res.data;

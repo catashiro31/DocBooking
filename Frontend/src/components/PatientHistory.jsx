@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { patientService, unwrapPage } from "../services/patientService"
+import { toast } from 'react-toastify'
 
 const PatientHistory = () => {
     const [history, setHistory] = useState([])
@@ -36,7 +37,7 @@ const PatientHistory = () => {
             setDetail(d)
             return d
         } catch (err) {
-            alert(err.response?.data || "Không thể tải chi tiết")
+            toast.error(err.response?.data || "Không thể tải chi tiết")
             return null
         } finally {
             setDetailLoading(false)
@@ -59,7 +60,7 @@ const PatientHistory = () => {
             })
             setShowReviewModal(true)
         } catch (err) {
-            alert(err.response?.data || "Không thể tải chi tiết để đánh giá")
+            toast.error(err.response?.data || "Không thể tải chi tiết để đánh giá")
             setReviewAppointmentId(null)
         } finally {
             setDetailLoading(false)
@@ -69,7 +70,7 @@ const PatientHistory = () => {
     const handleSubmitReview = async () => {
         if (reviewAppointmentId == null) return
         if (!String(reviewData.comment).trim()) {
-            alert("Vui lòng nhập nhận xét")
+            toast.warning("Vui lòng nhập nhận xét")
             return
         }
 
@@ -92,7 +93,7 @@ const PatientHistory = () => {
             }
         } catch (err) {
             const msg = err.response?.data
-            alert(typeof msg === "string" ? msg : "Không thể gửi đánh giá")
+            toast.error(typeof msg === "string" ? msg : "Không thể gửi đánh giá")
         } finally {
             setSubmittingReview(false)
         }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { adminService } from "../services/adminService"
+import { toast } from 'react-toastify'
 
 const AdminReviews = () => {
     const [reviews, setReviews] = useState([])
@@ -33,7 +34,7 @@ const AdminReviews = () => {
             await adminService.hideReview(reviewId)
             fetchReviews()
         } catch (err) {
-            alert(err.response?.data || "Không thể ẩn đánh giá")
+            toast.error(err.response?.data || "Không thể ẩn đánh giá")
         }
     }
 

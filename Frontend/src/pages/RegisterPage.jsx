@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { register } from "../services/authService"
+import { toast } from 'react-toastify'
 import bg from "../images/bg.png"
 
 const css = `
@@ -231,28 +232,6 @@ const css = `
 .reg-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
 /* ============ ERROR / SUCCESS ============ */
-.reg-toast {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  animation: fadeSlideDown 0.3s ease;
-}
-.reg-toast.error { background: #fef2f2; border: 1px solid #fecaca; }
-.reg-toast.success { background: #f0fdf4; border: 1px solid #bbf7d0; }
-
-.reg-toast-icon { flex-shrink: 0; margin-top: 1px; }
-.reg-toast-text { font-size: 13px; line-height: 1.5; }
-.reg-toast.error .reg-toast-text { color: #b91c1c; }
-.reg-toast.success .reg-toast-text { color: #15803d; }
-
-@keyframes fadeSlideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 .reg-field-error {
   font-size: 12px;
   color: #ef4444;
@@ -386,7 +365,6 @@ function RegisterPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
-  const [toast, setToast] = useState(null) // { type, text }
   const [loading, setLoading] = useState(false)
 
   const navigate = useNavigate()
@@ -421,7 +399,6 @@ function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setToast(null)
     if (!validate()) return
 
     setLoading(true)
@@ -433,16 +410,17 @@ function RegisterPage() {
         phoneNumber: form.phoneNumber,
         role: form.role
       })
-      setToast({
-        type: "success",
-        text: message || "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản."
-      })
+      toast.success(message || "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.");
       // Reset form
       setForm({ email: "", fullName: "", password: "", confirm: "", phoneNumber: "", role: "" })
+      
+      setTimeout(() => {
+        navigate('/signin')
+      }, 1500)
     } catch (err) {
       const msg = err?.response?.data
       if (typeof msg === "string") {
-        setToast({ type: "error", text: msg })
+        toast.error(msg)
       } else if (msg && typeof msg === "object") {
         // Validation errors from backend
         const fieldErrors = {}
@@ -450,8 +428,9 @@ function RegisterPage() {
           fieldErrors[key] = val
         })
         setErrors(fieldErrors)
+        toast.error("Đã xảy ra lỗi hệ thống, vui lòng kiểm tra lại biểu mẫu.")
       } else {
-        setToast({ type: "error", text: "Đăng ký thất bại. Vui lòng thử lại." })
+        toast.error("Đăng ký thất bại. Vui lòng thử lại.")
       }
     }
     setLoading(false)
@@ -483,27 +462,6 @@ function RegisterPage() {
 
             <h1 className="reg-title">Tạo tài khoản</h1>
             <p className="reg-subtitle">Đăng ký để bắt đầu đặt lịch khám bệnh trực tuyến.</p>
-
-            {/* Toast Messages */}
-            {toast && (
-              <div className={`reg-toast ${toast.type}`}>
-                <svg className="reg-toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={toast.type === "error" ? "#dc2626" : "#16a34a"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  {toast.type === "error" ? (
-                    <><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></>
-                  ) : (
-                    <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>
-                  )}
-                </svg>
-                <span className="reg-toast-text">
-                  {toast.text}
-                  {toast.type === "success" && (
-                    <Link to="/signin" style={{ display: 'block', marginTop: '6px', color: '#059669', fontWeight: 600 }}>
-                      → Đăng nhập ngay
-                    </Link>
-                  )}
-                </span>
-              </div>
-            )}
 
             <form onSubmit={handleSubmit}>
               {/* Email */}
