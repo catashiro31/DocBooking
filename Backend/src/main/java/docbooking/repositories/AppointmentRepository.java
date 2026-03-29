@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
 
@@ -32,19 +35,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "WHERE a.createdAt BETWEEN :dateFrom AND :dateTo " +
             "AND (:status IS NULL OR a.bookingStatus = :status) " +
             "ORDER BY a.createdAt DESC")
-    List<Appointment> findAllByPeriodAndStatus(
+    Page<Appointment> findAllByPeriodAndStatus(
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo,
-            @Param("status") Appointment.BookingStatus status
+            @Param("status") Appointment.BookingStatus status,
+            Pageable pageable
     );
 
-    List<Appointment> findByPatient_UserOrderByCreatedAtDesc(User user);
+    Page<Appointment> findByPatient_UserOrderByCreatedAtDesc(User user, Pageable pageable);
 
-    List<Appointment> findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(
-            User user, Appointment.BookingStatus status
+    Page<Appointment> findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(
+            User user, Appointment.BookingStatus status, Pageable pageable
     );
 
-    List<Appointment> findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(User user);
+    Page<Appointment> findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(User user, Pageable pageable);
 
 
     boolean existsByPatient_PatientIdAndBookingStatusIn(
