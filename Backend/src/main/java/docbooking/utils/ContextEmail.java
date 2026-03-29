@@ -170,4 +170,35 @@ public class ContextEmail {
         }
     }
 
+    public void sendPasswordResetEmail(String toEmail, String fullName, String newPassword) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(senderEmail);
+            message.setTo(toEmail);
+            message.setSubject("[DocBooking] Mật khẩu mới của bạn");
+
+            String content = String.format(
+                    "Xin chào %s,\n\n" +
+                            "Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản DocBooking.\n\n" +
+                            "Mật khẩu mới của bạn là:\n" +
+                            "----------------------------\n" +
+                            "%s\n" +
+                            "----------------------------\n\n" +
+                            "Vui lòng đăng nhập và đổi mật khẩu ngay sau khi nhận được email này để đảm bảo an toàn cho tài khoản.\n\n" +
+                            "Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng liên hệ ngay với chúng tôi qua email: support@docbooking.com.\n\n" +
+                            "Trân trọng,\n" +
+                            "Đội ngũ DocBooking.",
+                    fullName,
+                    newPassword
+            );
+
+            message.setText(content);
+            mailSender.send(message);
+            System.out.println("Đã gửi email reset mật khẩu tới: " + toEmail);
+
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi email reset mật khẩu: " + e.getMessage());
+        }
+    }
+
 }
