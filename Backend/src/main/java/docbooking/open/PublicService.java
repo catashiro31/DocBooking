@@ -67,6 +67,7 @@ public class PublicService {
         };
         List <docbooking.models.DoctorDetail> doctors = doctorDetailRepository.findAll(specification);
         return doctors.stream().map(doctor -> DoctorCards.builder()
+                .doctorId(doctor.getDoctorId())
                 .doctorName(doctor.getUser().getFullName())
                 .specialtyName(doctor.getSpecialty().getSpecialtyName())
                 .doctorEmail(doctor.getUser().getEmail())

@@ -7,6 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DoctorCards {
+    private Integer doctorId;
     private String doctorName;
     private String specialtyName;
     private String doctorEmail;
