@@ -33,8 +33,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     @Query("SELECT a FROM Appointment a " +
             "WHERE a.createdAt BETWEEN :dateFrom AND :dateTo " +
-            "AND (:status IS NULL OR a.bookingStatus = :status) " +
-            "ORDER BY a.createdAt DESC")
+            "AND (:status IS NULL OR a.bookingStatus = :status)")
     Page<Appointment> findAllByPeriodAndStatus(
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo,

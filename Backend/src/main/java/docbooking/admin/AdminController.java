@@ -120,7 +120,7 @@ public class AdminController {
     ) {
         if (dateFrom == null) dateFrom = LocalDate.now().minusMonths(1);
         if (dateTo == null) dateTo = LocalDate.now();
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return ResponseEntity.ok().body(adminService.getAllAppointments(
                 dateFrom.atStartOfDay(), dateTo.plusDays(1).atStartOfDay(), status, pageable));
     }
