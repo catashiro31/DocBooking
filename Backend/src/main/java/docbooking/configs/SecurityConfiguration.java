@@ -58,11 +58,11 @@ public class SecurityConfiguration {
         httpSecurity
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
 
-                // ĐÃ SỬA: Cấu hình CORS mở cửa cho Frontend Vite
+                // ĐÃ SỬA: Cấu hình CORS mở cửa cho Frontend Vite (và proxy)
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    // 1. Chỉ cho phép tên miền/cổng này được gọi API (Điền đúng URL của Frontend)
-                    config.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+                    // Cho phép mọi Origin trong môi trường dev bằng OriginPatterns
+                    config.setAllowedOriginPatterns(java.util.List.of("*"));
                     // 2. Cho phép các method HTTP cơ bản
                     config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     // 3. Cho phép Frontend gửi mọi Header (đặc biệt là cái thẻ Authorization: Bearer...)

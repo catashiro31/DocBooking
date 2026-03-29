@@ -76,6 +76,10 @@ public class PublicService {
                 .doctorEmail(doctor.getUser().getEmail())
                 .doctorPhone(doctor.getUser().getPhoneNumber())
                 .avatarUrl(doctor.getUser().getAvatarUrl())
+                .ratingAverage(doctor.getRatingAverage())
+                .totalReviews(doctor.getReviewCount())
+                .price(doctor.getPrice())
+                .experience(doctor.getExperienceYears())
                 .build()
         );
     }

@@ -1,24 +1,30 @@
 import { useEffect, useState } from "react";
+import { adminService } from "../services/adminService";
 import admin1 from "../images/admin_board1.png";
 import admin2 from "../images/admin_board2.png";
 import admin3 from "../images/admin_board3.png";
 import icon from "../images/admin_icon.png";
 
 function Dashboard() {
+  const [stats, setStats] = useState({ totalDoctors: 0, totalAppointments: 0, totalPatients: 0 });
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const MOCK_BOOKINGS = [
-    { id: 1, doctorName: "Dr. Rakesh Sharma", date: "2026-03-20", status: "CONFIRMED" },
-    { id: 2, doctorName: "Dr. Rakesh Sharma", date: "2026-03-20", status: "CONFIRMED" },
-    { id: 3, doctorName: "Dr. Kavita Joshi",  date: "2026-03-20", status: "CONFIRMED" },
-    { id: 4, doctorName: "Dr. Rakesh Sharma", date: "2026-03-18", status: "CONFIRMED" },
-    { id: 5, doctorName: "Dr. Rohit Sharma",  date: "2026-03-18", status: "CANCELLED" },
-  ];
-
   useEffect(() => {
-    setBookings(MOCK_BOOKINGS);
-    setLoading(false);
+    Promise.all([
+      adminService.getStats(),
+      adminService.getAppointments({ size: 5 })
+    ])
+      .then(([statsData, appointmentsData]) => {
+        setStats(statsData || { totalDoctors: 0, totalAppointments: 0, totalPatients: 0 });
+        const list = appointmentsData.content || appointmentsData || [];
+        setBookings(Array.isArray(list) ? list : []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error loading dashboard:", err);
+        setLoading(false);
+      });
   }, []);
 
   const handleCancel = (id) => {
@@ -45,9 +51,9 @@ function Dashboard() {
         <div className="dash-cards" style={{ display: 'flex', gap: '18px', marginBottom: '26px' }}>
 
           {[
-            { img: admin1, number: '11',  label: 'Bác sĩ' },
-            { img: admin2, number: '107', label: 'Lịch hẹn' },
-            { img: admin3, number: '63',  label: 'Bệnh nhân' },
+            { img: admin1, number: stats.totalDoctors || 0,  label: 'Bác sĩ' },
+            { img: admin2, number: stats.totalAppointments || 0, label: 'Lịch hẹn' },
+            { img: admin3, number: stats.totalPatients || 0,  label: 'Bệnh nhân' },
           ].map((c) => (
             <div
               key={c.label}
@@ -80,15 +86,13 @@ function Dashboard() {
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #f7f8fa', transition: 'background 0.15s ease' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img
-                    src={`https://randomuser.me/api/portraits/men/${item.id % 100}.jpg`}
-                    alt=""
-                    style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #ececf0' }}
-                  />
+                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', fontWeight: 'bold' }}>
+                    {item.patientName ? item.patientName.charAt(0) : 'U'}
+                  </div>
                   <div>
-                    <p style={{ fontWeight: 600, fontSize: '13.5px', color: '#595c60', margin: '0 0 2px' }}>{item.doctorName}</p>
+                    <p style={{ fontWeight: 600, fontSize: '13.5px', color: '#595c60', margin: '0 0 2px' }}>{item.patientName || 'BN'}</p>
                     <p style={{ fontSize: '12px', color: '#b0b7c3', margin: 0 }}>
-                      {new Date(item.date).toLocaleDateString("vi-VN")}
+                      BS: {item.doctorName || 'Chưa xếp'} | {new Date(item.appointmentDate || item.date).toLocaleDateString("vi-VN")}
                     </p>
                   </div>
                 </div>

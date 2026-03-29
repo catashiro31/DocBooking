@@ -39,7 +39,7 @@ function Footer() {
                         <p className="footer-desc">
                             Người bạn đồng hành đáng tin cậy trong chăm sóc sức khỏe của bạn. 
                             Đặt lịch hẹn khám bác sĩ, quản lý lịch trình và tiếp cận các dịch vụ y tế một cách dễ dàng. 
-                            Được thiết kế để hoạt động hiệu quả, Medicheck đơn giản hóa việc quản lý chăm sóc sức khỏe 
+                            Được thiết kế để hoạt động hiệu quả, DocBooking đơn giản hóa việc quản lý chăm sóc sức khỏe 
                             với giao diện thân thiện với người dùng. Luôn kết nối với các bác sĩ hàng đầu và đảm bảo được chăm sóc y tế kịp thời.
                         </p>
                     </div>
@@ -87,14 +87,14 @@ function Footer() {
                         <h3>Liên hệ với chúng tôi</h3>
                         <ul>
                             <li>023456789</li>
-                            <li>medicheck@gmail.com</li>
+                            <li>docbooking@gmail.com</li>
                         </ul>
                     </div>
                 </div>
             </div>
 
             <div className="footer-bottom">
-                <p>Copyright 2024@ MediCheck - All Right Reserved.</p>
+                <p>Copyright 2024@ DocBooking - All Right Reserved.</p>
             </div>
         </>
     )

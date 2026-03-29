@@ -12,4 +12,5 @@ public class Profile {
     private String fullName;
     private String phoneNumber;
     private String avatarUrl;
+    private String role;
 }

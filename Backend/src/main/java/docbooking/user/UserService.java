@@ -27,6 +27,7 @@ public class UserService {
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
                 .avatarUrl(user.getAvatarUrl())
+                .role(user.getRole() != null ? user.getRole().name() : null)
                 .build();
     }
 
@@ -49,6 +50,7 @@ public class UserService {
                 .fullName(updatedUser.getFullName())
                 .phoneNumber(updatedUser.getPhoneNumber())
                 .avatarUrl(updatedUser.getAvatarUrl())
+                .role(updatedUser.getRole() != null ? updatedUser.getRole().name() : null)
                 .build();
     }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
 import api from "../services/api"
 
 const STEPS = ["Thông tin cơ bản", "Tài liệu xác minh", "Chuyên môn & Cơ sở"]
@@ -134,8 +135,9 @@ function UploadZone({ label, hint, previewUrl, onUpload }) {
 // ===== MAIN COMPONENT =====
 function DoctorProfile() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [step, setStep] = useState(0)
-  const [submitted, setSubmitted] = useState(false)
+  const [submitted, setSubmitted] = useState(user?.verificationStatus === "PENDING")
   const [loading, setLoading] = useState(false)
 
   const [form, setForm] = useState({
@@ -148,10 +150,10 @@ function DoctorProfile() {
   const [loadingOptions, setLoadingOptions] = useState(true)
 
   useEffect(() => {
-    Promise.all([api.get("/specialties"), api.get("/facilities")])
+    Promise.all([api.get("/portal/specialties"), api.get("/portal/facilities")])
       .then(([specRes, facRes]) => {
-        setSpecialties(specRes.data || [])
-        setFacilities(facRes.data || [])
+        setSpecialties(specRes.data?.content || specRes.data || [])
+        setFacilities(facRes.data?.content || facRes.data || [])
       })
       .catch(() => console.error("Không tải được danh sách chuyên khoa / cơ sở y tế"))
       .finally(() => setLoadingOptions(false))
@@ -186,7 +188,7 @@ function DoctorProfile() {
       if (files.idCard) formData.append("idCard", files.idCard)
       if (files.certificate) formData.append("certificate", files.certificate)
 
-      await api.post("/doctors/profile", formData, {
+      await api.post("/doctor/profile", formData, {
         transformRequest: (data) => data,
         headers: { "Content-Type": undefined },
       })

@@ -50,8 +50,8 @@ function Contact() {
             className="ct-card"
             style={{ background: '#ffffff', border: '1.5px solid #e8eaf0', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)', transition: 'box-shadow 0.25s ease' }}
           >
-            <p style={{ margin: '3px 0', color: '#44484e', fontSize: '16px', fontWeight: 400, lineHeight: 1.65 }}>431213 Midc Area</p>
-            <p style={{ margin: '3px 0', color: '#44484e', fontSize: '16px', fontWeight: 400, lineHeight: 1.65 }}>Jalna, Maharashtra, India</p>
+            <p style={{ margin: '3px 0', color: '#44484e', fontSize: '16px', fontWeight: 400, lineHeight: 1.65 }}>Tầng 12, Tòa nhà Bitexco</p>
+            <p style={{ margin: '3px 0', color: '#44484e', fontSize: '16px', fontWeight: 400, lineHeight: 1.65 }}>Quận 1, TP. Hồ Chí Minh, Việt Nam</p>
           </div>
 
           {/* Phone / Email */}
@@ -59,8 +59,8 @@ function Contact() {
             className="ct-card"
             style={{ background: '#ffffff', border: '1.5px solid #e8eaf0', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)', transition: 'box-shadow 0.25s ease' }}
           >
-            <p style={{ margin: '3px 0', color: '#44484e', fontSize: '16px', fontWeight: 400, lineHeight: 1.65 }}>Phone: +91-876-702-0032</p>
-            <p style={{ margin: '3px 0', color: '#44484e', fontSize: '16px', fontWeight: 400, lineHeight: 1.65 }}>Email: medicheck@gmail.com</p>
+            <p style={{ margin: '3px 0', color: '#44484e', fontSize: '16px', fontWeight: 400, lineHeight: 1.65 }}>Điện thoại: +84 28 3823 4567</p>
+            <p style={{ margin: '3px 0', color: '#44484e', fontSize: '16px', fontWeight: 400, lineHeight: 1.65 }}>Email: docbooking@gmail.com</p>
           </div>
 
           {/* Careers */}
@@ -68,7 +68,7 @@ function Contact() {
             className="ct-card"
             style={{ background: '#ffffff', border: '1.5px solid #e8eaf0', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)', transition: 'box-shadow 0.25s ease' }}
           >
-            <p style={{ margin: '3px 0', fontWeight: 700, fontSize: '13px', color: '#5f6dfc', lineHeight: 1.65 }}>Cơ hội nghề nghiệp tại MediCheck</p>
+            <p style={{ margin: '3px 0', fontWeight: 700, fontSize: '13px', color: '#5f6dfc', lineHeight: 1.65 }}>Cơ hội nghề nghiệp tại DocBooking</p>
           </div>
 
           <div

@@ -1,13 +1,23 @@
+import { useEffect, useState } from "react";
+import { adminService } from "../services/adminService";
 import ic from "../images/icon_Appointment.png";
 
 function AppointmentsAdmin() {
-  const data = [
-    { id: 1, name: "Nguyễn Văn A", age: 22, date: "20 Mar 2026", time: "09:00 AM", doctor: "Dr. Rakesh Sharma", fee: 300, status: "Hoàn thành" },
-    { id: 2, name: "Trần Thị B",   age: 25, date: "21 Mar 2026", time: "10:30 AM", doctor: "Dr. Kavita Joshi",  fee: 400, status: "Chờ hủy" },
-    { id: 3, name: "Lê Văn C",     age: 30, date: "22 Mar 2026", time: "02:00 PM", doctor: "Dr. Rohit Sharma",  fee: 350, status: "Đã hủy" },
-    { id: 4, name: "Phạm Thị D",   age: 28, date: "23 Mar 2026", time: "11:15 AM", doctor: "Dr. Rakesh Sharma", fee: 500, status: "Hoàn thành" },
-    { id: 5, name: "Hoàng Văn E",  age: 35, date: "24 Mar 2026", time: "03:45 PM", doctor: "Dr. Kavita Joshi",  fee: 450, status: "Chờ hủy" },
-  ];
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    adminService.getAppointments()
+      .then((res) => {
+        const list = res.content || res || [];
+        setData(Array.isArray(list) ? list : []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error loading appointments:", err);
+        setLoading(false);
+      });
+  }, []);
 
   const statusStyle = (status) => {
     switch (status) {

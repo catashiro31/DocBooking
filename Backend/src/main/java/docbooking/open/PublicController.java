@@ -24,10 +24,22 @@ public class PublicController {
             @RequestParam(required = false) Integer specId,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double priceTo,
+            @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ){
-        Pageable pageable = PageRequest.of(page, size);
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.unsorted();
+        if ("rating".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "ratingAverage");
+        } else if ("priceAsc".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "price");
+        } else if ("priceDesc".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "price");
+        } else if ("experience".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "yearsOfExperience");
+        }
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
         return ResponseEntity.ok(portalService.getDoctors(keyword, specId, minPrice, priceTo, pageable));
     }
 

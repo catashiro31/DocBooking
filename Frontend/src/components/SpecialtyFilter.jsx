@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { SPECIALTIES } from '../utils/constants';
+import React, { useState, useEffect } from 'react';
+import { doctorService } from '../services/doctorService';
 
 const css = `
 .filter-wrapper { width: 200px; flex-shrink: 0; }
@@ -42,10 +42,23 @@ const css = `
 
 export default function SpecialtyFilter({ selected, onSelect }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [specialties, setSpecialties] = useState([]);
+
+  useEffect(() => {
+    doctorService.getSpecialties()
+      .then(data => setSpecialties(Array.isArray(data) ? data : []))
+      .catch(err => console.error("Error loading specialties:", err));
+  }, []);
 
   const handleSelect = (spec) => {
     onSelect(spec);
     setIsOpen(false);
+  };
+
+  const getSelectedName = () => {
+    if (!selected) return "Tất cả chuyên khoa";
+    const found = specialties.find(s => s.id === selected);
+    return found?.name || "Tất cả chuyên khoa";
   };
 
   return (
@@ -53,7 +66,7 @@ export default function SpecialtyFilter({ selected, onSelect }) {
       <style>{css}</style>
       <div className="filter-wrapper">
         <button className="filter-toggle" onClick={() => setIsOpen(!isOpen)}>
-          <span>{selected ? selected : "All Specialties"}</span>
+          <span>{getSelectedName()}</span>
           <div className={`hamburger ${isOpen ? 'open' : ''}`}>
             <span></span>
             <span></span>
@@ -69,13 +82,13 @@ export default function SpecialtyFilter({ selected, onSelect }) {
             Tất cả chuyên khoa
           </button>
 
-          {SPECIALTIES.map((spec) => (
+          {specialties.map((spec) => (
             <button
-              key={spec}
-              className={`filter-btn ${selected === spec ? 'filter-active' : ''}`}
-              onClick={() => handleSelect(selected === spec ? null : spec)}
+              key={spec.id}
+              className={`filter-btn ${selected === spec.id ? 'filter-active' : ''}`}
+              onClick={() => handleSelect(selected === spec.id ? null : spec.id)}
             >
-              {spec}
+              {spec.name}
             </button>
           ))}
         </aside>

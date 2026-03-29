@@ -13,5 +13,9 @@ public class DoctorCards {
     private String doctorEmail;
     private String doctorPhone;
     private String avatarUrl;
+    private Double ratingAverage;
+    private Integer totalReviews;
+    private Double price;
+    private Integer experience;
 }
 

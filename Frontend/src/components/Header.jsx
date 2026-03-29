@@ -1,152 +1,535 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const css = `
-.navbar-container {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.hdr {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f5;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  font-family: 'Inter', -apple-system, sans-serif;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+
+.hdr-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 32px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  height: 72px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 80px;
 }
-.nav-logo {
+
+/* ===== Logo ===== */
+.hdr-logo {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #1e40af;
   cursor: pointer;
-  z-index: 1002;
+  text-decoration: none;
+  flex-shrink: 0;
 }
-.menu-overlay { display: none; }
-.nav-right {
+
+.hdr-logo-icon {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 32px;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+}
+
+.hdr-logo-text {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+/* ===== Nav links ===== */
+.hdr-nav-wrap {
+  display: flex;
+  align-items: center;
   flex: 1;
 }
-.nav-menu {
+
+.hdr-nav {
   display: flex;
-  list-style-type: none;
-  gap: 32px;
-  margin: 0 auto;
+  list-style: none;
+  gap: 16px;
+  margin: 0 auto; /* Tự động căn giữa */
   padding: 0;
 }
-.nav-menu li { font-weight: 600; color: #1f2937; cursor: pointer; transition: color 0.3s ease; }
-.nav-menu li:hover { color: #2563eb; }
-.nav-menu a { text-decoration: none; font-weight: 600; font-size: 20px; color: #1f2937; transition: color 0.3s ease; }
-.nav-menu a:hover { color: #2563eb; }
-.nav-menu a.active { color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 4px; }
-.nav-buttons { display: flex; gap: 16px; align-items: center; }
-.btn-outline, .btn-primary {
-  display: inline-block;
-  padding: 12px 28px;
-  border-radius: 9999px;
-  font-weight: 600;
-  text-decoration: none;
-  font-size: 16px;
-  text-align: center;
-  transition: 0.3s;
-}
-.btn-outline { border: 1.5px solid #4f46e5; color: #335cff; background-color: white; }
-.btn-outline:hover { background-color: #f5f7ff; }
-.btn-primary { border: none; background: linear-gradient(90deg, #5b5cef, #4f46e5); color: white; }
-.btn-primary:hover { opacity: 0.95; }
-.menu-toggle { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
-.hamburger { display: flex; flex-direction: column; gap: 5px; }
-.hamburger span { display: block; width: 25px; height: 3px; background-color: #1f2937; transition: 0.3s; border-radius: 2px; }
 
-@media (max-width: 640px) {
-  .navbar-container { padding: 16px 20px; }
-  .menu-toggle { display: block; margin-left: auto; z-index: 1002; position: relative; }
-  .hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-  .hamburger.open span:nth-child(2) { opacity: 0; }
-  .hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
-  .menu-overlay {
-    display: block;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.3s ease;
+.hdr-nav a {
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.hdr-nav a:hover { color: #6366f1; background: #f5f3ff; }
+.hdr-nav a.active { color: #6366f1; font-weight: 600; background: #eef2ff; }
+
+/* ===== Auth buttons ===== */
+.hdr-auth { display: flex; gap: 8px; align-items: center; }
+
+.hdr-btn-login {
+  padding: 8px 20px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  font-family: inherit;
+}
+.hdr-btn-login:hover { border-color: #6366f1; color: #6366f1; }
+
+.hdr-btn-register {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  font-family: inherit;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+}
+.hdr-btn-register:hover { box-shadow: 0 4px 14px rgba(99,102,241,0.35); transform: translateY(-1px); }
+
+/* ===== User menu ===== */
+.hdr-user { position: relative; }
+
+.hdr-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 30px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.hdr-user-btn:hover { border-color: #c7d2fe; box-shadow: 0 2px 8px rgba(99,102,241,0.1); }
+
+.hdr-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.hdr-avatar-gradient { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.hdr-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.hdr-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.hdr-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hdr-user-role {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.hdr-chevron { color: #9ca3af; transition: transform 0.2s; }
+.hdr-chevron.open { transform: rotate(180deg); }
+
+/* ===== Dropdown ===== */
+.hdr-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  border: 1px solid #f0f0f5;
+  overflow: hidden;
+  z-index: 300;
+  animation: hdrDropIn 0.2s ease;
+}
+
+@keyframes hdrDropIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hdr-dd-header {
+  padding: 16px;
+  background: #fafbfe;
+  border-bottom: 1px solid #f0f0f5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hdr-dd-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.hdr-dd-name { font-size: 14px; font-weight: 600; color: #1f2937; }
+.hdr-dd-email { font-size: 12px; color: #9ca3af; margin-top: 2px; word-break: break-all; }
+
+.hdr-dd-section { padding: 6px 8px; }
+
+.hdr-dd-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 8px 4px;
+}
+
+.hdr-dd-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  font-family: inherit;
+  text-align: left;
+  box-sizing: border-box;
+}
+.hdr-dd-item:hover { background: #f5f3ff; color: #6366f1; }
+
+.hdr-dd-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+.hdr-dd-divider { height: 1px; background: #f0f0f5; margin: 2px 8px; }
+
+.hdr-dd-item.logout { color: #ef4444; }
+.hdr-dd-item.logout:hover { background: #fef2f2; color: #dc2626; }
+
+/* ===== Mobile ===== */
+.hdr-mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+.hdr-hamburger { display: flex; flex-direction: column; gap: 5px; }
+.hdr-hamburger span { display: block; width: 22px; height: 2px; background: #374151; border-radius: 2px; transition: 0.3s; }
+.hdr-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hdr-hamburger.open span:nth-child(2) { opacity: 0; }
+.hdr-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.hdr-overlay { display: none; }
+
+@media (max-width: 1024px) {
+  .hdr-container { padding: 0 28px; }
+  .hdr-nav { gap: 8px; }
+  .hdr-nav a { padding: 6px 10px; font-size: 13px; }
+  .hdr-auth { gap: 6px; }
+  .hdr-btn-login, .hdr-btn-register { padding: 8px 12px; font-size: 12px; }
+}
+
+@media (max-width: 900px) {
+  .hdr-container { padding: 0 20px; }
+  .hdr-mobile-toggle { display: block; z-index: 202; }
+  .hdr-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; visibility: hidden; transition: 0.3s; }
+  .hdr-overlay.show { opacity: 1; visibility: visible; }
+  .hdr-nav-wrap {
+    position: fixed; top: 0; right: -300px; width: 280px; height: 100vh;
+    background: #fff; z-index: 201; padding: 72px 20px 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: right 0.3s; overflow-y: auto;
   }
-  .menu-overlay.show { opacity: 1; visibility: visible; }
-  .nav-right {
-    position: fixed;
-    top: 0;
-    right: -300px;
-    width: 260px;
-    height: 100vh;
-    background-color: #ffffff;
-    z-index: 1001;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    padding: 50px 20px 24px;
-    transition: right 0.3s ease-in-out;
-  }
-  .nav-right.show { right: 0; }
-  .nav-menu {
-    position: static;
-    transform: none;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 24px;
-  }
-  .nav-menu a { font-size: 16px; display: inline-block; width: 100%; padding: 12px 16px; border-radius: 8px; box-sizing: border-box; }
-  .nav-menu a:hover, .nav-menu a.active { background-color: #eff6ff; color: #2563eb; border-bottom: none; padding-bottom: 12px; }
-  .nav-buttons { display: flex; flex-direction: column; width: 100%; gap: 12px; order: -1; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
-  .btn-outline, .btn-primary { padding: 10px 16px; font-size: 14px; width: 100%; }
+  .hdr-nav-wrap.show { right: 0; }
+  .hdr-nav { flex-direction: column; gap: 4px; margin: 0; }
+  .hdr-nav a { font-size: 15px; padding: 12px 14px; }
+  .hdr-auth { flex-direction: column; gap: 8px; width: 100%; }
+  .hdr-btn-login, .hdr-btn-register { width: 100%; text-align: center; }
+  .hdr-user { width: 100%; }
+  .hdr-user-btn { width: 100%; justify-content: center; }
+  .hdr-dropdown { width: 100%; left: 0; right: 0; }
 }
 `;
 
+// Role labels
+const ROLE_LABELS = {
+  PATIENT: 'Bệnh nhân',
+  DOCTOR: 'Bác sĩ',
+  ADMIN: 'Quản trị viên'
+};
+
+// Patient menu items
+const PATIENT_MENU = [
+  { icon: '📅', label: 'Lịch hẹn của tôi', path: '/patient/appointments', bg: '#eef2ff' },
+  { icon: '📋', label: 'Lịch sử khám bệnh', path: '/patient/history', bg: '#f0fdf4' },
+  { icon: '👨‍👩‍👧', label: 'Hồ sơ người thân', path: '/patient/relatives', bg: '#fff7ed' },
+  { icon: '🏥', label: 'Cơ sở y tế', path: '/facilities', bg: '#fef2f2' },
+  { icon: '👨‍⚕️', label: 'Tìm bác sĩ', path: '/doctors', bg: '#f5f3ff' },
+];
+
+// Doctor menu items
+const DOCTOR_MENU = [
+  { icon: '📅', label: 'Lịch hẹn bệnh nhân', path: '/doctor/appointments', bg: '#eef2ff' },
+  { icon: '🗓️', label: 'Lịch làm việc', path: '/doctor/schedules', bg: '#f0fdf4' },
+  { icon: '📝', label: 'Trả kết quả khám', path: '/doctor/results', bg: '#fff7ed' },
+  { icon: '👤', label: 'Hồ sơ bác sĩ', path: '/doctor/profile', bg: '#f5f3ff' },
+];
+
+const DOCTOR_PENDING_MENU = [
+  { icon: '⏳', label: 'Hồ sơ đang duyệt', path: '/doctor/profile', bg: '#fffbeb' },
+];
+
 export default function Header() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [ddOpen, setDdOpen] = useState(false);
   const navigate = useNavigate();
+  const { user, logout, isAuthenticated } = useAuth();
+  const ddRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (ddRef.current && !ddRef.current.contains(e.target)) setDdOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    setDdOpen(false);
+    setMobileOpen(false);
+    navigate('/signin');
+  };
+
+  const handleNav = (path) => {
+    setDdOpen(false);
+    setMobileOpen(false);
+    navigate(path);
+  };
+
+  const getInitial = () => {
+    return (user?.fullName || user?.email || '?').charAt(0).toUpperCase();
+  };
+
+  const isLoggedIn = isAuthenticated();
+  
+  let roleMenu = PATIENT_MENU;
+  if (user?.role === 'DOCTOR') {
+    roleMenu = user?.verificationStatus === 'PENDING' ? DOCTOR_PENDING_MENU : DOCTOR_MENU;
+  }
 
   return (
     <>
       <style>{css}</style>
-      <div className="navbar-container">
-        <div className="nav-logo" onClick={() => navigate('/')}>
-          MediCheck
-        </div>
-
-        <button className={`menu-toggle ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)}>
-          <div className={`hamburger ${isOpen ? 'open' : ''}`}>
-            <span></span>
-            <span></span>
-            <span></span>
+      <header className="hdr">
+        <div className="hdr-container">
+          {/* Logo */}
+          <div className="hdr-logo" onClick={() => navigate('/')}>
+            <div className="hdr-logo-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg>
+            </div>
+            <span className="hdr-logo-text">DocBooking</span>
           </div>
-        </button>
 
-        <div className={`menu-overlay ${isOpen ? 'show' : ''}`} onClick={() => setIsOpen(false)} />
+          {/* Mobile toggle */}
+          <button className="hdr-mobile-toggle" onClick={() => setMobileOpen(!mobileOpen)}>
+            <div className={`hdr-hamburger ${mobileOpen ? 'open' : ''}`}>
+              <span /><span /><span />
+            </div>
+          </button>
 
-        <div className={`nav-right ${isOpen ? 'show' : ''}`}>
-          <ul className={`nav-menu ${isOpen ? 'show' : ''}`}>
-            <li><NavLink to="/">Trang chủ</NavLink></li>
-            <li><NavLink to="/doctors">Tất cả bác sĩ</NavLink></li>
-            <li><NavLink to="/about">Về chúng tôi</NavLink></li>
-            <li><NavLink to="/contact">Liên hệ</NavLink></li>
-          </ul>
+          {/* Overlay */}
+          <div className={`hdr-overlay ${mobileOpen ? 'show' : ''}`} onClick={() => setMobileOpen(false)} />
 
-          <div className={`nav-buttons ${isOpen ? 'show' : ''}`}>
-            {/* FIX: /signin → trang đăng nhập, /signout → trang đăng ký */}
-            <NavLink to="/signin" className="btn-outline">Đăng nhập</NavLink>
-            <NavLink to="/signout" className="btn-primary">Tạo tài khoản</NavLink>
+          {/* Nav wrap */}
+          <div className={`hdr-nav-wrap ${mobileOpen ? 'show' : ''}`}>
+            {/* Nav links */}
+            <ul className="hdr-nav">
+              <li><NavLink to="/" end onClick={() => setMobileOpen(false)}>Trang chủ</NavLink></li>
+              <li><NavLink to="/doctors" onClick={() => setMobileOpen(false)}>Bác sĩ</NavLink></li>
+              <li><NavLink to="/about" onClick={() => setMobileOpen(false)}>Về chúng tôi</NavLink></li>
+              <li><NavLink to="/contact" onClick={() => setMobileOpen(false)}>Liên hệ</NavLink></li>
+            </ul>
+
+            {/* Auth area */}
+            {isLoggedIn ? (
+              <div className="hdr-user" ref={ddRef}>
+                <button className="hdr-user-btn" onClick={() => setDdOpen(!ddOpen)}>
+                  <div className={`hdr-avatar ${!user?.avatarUrl ? 'hdr-avatar-gradient' : ''}`}>
+                    {user?.avatarUrl
+                      ? <img src={user.avatarUrl} alt="" />
+                      : getInitial()
+                    }
+                  </div>
+                  <div className="hdr-user-info">
+                    <span className="hdr-user-name">{user?.fullName || 'Người dùng'}</span>
+                    <span className="hdr-user-role">{ROLE_LABELS[user?.role] || user?.role}</span>
+                  </div>
+                  <svg className={`hdr-chevron ${ddOpen ? 'open' : ''}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+
+                {/* Dropdown */}
+                {ddOpen && (
+                  <div className="hdr-dropdown">
+                    {/* User header */}
+                    <div className="hdr-dd-header">
+                      <div className={`hdr-dd-avatar ${!user?.avatarUrl ? 'hdr-avatar-gradient' : ''}`}>
+                        {user?.avatarUrl
+                          ? <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : getInitial()
+                        }
+                      </div>
+                      <div>
+                        <div className="hdr-dd-name">{user?.fullName || 'Người dùng'}</div>
+                        <div className="hdr-dd-email">{user?.email}</div>
+                      </div>
+                    </div>
+
+                    {/* Role-specific menu */}
+                    {user?.role !== 'ADMIN' && (
+                      <div className="hdr-dd-section">
+                        <div className="hdr-dd-label">
+                          {user?.role === 'DOCTOR' ? 'Quản lý' : 'Dịch vụ'}
+                        </div>
+                        {roleMenu.map(item => (
+                          <button
+                            key={item.path}
+                            className="hdr-dd-item"
+                            onClick={() => handleNav(item.path)}
+                          >
+                            <div className="hdr-dd-item-icon" style={{ background: item.bg }}>
+                              {item.icon}
+                            </div>
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Admin shortcut */}
+                    {user?.role === 'ADMIN' && (
+                      <div className="hdr-dd-section">
+                        <div className="hdr-dd-label">Quản trị</div>
+                        <button className="hdr-dd-item" onClick={() => handleNav('/admin/board')}>
+                          <div className="hdr-dd-item-icon" style={{ background: '#eef2ff' }}>📊</div>
+                          Bảng điều khiển
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="hdr-dd-divider" />
+
+                    {/* Account section */}
+                    <div className="hdr-dd-section">
+                      <div className="hdr-dd-label">Tài khoản</div>
+                      <button className="hdr-dd-item" onClick={() => handleNav('/profile')}>
+                        <div className="hdr-dd-item-icon" style={{ background: '#f0f9ff' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                        </div>
+                        Thông tin cá nhân
+                      </button>
+                      <button className="hdr-dd-item" onClick={() => handleNav('/change-password')}>
+                        <div className="hdr-dd-item-icon" style={{ background: '#fef3c7' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                          </svg>
+                        </div>
+                        Đổi mật khẩu
+                      </button>
+                    </div>
+
+                    <div className="hdr-dd-divider" />
+
+                    {/* Logout */}
+                    <div className="hdr-dd-section" style={{ paddingBottom: 8 }}>
+                      <button className="hdr-dd-item logout" onClick={handleLogout}>
+                        <div className="hdr-dd-item-icon" style={{ background: '#fef2f2' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                          </svg>
+                        </div>
+                        Đăng xuất
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="hdr-auth">
+                <NavLink to="/signin" className="hdr-btn-login">Đăng nhập</NavLink>
+                <NavLink to="/register" className="hdr-btn-register">Tạo tài khoản</NavLink>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      </header>
     </>
   );
 }
-
