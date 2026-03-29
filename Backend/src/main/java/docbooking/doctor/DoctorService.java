@@ -45,8 +45,14 @@ public class DoctorService {
             // Nếu REJECTED, cho phép cập nhật và gửi lại
             Specialty specialty = specialtyRepository.findById(req.getSpecialtyId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa"));
+            if (!Boolean.TRUE.equals(specialty.getIsActive())) {
+                throw new RuntimeException("Chuyên khoa này đã ngừng hoạt động!");
+            }
             Facility facility = facilityRepository.findById(req.getFacilityId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
+            if (!Boolean.TRUE.equals(facility.getIsActive())) {
+                throw new RuntimeException("Cơ sở y tế này đã ngừng hoạt động!");
+            }
 
             existing.setSpecialty(specialty);
             existing.setFacility(facility);
@@ -65,8 +71,14 @@ public class DoctorService {
 
         Specialty specialty = specialtyRepository.findById(req.getSpecialtyId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa"));
+        if (!Boolean.TRUE.equals(specialty.getIsActive())) {
+            throw new RuntimeException("Chuyên khoa này đã ngừng hoạt động!");
+        }
         Facility facility = facilityRepository.findById(req.getFacilityId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
+        if (!Boolean.TRUE.equals(facility.getIsActive())) {
+            throw new RuntimeException("Cơ sở y tế này đã ngừng hoạt động!");
+        }
 
         DoctorDetail doctorDetail = DoctorDetail.builder()
                 .user(user)
