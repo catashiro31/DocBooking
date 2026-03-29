@@ -258,12 +258,16 @@ public class DoctorService {
             appointmentRepository.save(appointment);
 
             User patientUser = appointment.getPatient().getUser();
-            long noShowCount = appointmentRepository.countByPatient_User_UserIdAndBookingStatus(
-                    patientUser.getUserId(), docbooking.models.Appointment.BookingStatus.NO_SHOW);
+            // Đếm NO_SHOW trong 6 tháng gần nhất
+            LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
+            long noShowCount = appointmentRepository.countNoShowInPeriod(
+                    patientUser.getUserId(),
+                    docbooking.models.Appointment.BookingStatus.NO_SHOW,
+                    sixMonthsAgo);
 
             if (noShowCount >= 3) {
                 patientUser.setIsActive(false);
-                patientUser.setReasonBanned("Hệ thống tự động khóa: Không đến khám 3 lần.");
+                patientUser.setReasonBanned("Hệ thống tự động khóa: Không đến khám 3 lần trong 6 tháng gần nhất.");
                 userRepository.save(patientUser);
             }
             return;

@@ -83,6 +83,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             Appointment.BookingStatus status
     );
 
+    @Query("SELECT COUNT(a) FROM Appointment a " +
+            "WHERE a.patient.user.userId = :userId " +
+            "AND a.bookingStatus = :status " +
+            "AND a.schedule.dateWorking >= :fromDate")
+    long countNoShowInPeriod(
+            @Param("userId") Integer userId,
+            @Param("status") Appointment.BookingStatus status,
+            @Param("fromDate") LocalDate fromDate
+    );
+
     List<Appointment> findBySchedule_Doctor_User_UserIdAndBookingStatusIn(
             Integer userId,
             Collection<Appointment.BookingStatus> statuses
