@@ -60,6 +60,9 @@ public class AdminService {
         if (doctor == null) {
             throw new RuntimeException("Không tìm thấy thông tin bác sĩ với ID: " + doctorId);
         }
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.PENDING) {
+            throw new RuntimeException("Chỉ có thể duyệt bác sĩ đang ở trạng thái chờ duyệt!");
+        }
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.APPROVED);
         String email = doctor.getUser().getEmail();
         String fullName = doctor.getUser().getFullName();
