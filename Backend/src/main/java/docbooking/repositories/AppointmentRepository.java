@@ -83,4 +83,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             Appointment.BookingStatus status
     );
 
+    List<Appointment> findBySchedule_Doctor_User_UserIdAndBookingStatusIn(
+            Integer userId,
+            Collection<Appointment.BookingStatus> statuses
+    );
 }

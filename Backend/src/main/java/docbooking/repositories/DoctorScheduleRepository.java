@@ -39,4 +39,10 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule,I
     @Query("UPDATE DoctorSchedule s SET s.slotStatus = 'CLOSED' " +
             "WHERE s.dateWorking < :today AND s.slotStatus = 'AVAILABLE'")
     void closePastDaysSlots(@Param("today") LocalDate today);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE DoctorSchedule s SET s.slotStatus = 'CLOSED' " +
+            "WHERE s.doctor.user.userId = :userId AND s.slotStatus = 'AVAILABLE'")
+    void closeAllAvailableSlotsByDoctorUserId(@Param("userId") Integer userId);
 }

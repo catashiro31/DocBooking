@@ -40,7 +40,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 // 🔥 2. Tìm User bằng ID
                 UserDetails userDetails = customUserDetails.loadUserById(userId);
 
-                // 3. Set quyền vào Context
+                // 3. Kiểm tra tài khoản có bị khóa không
+                if (userDetails instanceof docbooking.models.User user && !Boolean.TRUE.equals(user.getIsActive())) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\": \"Tài khoản của bạn đã bị khóa.\"}");
+                    return;
+                }
+
+                // 4. Set quyền vào Context
                 if (userDetails != null) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
