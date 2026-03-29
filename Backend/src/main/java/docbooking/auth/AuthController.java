@@ -2,7 +2,10 @@ package docbooking.auth;
 
 import docbooking.auth.requests.SignIn;
 import docbooking.auth.requests.SignUp;
+import docbooking.models.TokenBlacklist;
+import docbooking.repositories.TokenBlacklistRepository;
 import docbooking.security.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,15 +20,18 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
 
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtTokenProvider jwtTokenProvider,
-            AuthService authService
+            AuthService authService,
+            TokenBlacklistRepository tokenBlacklistRepository
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authService = authService;
+        this.tokenBlacklistRepository = tokenBlacklistRepository;
     }
 
     @PostMapping("/signin")
@@ -51,8 +57,16 @@ public class AuthController {
         return ResponseEntity.ok(authService.signUp(signUpDTO));
     }
 
-    @GetMapping("/signout")
-    public ResponseEntity<?> SignOut() {
+    @PostMapping("/signout")
+    public ResponseEntity<?> SignOut(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            TokenBlacklist blacklistedToken = TokenBlacklist.builder()
+                    .token(token)
+                    .expiryDate(jwtTokenProvider.getExpiryDateFromToken(token))
+                    .build();
+            tokenBlacklistRepository.save(blacklistedToken);
+        }
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok("Đăng xuất thành công!");
     }

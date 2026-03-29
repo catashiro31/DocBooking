@@ -3,7 +3,8 @@ package docbooking.utils;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorSchedule;
 import docbooking.repositories.AppointmentRepository;
-import docbooking.repositories.DoctorScheduleRepository; // Đã thêm
+import docbooking.repositories.DoctorScheduleRepository;
+import docbooking.repositories.TokenBlacklistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class AppointmentScheduler {
 
     private final AppointmentRepository appointmentRepository;
     private final DoctorScheduleRepository doctorScheduleRepository;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
 
 
     @Scheduled(cron = "0 0 1 * * ?")
@@ -51,6 +54,14 @@ public class AppointmentScheduler {
         }
 
         log.info("--- Dọn dẹp hoàn tất! ---");
+    }
+
+    @Scheduled(cron = "0 0 2 ? * SUN")
+    @Transactional
+    public void cleanupTokenBlacklist() {
+        log.info("--- Bắt đầu dọn dẹp token blacklist ---");
+        tokenBlacklistRepository.deleteExpiredTokens(LocalDateTime.now());
+        log.info("--- Dọn dẹp token blacklist hoàn tất! ---");
     }
 
     private void processAppointments(List<Appointment> pastDue) {

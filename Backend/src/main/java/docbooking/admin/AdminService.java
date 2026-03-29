@@ -27,6 +27,7 @@ public class AdminService {
     private final ConvertUrl convertUrl;
     private final ContextEmail contextEmail;
     private final ReviewRepository reviewRepository;
+    private final DoctorScheduleRepository doctorScheduleRepository;
 
     public Stat getStats(LocalDate start, LocalDate end) {
         // 1. Lấy dữ liệu gộp từ Repo (Chỉ 1 lần truy vấn DB)
@@ -94,7 +95,7 @@ public class AdminService {
         user.setReasonBanned(reason);
         User savedUser = userRepository.save(user);
 
-        // Hủy tất cả lịch hẹn đang active của user này
+        // Hủy tất cả lịch hẹn đang active của user này (với tư cách bệnh nhân)
         List<Appointment.BookingStatus> activeStatuses = List.of(
                 Appointment.BookingStatus.PENDING,
                 Appointment.BookingStatus.CONFIRMED
@@ -108,7 +109,21 @@ public class AdminService {
             DoctorSchedule schedule = app.getSchedule();
             if (schedule != null && !schedule.getDateWorking().isBefore(LocalDate.now())) {
                 schedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
+                doctorScheduleRepository.save(schedule);
             }
+        }
+
+        // Nếu user là bác sĩ, hủy tất cả lịch hẹn của bệnh nhân với bác sĩ này và đóng các slot
+        if (savedUser.getRole() == User.RoleStatus.DOCTOR) {
+            // Hủy tất cả appointment đang active của bác sĩ
+            List<Appointment> doctorAppointments = appointmentRepository.findBySchedule_Doctor_User_UserIdAndBookingStatusIn(
+                    userId, activeStatuses);
+            for (Appointment app : doctorAppointments) {
+                app.setBookingStatus(Appointment.BookingStatus.CANCELLED);
+                appointmentRepository.save(app);
+            }
+            // Đóng tất cả slot AVAILABLE của bác sĩ
+            doctorScheduleRepository.closeAllAvailableSlotsByDoctorUserId(userId);
         }
 
         contextEmail.sendPermanentBanEmail(

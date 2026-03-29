@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.criteria.Predicate;
@@ -67,6 +68,7 @@ public class PublicService {
         };
         List <docbooking.models.DoctorDetail> doctors = doctorDetailRepository.findAll(specification);
         return doctors.stream().map(doctor -> DoctorCards.builder()
+                .doctorId(doctor.getDoctorId())
                 .doctorName(doctor.getUser().getFullName())
                 .specialtyName(doctor.getSpecialty().getSpecialtyName())
                 .doctorEmail(doctor.getUser().getEmail())
@@ -103,7 +105,7 @@ public class PublicService {
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .createdAt(review.getCreatedAt())
-                .patientName(review.getAppointment().getPatient().getUser().getFullName())
+                .patientName(review.getAppointment().getPatient().getFullName())
                 .build()
         ).collect(Collectors.toList());
     }
@@ -117,11 +119,24 @@ public class PublicService {
         }
         List<DoctorSchedule> schedules = doctorScheduleRepository.findByDoctor_DoctorIdAndDateWorkingAndSlotStatus(
                 doctorId, dateWorking, DoctorSchedule.SlotStatus.AVAILABLE);
-        return schedules.stream().map(schedule -> DoctorSlots.builder()
-                .scheduleId(schedule.getScheduleId())
-                .timeSlot(schedule.getTimeSlot().getDisplayValue())
-                .slotStatus(schedule.getSlotStatus().name())
-                .build()
-        ).collect(Collectors.toList());
+
+        LocalDate today = LocalDate.now();
+        LocalTime minBookingTime = LocalTime.now().plusHours(1);
+
+        return schedules.stream()
+                .filter(schedule -> {
+                    // Nếu là ngày hôm nay, chỉ hiển thị slot còn ít nhất 1 tiếng nữa mới bắt đầu
+                    if (dateWorking.isEqual(today)) {
+                        LocalTime slotTime = docbooking.utils.Time.parseTimeSlot(schedule.getTimeSlot());
+                        return slotTime.isAfter(minBookingTime);
+                    }
+                    return true;
+                })
+                .map(schedule -> DoctorSlots.builder()
+                        .scheduleId(schedule.getScheduleId())
+                        .timeSlot(schedule.getTimeSlot().getDisplayValue())
+                        .slotStatus(schedule.getSlotStatus().name())
+                        .build()
+                ).collect(Collectors.toList());
     }
 }

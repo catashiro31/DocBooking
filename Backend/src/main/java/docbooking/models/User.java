@@ -64,6 +64,9 @@ public class User implements UserDetails {
     @Column(name = "verification_code")
     private String verificationCode; // Dùng để lưu mã xác thực (VD: một chuỗi ngẫu nhiên)
 
+    @Column(name = "code_expiry")
+    private LocalDateTime codeExpiry;
+
     @Column(name = "reason_banned")
     private String reasonBanned;
 
@@ -108,6 +111,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return Boolean.TRUE.equals(isActive);
     }
 }

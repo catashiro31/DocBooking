@@ -32,14 +32,53 @@ public class DoctorService {
 
     @Transactional
     public String completeProfile(User user, Profile req) {
-        if (doctorDetailRepository.existsByUser(user)) {
-            throw new RuntimeException("Hồ sơ đã tồn tại, vui lòng đợi duyệt!");
+        Optional<DoctorDetail> existingProfile = doctorDetailRepository.findByUser(user);
+
+        if (existingProfile.isPresent()) {
+            DoctorDetail existing = existingProfile.get();
+            if (existing.getVerificationStatus() == DoctorDetail.VerificationStatus.PENDING) {
+                throw new RuntimeException("Hồ sơ đang chờ duyệt, vui lòng đợi!");
+            }
+            if (existing.getVerificationStatus() == DoctorDetail.VerificationStatus.APPROVED) {
+                throw new RuntimeException("Hồ sơ đã được duyệt, không thể gửi lại!");
+            }
+            // Nếu REJECTED, cho phép cập nhật và gửi lại
+            Specialty specialty = specialtyRepository.findById(req.getSpecialtyId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa"));
+            if (!Boolean.TRUE.equals(specialty.getIsActive())) {
+                throw new RuntimeException("Chuyên khoa này đã ngừng hoạt động!");
+            }
+            Facility facility = facilityRepository.findById(req.getFacilityId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
+            if (!Boolean.TRUE.equals(facility.getIsActive())) {
+                throw new RuntimeException("Cơ sở y tế này đã ngừng hoạt động!");
+            }
+
+            existing.setSpecialty(specialty);
+            existing.setFacility(facility);
+            existing.setBio(req.getBio());
+            existing.setDegree(req.getDegree());
+            existing.setExperienceYears(req.getExperienceYears());
+            existing.setPrice(req.getPrice());
+            existing.setIdCardUrl(convertUrl.getUrlFile(req.getIdCardImage()));
+            existing.setCertificateUrl(convertUrl.getUrlFile(req.getCertificatePdf()));
+            existing.setVerificationStatus(DoctorDetail.VerificationStatus.PENDING);
+            existing.setReasonReject(null);
+
+            doctorDetailRepository.save(existing);
+            return "Hồ sơ của bạn đã được cập nhật và gửi lại thành công!";
         }
 
         Specialty specialty = specialtyRepository.findById(req.getSpecialtyId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa"));
+        if (!Boolean.TRUE.equals(specialty.getIsActive())) {
+            throw new RuntimeException("Chuyên khoa này đã ngừng hoạt động!");
+        }
         Facility facility = facilityRepository.findById(req.getFacilityId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
+        if (!Boolean.TRUE.equals(facility.getIsActive())) {
+            throw new RuntimeException("Cơ sở y tế này đã ngừng hoạt động!");
+        }
 
         DoctorDetail doctorDetail = DoctorDetail.builder()
                 .user(user)
@@ -69,6 +108,10 @@ public class DoctorService {
         }
         DoctorDetail doctor = doctorDetailRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ."));
+
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
+            throw new RuntimeException("Hồ sơ bác sĩ chưa được duyệt, không thể tạo lịch làm việc!");
+        }
 
         for(String slotName: schedule.getSlotIds()){
             DoctorSchedule.TimeSlot timeSlot = DoctorSchedule.TimeSlot.valueOf(slotName);
@@ -227,12 +270,16 @@ public class DoctorService {
             appointmentRepository.save(appointment);
 
             User patientUser = appointment.getPatient().getUser();
-            long noShowCount = appointmentRepository.countByPatient_User_UserIdAndBookingStatus(
-                    patientUser.getUserId(), docbooking.models.Appointment.BookingStatus.NO_SHOW);
+            // Đếm NO_SHOW trong 6 tháng gần nhất
+            LocalDate sixMonthsAgo = LocalDate.now().minusMonths(6);
+            long noShowCount = appointmentRepository.countNoShowInPeriod(
+                    patientUser.getUserId(),
+                    docbooking.models.Appointment.BookingStatus.NO_SHOW,
+                    sixMonthsAgo);
 
             if (noShowCount >= 3) {
                 patientUser.setIsActive(false);
-                patientUser.setReasonBanned("Hệ thống tự động khóa: Không đến khám 3 lần.");
+                patientUser.setReasonBanned("Hệ thống tự động khóa: Không đến khám 3 lần trong 6 tháng gần nhất.");
                 userRepository.save(patientUser);
             }
             return;
@@ -292,6 +339,28 @@ public class DoctorService {
 
         medicalResultRepository.save(result);
         return "Đã cập nhật kết quả khám!";
+    }
+
+    public List<Appointment> getOverdueConfirmedAppointments(User user) {
+        LocalDate today = LocalDate.now();
+        List<docbooking.models.Appointment> overdueAppointments = 
+                appointmentRepository.findOverdueConfirmedByDoctorUserId(user.getUserId(), today);
+        
+        return overdueAppointments.stream().map(app -> {
+            DoctorSchedule schedule = app.getSchedule();
+            PatientProfile patient = app.getPatient();
+            return Appointment.builder()
+                    .appointmentId(app.getId())
+                    .patientName(patient.getFullName())
+                    .patientPhoneNumber(patient.getPhoneNumber())
+                    .patientGender(patient.getGender() != null ? patient.getGender().name() : null)
+                    .dateWorking(schedule.getDateWorking())
+                    .timeSlot(schedule.getTimeSlot().name())
+                    .reason(app.getReason())
+                    .bookingStatus(app.getBookingStatus().name())
+                    .createdAt(app.getCreatedAt())
+                    .build();
+        }).toList();
     }
 
 }

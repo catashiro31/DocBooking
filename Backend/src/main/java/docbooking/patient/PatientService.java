@@ -129,11 +129,23 @@ public class PatientService {
                 .orElseThrow(() -> new RuntimeException("Hồ sơ bệnh nhân này không tồn tại hoặc bạn không có quyền sử dụng!"));
         DoctorSchedule schedule = doctorScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(() -> new RuntimeException("Ca khám không tồn tại hoặc bạn không có quyền sử dụng!"));
+        DoctorDetail doctor = schedule.getDoctor();
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
+            throw new RuntimeException("Bác sĩ chưa được xác minh, không thể đặt lịch!");
+        }
         if (schedule.getSlotStatus() != DoctorSchedule.SlotStatus.AVAILABLE)
             throw new RuntimeException("Ca khám đã có người đặt hoặc đã đóng");
         LocalDate today = LocalDate.now();
-        if (!schedule.getDateWorking().isAfter(today)) {
-            throw new RuntimeException("Vui lòng đặt lịch từ ngày mai trở đi!");
+        if (schedule.getDateWorking().isBefore(today)) {
+            throw new RuntimeException("Không thể đặt lịch cho ngày đã qua!");
+        }
+        // Nếu đặt lịch cùng ngày, kiểm tra slot chưa qua giờ (phải trước ít nhất 1 tiếng)
+        if (schedule.getDateWorking().isEqual(today)) {
+            LocalTime slotTime = Time.parseTimeSlot(schedule.getTimeSlot());
+            LocalTime minBookingTime = LocalTime.now().plusHours(1);
+            if (slotTime.isBefore(minBookingTime)) {
+                throw new RuntimeException("Không thể đặt lịch cho slot đã qua hoặc sắp diễn ra trong vòng 1 tiếng!");
+            }
         }
         if (appointmentRepository.existsOverlappingAppointment(
                 profile.getPatientId(),
