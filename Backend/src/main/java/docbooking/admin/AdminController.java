@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @RestController
@@ -25,14 +26,14 @@ public class AdminController {
     @GetMapping("/stats")
     public ResponseEntity<?> getStats(
             @RequestParam(value = "startDate", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime startDate,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
 
             @RequestParam(value = "endDate", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime endDate
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
         // Nếu không truyền, mặc định lấy trong vòng 1 tháng qua
-        if (startDate == null) startDate = LocalDateTime.now().minusMonths(1);
-        if (endDate == null) endDate = LocalDateTime.now();
+        if (startDate == null) startDate = LocalDate.now().minusMonths(1);
+        if (endDate == null) endDate = LocalDate.now();
 
         return ResponseEntity.ok(adminService.getStats(startDate, endDate));
     }
@@ -63,12 +64,12 @@ public class AdminController {
     }
 
     @PostMapping("/specialty")
-    public ResponseEntity<?> addSpecialty(@RequestBody Specialty req) {
+    public ResponseEntity<?> addSpecialty(@Valid @RequestBody Specialty req) {
         return ResponseEntity.ok(adminService.addSpecialty(req));
     }
 
     @PutMapping("/specialty/{id}")
-    public ResponseEntity<?> updateSpecialty(@PathVariable Integer id, @RequestBody Specialty req) {
+    public ResponseEntity<?> updateSpecialty(@PathVariable Integer id, @Valid @RequestBody Specialty req) {
         return ResponseEntity.ok(adminService.updateSpecialty(id,req));
     }
 

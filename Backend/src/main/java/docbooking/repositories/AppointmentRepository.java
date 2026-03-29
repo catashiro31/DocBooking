@@ -21,11 +21,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "COUNT(CASE WHEN a.bookingStatus = 'COMPLETED' THEN 1 END), " +
             "COUNT(CASE WHEN a.bookingStatus IN('PENDING', 'CONFIRMED') THEN 1 END), " +
             "COUNT(CASE WHEN a.bookingStatus = 'CANCELLED' THEN 1 END)) " +
-            "FROM Appointment a " +
-            "WHERE a.createdAt BETWEEN :start AND :end")
+            "FROM Appointment a JOIN a.schedule s " +
+            "WHERE s.dateWorking BETWEEN :start AND :end")
     AppointmentStats getAppointmentStatsByPeriod(
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
     );
 
     @Query("SELECT a FROM Appointment a " +
@@ -49,6 +49,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     boolean existsByPatient_PatientIdAndBookingStatusIn(
             Integer patientId,
+            Collection<Appointment.BookingStatus> statuses
+    );
+
+    List<Appointment> findByPatient_User_UserIdAndBookingStatusIn(
+            Integer userId,
             Collection<Appointment.BookingStatus> statuses
     );
 

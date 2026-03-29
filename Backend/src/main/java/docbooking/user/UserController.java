@@ -29,7 +29,7 @@ public class UserController {
     }
 
     @PutMapping("/password")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePassword req) {
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePassword req) {
         User currentUser = Security.getCurrentUser();
         userService.changePassword(currentUser, req);
         return ResponseEntity.ok("Đổi mật khẩu thành công!");
