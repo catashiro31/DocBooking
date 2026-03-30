@@ -136,12 +136,13 @@ const AdminFacilities = () => {
                 .facility-placeholder {
                     width: 100%;
                     height: 180px;
-                    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+                    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 48px;
-                    color: #6366f1;
+                    font-size: 64px;
+                    color: #94a3b8;
+                    border-bottom: 1px solid #f1f5f9;
                 }
 
                 .facility-content {
@@ -319,10 +320,9 @@ const AdminFacilities = () => {
                     {facilities.map(facility => (
                         <div key={facility.id} className="facility-card">
                             {facility.imageUrl ? (
-                                <img src={facility.imageUrl} alt={facility.name} className="facility-image" />
-                            ) : (
-                                <div className="facility-placeholder">🏥</div>
-                            )}
+                                <img src={facility.imageUrl} alt={facility.name} className="facility-image" onError={(e) => { e.currentTarget.style.display='none'; e.currentTarget.nextSibling.style.display='flex' }} />
+                            ) : null}
+                            <div className="facility-placeholder" style={{ display: facility.imageUrl ? 'none' : 'flex' }}>🏥</div>
                             
                             <div className="facility-content">
                                 <h3 className="facility-name">{facility.name}</h3>

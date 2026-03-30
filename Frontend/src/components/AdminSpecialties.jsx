@@ -267,15 +267,6 @@ const AdminSpecialties = () => {
                 <div className="specialty-grid">
                     {specialties.map(specialty => (
                         <div key={specialty.id} className="specialty-card">
-                            <span 
-                                className="specialty-status"
-                                style={{ 
-                                    background: specialty.isActive ? '#f0fdf4' : '#fef2f2',
-                                    color: specialty.isActive ? '#16a34a' : '#dc2626'
-                                }}
-                            >
-                                {specialty.isActive ? 'Hoạt động' : 'Đã ẩn'}
-                            </span>
                             
                             <div className="specialty-icon-box">⚕️</div>
                             

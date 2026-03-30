@@ -4,6 +4,7 @@ import docbooking.admin.requests.Facility;
 import docbooking.admin.requests.Specialty;
 import docbooking.admin.responses.AppointmentAdminResponse;
 import docbooking.admin.responses.AppointmentStats;
+import docbooking.admin.responses.ReviewAdminResponse;
 import docbooking.admin.responses.Stat;
 import docbooking.models.*;
 import docbooking.repositories.*;
@@ -327,8 +328,29 @@ public class AdminService {
                 .build();
     }
 
-    public Page<Review> getAllReviews(Pageable pageable) {
-        return reviewRepository.findAll(pageable);
+    @Transactional(readOnly = true)
+    public Page<ReviewAdminResponse> getAllReviews(Pageable pageable) {
+        return reviewRepository.findAll(pageable).map(this::reviewToResponse);
+    }
+
+    private ReviewAdminResponse reviewToResponse(Review r) {
+        Appointment a = r.getAppointment();
+        PatientProfile p = a != null ? a.getPatient() : null;
+        User patientUser = p != null ? p.getUser() : null;
+        
+        DoctorSchedule s = a != null ? a.getSchedule() : null;
+        DoctorDetail d = s != null ? s.getDoctor() : null;
+        User doctorUser = d != null ? d.getUser() : null;
+
+        return ReviewAdminResponse.builder()
+                .reviewId(r.getReviewId())
+                .patientName(patientUser != null ? patientUser.getFullName() : p != null ? p.getFullName() : "N/A")
+                .doctorName(doctorUser != null ? doctorUser.getFullName() : "N/A")
+                .rating(r.getRating())
+                .comment(r.getComment())
+                .createdAt(r.getCreatedAt())
+                .isVisible(r.getIsVisible())
+                .build();
     }
 
     @Transactional

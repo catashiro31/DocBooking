@@ -343,14 +343,14 @@ function Dashboard() {
               <div className="activity-icon">📈</div>
               <div className="activity-details">
                 <p>Hôm nay có <strong>{stats?.todayAppointments || 0} lượt đặt lịch</strong> mới.</p>
-                <div className="activity-time">Tăng 12% so với hôm qua</div>
+                <div className="activity-time">Đang cập nhật...</div>
               </div>
             </div>
             <div className="activity-item">
               <div className="activity-icon">👥</div>
               <div className="activity-details">
                 <p>Tổng số người dùng đã đăng ký: <strong>{stats?.totalUsers || 0}</strong></p>
-                <div className="activity-time">Cập nhật mỗi phút</div>
+                <div className="activity-time">Cập nhật theo thời gian thực</div>
               </div>
             </div>
           </div>

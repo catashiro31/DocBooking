@@ -17,7 +17,7 @@ const DoctorAppointments = () => {
     const [selectedAppointment, setSelectedAppointment] = useState(null)
     const [showResultModal, setShowResultModal] = useState(false)
     const [resultMode, setResultMode] = useState("create")
-    const [resultData, setResultData] = useState({ diagnosis: "", prescription: "", notes: "" })
+    const [resultData, setResultData] = useState({ diagnosis: "", notes: "" })
     const [prescriptionFile, setPrescriptionFile] = useState(null)
     const [submitting, setSubmitting] = useState(false)
 
@@ -57,48 +57,21 @@ const DoctorAppointments = () => {
         }
     }
 
-    const parseDoctorNotes = (fullNotes) => {
-        if (!fullNotes) return { prescription: "", notes: "" }
-        
-        const prescriptionMarker = "Đơn thuốc:\n"
-        const index = fullNotes.indexOf(prescriptionMarker)
-        
-        if (index === -1) {
-            return { prescription: "", notes: fullNotes.trim() }
-        }
-        
-        const notes = fullNotes.substring(0, index).trim()
-        const prescription = fullNotes.substring(index + prescriptionMarker.length).trim()
-        
-        return { prescription, notes }
-    }
-
     const openResultModal = (appointment, mode) => {
         setSelectedAppointment(appointment)
         setResultMode(mode)
         
         if (mode === "edit" || appointment.diagnosis) {
-            const { prescription, notes } = parseDoctorNotes(appointment.doctorNotes)
             setResultData({
                 diagnosis: appointment.diagnosis || "",
-                prescription: prescription,
-                notes: notes
+                notes: appointment.doctorNotes || ""
             })
         } else {
-            setResultData({ diagnosis: "", prescription: "", notes: "" })
+            setResultData({ diagnosis: "", notes: "" })
         }
         
         setPrescriptionFile(null)
         setShowResultModal(true)
-    }
-
-    const buildDoctorNotes = () => {
-        const parts = []
-        if (resultData.notes?.trim()) parts.push(resultData.notes.trim())
-        if (resultData.prescription?.trim()) {
-            parts.push(`Đơn thuốc:\n${resultData.prescription.trim()}`)
-        }
-        return parts.length ? parts.join("\n\n") : ""
     }
 
     const handleSubmitResult = async () => {
@@ -112,7 +85,7 @@ const DoctorAppointments = () => {
         try {
             const payload = {
                 diagnosis: resultData.diagnosis.trim(),
-                doctorNotes: buildDoctorNotes(),
+                doctorNotes: resultData.notes.trim(),
                 prescriptionFile: prescriptionFile || undefined
             }
             if (resultMode === "edit") {
@@ -418,24 +391,6 @@ const DoctorAppointments = () => {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '13px', color: '#64748b' }}>
-                                        Nội dung đơn thuốc (dạng text)
-                                    </label>
-                                    <textarea
-                                        value={resultData.prescription}
-                                        onChange={e => setResultData(prev => ({ ...prev, prescription: e.target.value }))}
-                                        placeholder="Tên thuốc, liều dùng..."
-                                        style={{
-                                            width: '100%', padding: '14px', borderRadius: '12px', border: '1.5px solid #e2e8f0',
-                                            minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', fontSize: '14px', color: '#475569',
-                                            outline: 'none', transition: 'border-color 0.2s', fontFamily: 'inherit'
-                                        }}
-                                        onFocus={e => e.target.style.borderColor = '#5f6dfc'}
-                                        onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                                    />
-                                </div>
-
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '13px', color: '#64748b' }}>
                                         Tệp đính kèm (Ảnh/PDF đơn thuốc)

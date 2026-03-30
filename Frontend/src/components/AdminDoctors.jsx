@@ -99,7 +99,7 @@ const AdminDoctors = () => {
                 .doc-card { background: white; border-radius: 24px; padding: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s; display: flex; gap: 24px; margin-bottom: 20px; }
                 .doc-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08); border-color: #e2e8f0; }
                 
-                .doc-avatar { width: 80px; height: 80px; border-radius: 50%; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justifyContent: center; font-size: 24px; font-weight: 900; color: #64748b; flex-shrink: 0; border: 2px solid #f1f5f9; }
+                .doc-avatar { width: 80px; height: 80px; border-radius: 50%; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: #64748b; flex-shrink: 0; border: 2px solid #f1f5f9; line-height: 1; }
                 
                 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; font-size: 12px; font-weight: 500; color: #64748b; margin-right: 8px; margin-top: 4px; }
             `}</style>

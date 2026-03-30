@@ -267,13 +267,6 @@ const RelativeManagement = () => {
                                 <div className="info-icon">📍</div>
                                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.address}</span>
                             </div>
-                            
-                            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'center' }}>
-                                <button style={{ background: 'none', border: 'none', fontSize: '13px', fontWeight: 700, color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    Xem lịch sử khám bệnh
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                </button>
-                            </div>
                         </div>
                     ))
                 )}

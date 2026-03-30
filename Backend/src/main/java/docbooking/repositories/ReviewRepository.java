@@ -17,7 +17,7 @@ public interface ReviewRepository extends JpaRepository<Review,Integer> {
     @EntityGraph(attributePaths = {"appointment", "appointment.patient"})
     List<Review> findByAppointment_Schedule_Doctor_DoctorIdAndIsVisibleTrueOrderByCreatedAtDesc(Integer doctorId);
 
-    @EntityGraph(attributePaths = {"appointment", "appointment.patient"})
+    @EntityGraph(attributePaths = {"appointment", "appointment.patient", "appointment.patient.user", "appointment.schedule", "appointment.schedule.doctor", "appointment.schedule.doctor.user"})
     Page<Review> findAll(Pageable pageable);
 
     Optional<Review> findByAppointment_Id(Integer id);

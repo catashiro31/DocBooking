@@ -180,7 +180,7 @@ function HomePage() {
             </h1>
 
             <p className="text-xl text-slate-500 leading-relaxed max-w-xl font-medium">
-              DocBooking giúp bạn tìm đúng bác sĩ, đúng chuyên khoa và đặt lịch khám chỉ trong 30 giây. Tiết kiệm thời gian, nâng tầm trải nghiệm y tế số.
+              DocBooking giúp bạn tìm đúng bác sĩ, đúng chuyên khoa và đặt lịch khám chỉ trong vài thao tác. Tiết kiệm thời gian, nâng tầm trải nghiệm y tế số.
             </p>
 
             <div className="flex flex-wrap gap-5 pt-2">
@@ -190,23 +190,12 @@ function HomePage() {
                 >
                   {heroCtaText} <ChevronRight size={20} />
                 </button>
-                <div className="flex -space-x-3 items-center">
-                    {[1,2,3,4].map(i => (
-                        <div key={i} className="w-12 h-12 rounded-full border-4 border-white overflow-hidden bg-slate-200">
-                            <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="" />
-                        </div>
-                    ))}
-                    <div className="pl-4">
-                        <p className="text-sm font-bold text-slate-900">+50,000</p>
-                        <p className="text-[11px] text-slate-500 font-medium">Người dùng tin tưởng</p>
-                    </div>
-                </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-10 border-t border-slate-100">
                 {[
                     { label: 'Bác sĩ chuyên khoa', value: stats.totalDoctors + '+', icon: <Stethoscope size={20} /> },
-                    { label: 'Lượt khám thành công', value: stats.totalAppointments, icon: <ShieldCheck size={20} /> },
+                    { label: 'Lượt khám', value: stats.totalAppointments, icon: <ShieldCheck size={20} /> },
                 ].map((s, idx) => (
                     <div key={idx} className="space-y-1">
                         <div className="flex items-center gap-2 text-indigo-600 mb-1">
@@ -222,23 +211,6 @@ function HomePage() {
                 <div className="absolute inset-0 bg-indigo-200/20 blur-[100px] rounded-full scale-150" />
                 <div className="relative z-10 floating">
                     <img src={doctorImg} alt="Doctor" className="w-full max-w-[500px] mx-auto drop-shadow-[0_40px_80px_rgba(0,0,0,0.15)]" />
-                    
-                    {/* Floating Cards */}
-                    <div className="absolute top-1/4 -left-10 hero-card p-4 rounded-2xl flex items-center gap-4 animate-bounce" style={{ animationDuration: '4s' }}>
-                        <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600"><Clock size={20} /></div>
-                        <div>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase">Lịch trống gần nhất</p>
-                            <p className="text-sm font-extrabold text-slate-900">Hôm nay, 14:00</p>
-                        </div>
-                    </div>
-
-                    <div className="absolute bottom-1/4 -right-10 hero-card p-4 rounded-2xl flex items-center gap-4 animate-bounce" style={{ animationDuration: '5s' }}>
-                        <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600"><Star size={20} className="fill-amber-600" /></div>
-                        <div>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase">Đánh giá trung bình</p>
-                            <p className="text-sm font-extrabold text-slate-900">4.9/5.0 Sao</p>
-                        </div>
-                    </div>
                 </div>
           </div>
         </div>
@@ -272,7 +244,6 @@ function HomePage() {
                       )}
                     </div>
                     <h3 className="text-lg font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600">{s.name}</h3>
-                    <p className="mt-2 text-sm text-slate-400 font-medium">{s.doctorCount || 0} Bác sĩ chuyên khoa</p>
                   </div>
                 )
               })
@@ -281,17 +252,20 @@ function HomePage() {
         </div>
       </section>
 
-      {/* ===== PARTNER MARQUEE ===== */}
-      <section className="py-16 bg-white overflow-hidden">
-         <div className="marquee-track">
-            {[...facilities, ...facilities].map((fac, i) => (
-              <div key={i} className="flex items-center gap-4 bg-slate-50 border border-slate-100 px-8 py-4 mx-4 rounded-2xl group cursor-pointer hover:border-indigo-200">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                  {fac.name?.charAt(0)}
+      {/* ===== PARTNER FACILITIES ===== */}
+      <section className="py-16 bg-white border-y border-slate-100">
+         <div className="max-w-7xl mx-auto px-6 md:px-12">
+           <p className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Đồng hành cùng các cơ sở y tế uy tín</p>
+           <div className="flex flex-wrap justify-center gap-4">
+              {facilities.slice(0, 10).map((fac) => (
+                <div key={fac.id} onClick={() => navigate('/facilities')} className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-6 py-3 rounded-xl hover:border-indigo-200 cursor-pointer transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-xs">
+                    {fac.name?.charAt(0)}
+                  </div>
+                  <span className="font-bold text-slate-600 text-sm">{fac.name}</span>
                 </div>
-                <span className="font-bold text-slate-600 group-hover:text-slate-900 transition-colors tracking-tight text-sm">{fac.name}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
       </section>
 
@@ -334,7 +308,6 @@ function HomePage() {
                                 <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-bold">
                                     <Star size={14} className="fill-amber-600" /> {doc.ratingAverage?.toFixed(1) || "5.0"}
                                 </div>
-                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{doc.experienceYears} năm kinh nghiệm</div>
                             </div>
                             <h3 className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">BS. {doc.doctorName}</h3>
                             <button className="mt-6 w-full py-4 bg-slate-50 rounded-2xl text-slate-900 font-bold text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">

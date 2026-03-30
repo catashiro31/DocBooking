@@ -1,34 +1,44 @@
 import { Routes, Route, Navigate } from "react-router-dom"
 import { ToastContainer } from "react-toastify"
+import { Suspense, lazy } from "react"
 import "react-toastify/dist/ReactToastify.css"
-import LoginPage from "./pages/LoginPage"
-import HomePage from "./pages/HomePage"
-import RegisterPage from "./pages/RegisterPage"
-import ForgotPassword from "./pages/ForgotPassword"
-import Doctors from './pages/Doctors'
-import About from "./pages/About"
-import Contact from "./pages/Contact"
-import Appointment from './pages/Appointment'
-import Admin from "./pages/Admin"
-import DoctorProfile from "./pages/DoctorProfile"
-import PatientDashboard from "./pages/PatientDashboard"
-import DoctorDashboard from "./pages/DoctorDashboard"
-import DoctorAppointments from "./components/DoctorAppointments"
-import DoctorScheduleManager from "./components/DoctorScheduleManager"
-import DoctorOverdueAppointments from "./components/DoctorOverdueAppointments"
-import DoctorReviews from "./components/DoctorReviews"
-import ChangePassword from "./pages/ChangePassword"
-import Facilities from "./pages/Facilities"
-import PatientAppointments from "./components/PatientAppointments"
-import PatientHistory from "./components/PatientHistory"
-import RelativeManagement from "./components/RelativeManagement"
-import UserProfile from "./pages/UserProfile"
 import { useAuth } from "./context/AuthContext"
+
+// Lazy load pages and components
+const LoginPage = lazy(() => import("./pages/LoginPage"))
+const HomePage = lazy(() => import("./pages/HomePage"))
+const RegisterPage = lazy(() => import("./pages/RegisterPage"))
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"))
+const Doctors = lazy(() => import('./pages/Doctors'))
+const About = lazy(() => import("./pages/About"))
+const Contact = lazy(() => import("./pages/Contact"))
+const Appointment = lazy(() => import('./pages/Appointment'))
+const Admin = lazy(() => import("./pages/Admin"))
+const DoctorProfile = lazy(() => import("./pages/DoctorProfile"))
+const PatientDashboard = lazy(() => import("./pages/PatientDashboard"))
+const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"))
+const DoctorAppointments = lazy(() => import("./components/DoctorAppointments"))
+const DoctorScheduleManager = lazy(() => import("./components/DoctorScheduleManager"))
+const DoctorOverdueAppointments = lazy(() => import("./components/DoctorOverdueAppointments"))
+const DoctorReviews = lazy(() => import("./components/DoctorReviews"))
+const ChangePassword = lazy(() => import("./pages/ChangePassword"))
+const Facilities = lazy(() => import("./pages/Facilities"))
+const PatientAppointments = lazy(() => import("./components/PatientAppointments"))
+const PatientHistory = lazy(() => import("./components/PatientHistory"))
+const RelativeManagement = lazy(() => import("./components/RelativeManagement"))
+const UserProfile = lazy(() => import("./pages/UserProfile"))
+
+// Loading fallback UI
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+  </div>
+)
 
 function App() {
   const { user, loading } = useAuth()
 
-  if (loading) return null // Chờ AuthContext load xong
+  if (loading) return <PageLoader />
 
   return (
     <>
@@ -43,68 +53,70 @@ function App() {
         draggable
         pauseOnHover
         theme="light"
+        style={{ zIndex: 99999 }}
       />
       
-      <Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
 
-        {/* ===== Auth routes (public) ===== */}
-        <Route path="/signin" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* ===== Auth routes (public) ===== */}
+          <Route path="/signin" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Backward compat: /signout cũ trỏ đến register */}
-        <Route path="/signout" element={<Navigate to="/register" />} />
+          {/* Backward compat: /signout cũ trỏ đến register */}
+          <Route path="/signout" element={<Navigate to="/register" />} />
 
-        {/* ===== HOME ===== */}
-        <Route path="/" element={<HomePage />} />
+          {/* ===== HOME ===== */}
+          <Route path="/" element={<HomePage />} />
 
-        {/* ===== Doctor Dashboard (All doctor routes wrapped) ===== */}
-        <Route path="/doctor" element={user?.role === "DOCTOR" ? <DoctorDashboard /> : <Navigate to="/signin" />}>
-            <Route index element={<Navigate to="/doctor/appointments" />} />
-            <Route path="appointments" element={<DoctorAppointments />} />
-            <Route path="schedules" element={<DoctorScheduleManager />} />
-            <Route path="overdue" element={<DoctorOverdueAppointments />} />
-            <Route path="reviews" element={<DoctorReviews />} />
-            <Route path="profile" element={<DoctorProfile />} />
-        </Route>
+          {/* ===== Doctor Dashboard (All doctor routes wrapped) ===== */}
+          <Route path="/doctor" element={user?.role === "DOCTOR" ? <DoctorDashboard /> : <Navigate to="/signin" />}>
+              <Route index element={<Navigate to="/doctor/appointments" />} />
+              <Route path="appointments" element={<DoctorAppointments />} />
+              <Route path="schedules" element={<DoctorScheduleManager />} />
+              <Route path="overdue" element={<DoctorOverdueAppointments />} />
+              <Route path="reviews" element={<DoctorReviews />} />
+              <Route path="profile" element={<DoctorProfile />} />
+          </Route>
 
-        <Route path="/change-password" element={user ? <ChangePassword /> : <Navigate to="/signin" />} />
-        <Route path="/profile" element={user ? <UserProfile /> : <Navigate to="/signin" />} />
+          <Route path="/change-password" element={user ? <ChangePassword /> : <Navigate to="/signin" />} />
+          <Route path="/profile" element={user ? <UserProfile /> : <Navigate to="/signin" />} />
 
-        {/* ===== Patient Portal (Unified Routing) ===== */}
-        <Route path="/patient" element={user?.role === "PATIENT" ? <PatientDashboard /> : <Navigate to="/signin" />}>
-            <Route index element={<Navigate to="/patient/appointments" />} />
-            <Route path="appointments" element={<PatientAppointments />} />
-            <Route path="history" element={<PatientHistory />} />
-            <Route path="relatives" element={<RelativeManagement />} />
-        </Route>
+          {/* ===== Patient Portal (Unified Routing) ===== */}
+          <Route path="/patient" element={user?.role === "PATIENT" ? <PatientDashboard /> : <Navigate to="/signin" />}>
+              <Route index element={<Navigate to="/patient/appointments" />} />
+              <Route path="appointments" element={<PatientAppointments />} />
+              <Route path="history" element={<PatientHistory />} />
+              <Route path="relatives" element={<RelativeManagement />} />
+          </Route>
 
-        {/* ===== ADMIN ===== */}
-        <Route
-          path="/admin/*"
-          element={
-            user?.role === "ADMIN"
-              ? <Admin />
-              : <Navigate to="/signin" />
-          }
-        />
+          {/* ===== ADMIN ===== */}
+          <Route
+            path="/admin/*"
+            element={
+              user?.role === "ADMIN"
+                ? <Admin />
+                : <Navigate to="/signin" />
+            }
+          />
 
-        {/* ===== Public pages ===== */}
-        <Route path="/doctors" element={<Doctors />} />
-        <Route path="/facilities" element={<Facilities />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/appointment/:docId" element={<Appointment />} />
+          {/* ===== Public pages ===== */}
+          <Route path="/doctors" element={<Doctors />} />
+          <Route path="/facilities" element={<Facilities />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/appointment/:docId" element={<Appointment />} />
 
-        {/* ===== 404 ===== */}
-        <Route path="*" element={<NotFound />} />
+          {/* ===== 404 ===== */}
+          <Route path="*" element={<NotFound />} />
 
-      </Routes>
+        </Routes>
+      </Suspense>
     </>
   )
 }
 
-// Simple 404 component
 function NotFound() {
   return (
     <div style={{
