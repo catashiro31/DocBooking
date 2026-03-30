@@ -40,8 +40,8 @@ const getInitials = (name) => {
 };
 
 const InitialsAvatar = ({ name, size = "full" }) => (
-  <div style={{ 
-    width: '100%', height: '100%', 
+  <div style={{
+    width: '100%', height: '100%',
     background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     color: '#6366f1', fontWeight: 900,
@@ -82,7 +82,7 @@ function HomePage() {
           imgUrl: resolveImg(s.imageUrl)
         }));
         setSpecialties(specs)
-        
+
         const facs = (Array.isArray(facilitiesData) ? facilitiesData : []).slice(0, 15).map(f => ({
           ...f,
           id: f.facilityId || f.id,
@@ -100,7 +100,7 @@ function HomePage() {
   }, [])
 
   const isLoggedIn = isAuthenticated()
-  const heroCtaText = isLoggedIn ? "Vào trang điều khiển" : "Đăng ký ngay"
+  const heroCtaText = isLoggedIn ? "Đặt lịch ngay" : "Đăng ký ngay"
   const heroCtaPath = isLoggedIn ? "/profile" : "/register"
 
   return (
@@ -163,7 +163,7 @@ function HomePage() {
       <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-50/50 rounded-full blur-[150px] -z-10 translate-x-1/2 -translate-y-1/3" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-50/50 rounded-full blur-[150px] -z-10 -translate-x-1/3 translate-y-1/3" />
-        
+
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-12 items-center">
           <div className="reveal space-y-10" style={{ animationDelay: '0.1s' }}>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full">
@@ -184,34 +184,34 @@ function HomePage() {
             </p>
 
             <div className="flex flex-wrap gap-5 pt-2">
-                <button 
-                  onClick={() => navigate(isLoggedIn ? '/doctors' : '/register')} 
-                  className="btn-premium px-10 py-5 rounded-2xl font-bold text-lg flex items-center gap-3"
-                >
-                  {heroCtaText} <ChevronRight size={20} />
-                </button>
+              <button
+                onClick={() => navigate(isLoggedIn ? '/doctors' : '/register')}
+                className="btn-premium px-10 py-5 rounded-2xl font-bold text-lg flex items-center gap-3"
+              >
+                {heroCtaText} <ChevronRight size={20} />
+              </button>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-10 border-t border-slate-100">
-                {[
-                    { label: 'Bác sĩ chuyên khoa', value: stats.totalDoctors + '+', icon: <Stethoscope size={20} /> },
-                    { label: 'Lượt khám', value: stats.totalAppointments, icon: <ShieldCheck size={20} /> },
-                ].map((s, idx) => (
-                    <div key={idx} className="space-y-1">
-                        <div className="flex items-center gap-2 text-indigo-600 mb-1">
-                            {s.icon} <span className="text-2xl font-extrabold text-slate-900 tracking-tighter">{s.value}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{s.label}</p>
-                    </div>
-                ))}
+              {[
+                { label: 'Bác sĩ chuyên khoa', value: stats.totalDoctors + '+', icon: <Stethoscope size={20} /> },
+                { label: 'Lượt khám', value: stats.totalAppointments, icon: <ShieldCheck size={20} /> },
+              ].map((s, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex items-center gap-2 text-indigo-600 mb-1">
+                    {s.icon} <span className="text-2xl font-extrabold text-slate-900 tracking-tighter">{s.value}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="relative reveal hidden lg:block" style={{ animationDelay: '0.3s' }}>
-                <div className="absolute inset-0 bg-indigo-200/20 blur-[100px] rounded-full scale-150" />
-                <div className="relative z-10 floating">
-                    <img src={doctorImg} alt="Doctor" className="w-full max-w-[500px] mx-auto drop-shadow-[0_40px_80px_rgba(0,0,0,0.15)]" />
-                </div>
+            <div className="absolute inset-0 bg-indigo-200/20 blur-[100px] rounded-full scale-150" />
+            <div className="relative z-10 floating">
+              <img src={doctorImg} alt="Doctor" className="w-full max-w-[500px] mx-auto drop-shadow-[0_40px_80px_rgba(0,0,0,0.15)]" />
+            </div>
           </div>
         </div>
       </section>
@@ -231,16 +231,16 @@ function HomePage() {
               specialties.slice(0, 8).map((s) => {
                 const Icon = s.icon;
                 return (
-                  <div 
-                    key={s.id} 
+                  <div
+                    key={s.id}
                     onClick={() => navigate(`/doctors?specId=${s.id}`)}
                     className="service-card group p-8 rounded-[2rem] cursor-pointer"
                   >
                     <div className="mb-6 w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
                       {s.imgUrl ? (
-                         <img src={s.imgUrl} alt="" className="w-8 h-8 object-cover rounded-lg group-hover:brightness-0 group-hover:invert transition-all" />
+                        <img src={s.imgUrl} alt="" className="w-8 h-8 object-cover rounded-lg group-hover:brightness-0 group-hover:invert transition-all" />
                       ) : (
-                         <Icon size={32} className="text-indigo-600 group-hover:text-white transition-colors" />
+                        <Icon size={32} className="text-indigo-600 group-hover:text-white transition-colors" />
                       )}
                     </div>
                     <h3 className="text-lg font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600">{s.name}</h3>
@@ -254,105 +254,105 @@ function HomePage() {
 
       {/* ===== PARTNER FACILITIES ===== */}
       <section className="py-16 bg-white border-y border-slate-100">
-         <div className="max-w-7xl mx-auto px-6 md:px-12">
-           <p className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Đồng hành cùng các cơ sở y tế uy tín</p>
-           <div className="flex flex-wrap justify-center gap-4">
-              {facilities.slice(0, 10).map((fac) => (
-                <div key={fac.id} onClick={() => navigate('/facilities')} className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-6 py-3 rounded-xl hover:border-indigo-200 cursor-pointer transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-xs">
-                    {fac.name?.charAt(0)}
-                  </div>
-                  <span className="font-bold text-slate-600 text-sm">{fac.name}</span>
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Đồng hành cùng các cơ sở y tế uy tín</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            {facilities.slice(0, 10).map((fac) => (
+              <div key={fac.id} onClick={() => navigate('/facilities')} className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-6 py-3 rounded-xl hover:border-indigo-200 cursor-pointer transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-xs">
+                  {fac.name?.charAt(0)}
                 </div>
-              ))}
-            </div>
+                <span className="font-bold text-slate-600 text-sm">{fac.name}</span>
+              </div>
+            ))}
           </div>
+        </div>
       </section>
 
       {/* ===== TOP DOCTORS SECTION ===== */}
       <section className="py-24 max-w-7xl mx-auto px-6 md:px-12">
         <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-16 px-2 reveal">
-            <div className="space-y-4">
-              <span className="text-indigo-600 font-extrabold text-[12px] uppercase tracking-[0.3em]">Bác sĩ xuất sắc</span>
-              <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tighter">Đội ngũ chuyên gia</h2>
-            </div>
-            <button onClick={() => navigate("/doctors")} className="btn-premium px-8 py-3 rounded-xl font-bold text-sm">
-              Xem tất cả chuyên gia
-            </button>
+          <div className="space-y-4">
+            <span className="text-indigo-600 font-extrabold text-[12px] uppercase tracking-[0.3em]">Bác sĩ xuất sắc</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tighter">Đội ngũ chuyên gia</h2>
+          </div>
+          <button onClick={() => navigate("/doctors")} className="btn-premium px-8 py-3 rounded-xl font-bold text-sm">
+            Xem tất cả chuyên gia
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {loading ? (
-                Array(4).fill(0).map((_, i) => <div key={i} className="h-[450px] bg-slate-50 rounded-[2.5rem] animate-pulse" />)
-            ) : (
-                topDoctors.map(doc => (
-                    <div key={doc.doctorId} onClick={() => navigate(`/appointment/${doc.doctorId}`)} 
-                         className="group relative bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:translate-y-[-8px] transition-all duration-500 cursor-pointer">
-                        <div className="aspect-[3/4] bg-slate-50 overflow-hidden">
-                            {doc.photoUrl ? (
-                                <img src={doc.photoUrl} alt={doc.doctorName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                                     onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }} />
-                            ) : null}
-                            <div style={{ display: doc.photoUrl ? 'none' : 'flex', width: '100%', height: '100%' }}>
-                                <InitialsAvatar name={doc.doctorName} />
-                            </div>
-                            
-                            <div className="absolute top-6 left-6">
-                                <span className="px-4 py-2 bg-white/90 backdrop-blur-md rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-600 shadow-sm border border-white/50">
-                                    {doc.specialtyName}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="p-8">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-bold">
-                                    <Star size={14} className="fill-amber-600" /> {doc.ratingAverage?.toFixed(1) || "5.0"}
-                                </div>
-                            </div>
-                            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">BS. {doc.doctorName}</h3>
-                            <button className="mt-6 w-full py-4 bg-slate-50 rounded-2xl text-slate-900 font-bold text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                Đặt lịch khám ngay
-                            </button>
-                        </div>
+          {loading ? (
+            Array(4).fill(0).map((_, i) => <div key={i} className="h-[450px] bg-slate-50 rounded-[2.5rem] animate-pulse" />)
+          ) : (
+            topDoctors.map(doc => (
+              <div key={doc.doctorId} onClick={() => navigate(`/appointment/${doc.doctorId}`)}
+                className="group relative bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:translate-y-[-8px] transition-all duration-500 cursor-pointer">
+                <div className="aspect-[3/4] bg-slate-50 overflow-hidden">
+                  {doc.photoUrl ? (
+                    <img src={doc.photoUrl} alt={doc.doctorName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }} />
+                  ) : null}
+                  <div style={{ display: doc.photoUrl ? 'none' : 'flex', width: '100%', height: '100%' }}>
+                    <InitialsAvatar name={doc.doctorName} />
+                  </div>
+
+                  <div className="absolute top-6 left-6">
+                    <span className="px-4 py-2 bg-white/90 backdrop-blur-md rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-600 shadow-sm border border-white/50">
+                      {doc.specialtyName}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-bold">
+                      <Star size={14} className="fill-amber-600" /> {doc.ratingAverage?.toFixed(1) || "5.0"}
                     </div>
-                ))
-            )}
+                  </div>
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">BS. {doc.doctorName}</h3>
+                  <button className="mt-6 w-full py-4 bg-slate-50 rounded-2xl text-slate-900 font-bold text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    Đặt lịch khám ngay
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
       {/* ===== FEATURES SECTION ===== */}
       <section className="py-24 bg-slate-950 rounded-[4rem] mx-6 md:mx-12 mb-24 overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.1),transparent)]" />
-          <div className="max-w-7xl mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-20 items-center relative z-10">
-                <div className="space-y-8">
-                    <span className="text-indigo-400 font-extrabold text-[12px] uppercase tracking-[0.4em]">Trải nghiệm số</span>
-                    <h2 className="text-5xl md:text-6xl font-extrabold text-white tracking-tighter leading-tight">
-                        Quản lý y tế <br />
-                        <span className="text-indigo-400 underline decoration-indigo-400/30 underline-offset-8">Gia đình tập trung</span>
-                    </h2>
-                    <p className="text-indigo-100/60 text-lg font-medium leading-relaxed max-w-lg">
-                        Không còn lo lắng việc lưu trữ hồ sơ giấy. Với DocBooking, bạn quản lý toàn bộ quá trình khám chữa bệnh cho con cái và người thân trên một tài khoản duy nhất.
-                    </p>
-                    <div className="space-y-4">
-                        {[
-                            { title: 'Bảo mật HIPAA', desc: 'Dữ liệu y tế được mã hóa an toàn tuyệt đối.', icon: <ShieldCheck className="text-emerald-400" /> },
-                            { title: 'Thông báo nhắc lịch', desc: 'Tự động gửi SMS/Email nhắc lịch hẹn khám.', icon: <Zap className="text-amber-400" /> }
-                        ].map((item, idx) => (
-                            <div key={idx} className="flex gap-4 p-6 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-white/10 transition-colors">
-                                <div className="mt-1">{item.icon}</div>
-                                <div>
-                                    <h4 className="text-white font-bold">{item.title}</h4>
-                                    <p className="text-indigo-100/40 text-sm">{item.desc}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.1),transparent)]" />
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-20 items-center relative z-10">
+          <div className="space-y-8">
+            <span className="text-indigo-400 font-extrabold text-[12px] uppercase tracking-[0.4em]">Trải nghiệm số</span>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-white tracking-tighter leading-tight">
+              Quản lý y tế <br />
+              <span className="text-indigo-400 underline decoration-indigo-400/30 underline-offset-8">Gia đình tập trung</span>
+            </h2>
+            <p className="text-indigo-100/60 text-lg font-medium leading-relaxed max-w-lg">
+              Không còn lo lắng việc lưu trữ hồ sơ giấy. Với DocBooking, bạn quản lý toàn bộ quá trình khám chữa bệnh cho con cái và người thân trên một tài khoản duy nhất.
+            </p>
+            <div className="space-y-4">
+              {[
+                { title: 'Bảo mật HIPAA', desc: 'Dữ liệu y tế được mã hóa an toàn tuyệt đối.', icon: <ShieldCheck className="text-emerald-400" /> },
+                { title: 'Thông báo nhắc lịch', desc: 'Tự động gửi SMS/Email nhắc lịch hẹn khám.', icon: <Zap className="text-amber-400" /> }
+              ].map((item, idx) => (
+                <div key={idx} className="flex gap-4 p-6 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-white/10 transition-colors">
+                  <div className="mt-1">{item.icon}</div>
+                  <div>
+                    <h4 className="text-white font-bold">{item.title}</h4>
+                    <p className="text-indigo-100/40 text-sm">{item.desc}</p>
+                  </div>
                 </div>
-                <div className="hidden lg:block relative">
-                    <div className="absolute inset-0 bg-indigo-500/20 blur-[120px] rounded-full scale-110" />
-                    <img src={bannerImg} alt="App Mockup" className="relative z-10 floating filter brightness-110" />
-                </div>
+              ))}
+            </div>
           </div>
+          <div className="hidden lg:block relative">
+            <div className="absolute inset-0 bg-indigo-500/20 blur-[120px] rounded-full scale-110" />
+            <img src={bannerImg} alt="App Mockup" className="relative z-10 floating filter brightness-110" />
+          </div>
+        </div>
       </section>
 
       <Footer />

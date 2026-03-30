@@ -140,8 +140,6 @@ const AdminFacilities = () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 64px;
-                    color: #94a3b8;
                     border-bottom: 1px solid #f1f5f9;
                 }
 
@@ -311,7 +309,17 @@ const AdminFacilities = () => {
                 <div style={{ textAlign: 'center', padding: '100px', color: '#64748b' }}>Đang nạp dữ liệu cơ sở y tế...</div>
             ) : facilities.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '100px', background: 'white', borderRadius: '24px', border: '1px dashed #e2e8f0' }}>
-                    <div style={{ fontSize: '64px', marginBottom: '24px' }}>🏥</div>
+                    <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center' }}>
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="4" y="2" width="16" height="20" rx="3" fill="#6366f1" fillOpacity="0.1"/>
+                            <rect x="4" y="2" width="16" height="20" rx="3" stroke="#6366f1" strokeWidth="2" strokeDasharray="4 2"/>
+                            <rect x="8" y="7" width="8" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                            <rect x="8" y="11" width="8" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                            <rect x="8" y="15" width="4" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                            <circle cx="18" cy="18" r="5" fill="#6366f1"/>
+                            <path d="M18 15.5V20.5M15.5 18H20.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                    </div>
                     <h3 style={{ margin: 0 }}>Mạng lưới trống</h3>
                     <p style={{ color: '#64748b', marginTop: '8px' }}>Nhấn nút "Thêm cơ sở" để mở rộng mạng lưới liên kết y tế</p>
                 </div>
@@ -322,7 +330,17 @@ const AdminFacilities = () => {
                             {facility.imageUrl ? (
                                 <img src={facility.imageUrl} alt={facility.name} className="facility-image" onError={(e) => { e.currentTarget.style.display='none'; e.currentTarget.nextSibling.style.display='flex' }} />
                             ) : null}
-                            <div className="facility-placeholder" style={{ display: facility.imageUrl ? 'none' : 'flex' }}>🏥</div>
+                            <div className="facility-placeholder" style={{ display: facility.imageUrl ? 'none' : 'flex' }}>
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="4" y="2" width="16" height="20" rx="3" fill="#6366f1" fillOpacity="0.1"/>
+                                    <rect x="4" y="2" width="16" height="20" rx="3" stroke="#6366f1" strokeWidth="2" strokeDasharray="4 2"/>
+                                    <rect x="8" y="7" width="8" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                                    <rect x="8" y="11" width="8" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                                    <rect x="8" y="15" width="4" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                                    <circle cx="18" cy="18" r="5" fill="#6366f1"/>
+                                    <path d="M18 15.5V20.5M15.5 18H20.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                                </svg>
+                            </div>
                             
                             <div className="facility-content">
                                 <h3 className="facility-name">{facility.name}</h3>
