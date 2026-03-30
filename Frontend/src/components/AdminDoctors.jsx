@@ -6,12 +6,42 @@ const AdminDoctors = () => {
     const [doctors, setDoctors] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
+    const [viewMode, setViewMode] = useState("all") // Default to ALL to avoid confusion
+    const [page, setPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
     const [detailModal, setDetailModal] = useState({ show: false, data: null, loading: false })
     const [rejectModal, setRejectModal] = useState({ show: false, doctor: null, reason: "" })
 
     useEffect(() => {
-        fetchPendingDoctors()
-    }, [])
+        setPage(0)
+        fetchData(0)
+    }, [viewMode])
+
+    useEffect(() => {
+        if (viewMode === "all") {
+            fetchData(page)
+        }
+    }, [page])
+
+    const fetchData = async (pageNum) => {
+        try {
+            setLoading(true)
+            if (viewMode === "pending") {
+                const data = await adminService.getPendingDoctors()
+                setDoctors(Array.isArray(data) ? data : [])
+                setTotalPages(1)
+            } else {
+                const data = await adminService.getAllDoctors(pageNum, 10)
+                setDoctors(data?.content || [])
+                setTotalPages(data?.totalPages || 1)
+            }
+        } catch (err) {
+            setError("Không thể tải danh sách bác sĩ")
+            console.error(err)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleViewDetail = async (doctorId) => {
         try {
@@ -24,380 +54,177 @@ const AdminDoctors = () => {
         }
     }
 
-    const fetchPendingDoctors = async () => {
-        try {
-            setLoading(true)
-            const data = await adminService.getPendingDoctors()
-            setDoctors(Array.isArray(data) ? data : [])
-        } catch (err) {
-            setError("Không thể tải danh sách bác sĩ chờ duyệt")
-            console.error(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
     const handleApprove = async (doctorId) => {
         if (!window.confirm("Phê duyệt bác sĩ này?")) return
-
         try {
             await adminService.approveDoctor(doctorId)
-            toast.success("Đã phê duyệt bác sĩ thành công")
-            setDoctors(prev => prev.filter(d => d.doctorId !== doctorId))
+            toast.success("Phê duyệt thành công")
+            fetchData(page)
             setDetailModal({ show: false, data: null, loading: false })
         } catch (err) {
-            toast.error(err.response?.data || "Không thể phê duyệt")
+            toast.error(err.response?.data || "Lỗi phê duyệt")
         }
     }
 
     const handleReject = async () => {
-        if (!rejectModal.doctor) return
-
+        if (!rejectModal.reason.trim()) return
         try {
             await adminService.rejectDoctor(rejectModal.doctor.doctorId, rejectModal.reason)
-            toast.success("Đã từ chối hồ sơ bác sĩ")
+            toast.success("Đã từ chối hồ sơ")
             setRejectModal({ show: false, doctor: null, reason: "" })
-            setDoctors(prev => prev.filter(d => d.doctorId !== rejectModal.doctor.doctorId))
+            fetchData(page)
             setDetailModal({ show: false, data: null, loading: false })
         } catch (err) {
-            toast.error(err.response?.data || "Không thể từ chối")
+            toast.error(err.response?.data || "Lỗi từ chối")
         }
     }
 
-    if (loading) {
-        return <div style={{ textAlign: 'center', padding: '100px', color: '#64748b' }}>Đang tải danh sách chờ duyệt...</div>
+    const getStatusBadge = (status) => {
+        const styles = {
+            APPROVED: { label: 'Đã duyệt', color: '#10b981', bg: '#ecfdf5' },
+            PENDING: { label: 'Chờ duyệt', color: '#f59e0b', bg: '#fffbeb' },
+            REJECTED: { label: 'Từ chối', color: '#ef4444', bg: '#fef2f2' }
+        }
+        return styles[status] || { label: status, color: '#64748b', bg: '#f8fafc' }
     }
 
     return (
-        <div className="admin-view-transition">
+        <div className="reveal">
             <style>{`
-                .admin-view-transition {
-                    animation: slideUp 0.4s ease-out;
-                }
-                @keyframes slideUp {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
-                .doctor-pending-card {
-                    background: #ffffff;
-                    border-radius: 20px;
-                    padding: 24px;
-                    border: 1px solid #f1f5f9;
-                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    display: flex;
-                    gap: 24px;
-                    margin-bottom: 20px;
-                }
-                .doctor-pending-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
-                    border-color: #6366f1;
-                }
-
-                .avatar-wrapper {
-                    width: 100px;
-                    height: 100px;
-                    border-radius: 16px;
-                    flex-shrink: 0;
-                    overflow: hidden;
-                    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 32px;
-                }
-
-                .doctor-main-info {
-                    flex: 1;
-                }
-
-                .info-chip {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    padding: 4px 10px;
-                    background: #f8fafc;
-                    border: 1px solid #f1f5f9;
-                    border-radius: 8px;
-                    font-size: 13px;
-                    color: #64748b;
-                    font-weight: 500;
-                    margin: 4px 8px 4px 0;
-                }
-
-                .action-group {
-                    display: flex;
-                    gap: 12px;
-                    margin-top: 20px;
-                }
-
-                .btn-primary-custom {
-                    background: #6366f1;
-                    color: white;
-                    border: none;
-                    padding: 10px 24px;
-                    border-radius: 12px;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .btn-primary-custom:hover {
-                    background: #4f46e5;
-                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-                }
-
-                .btn-secondary-custom {
-                    background: #ffffff;
-                    color: #1e293b;
-                    border: 1px solid #e2e8f0;
-                    padding: 10px 24px;
-                    border-radius: 12px;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .btn-secondary-custom:hover {
-                    background: #f8fafc;
-                    border-color: #cbd5e1;
-                }
-
-                .modal-overlay-custom {
-                    position: fixed;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(15, 23, 42, 0.6);
-                    backdrop-filter: blur(8px);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1001;
-                    padding: 20px;
-                }
-                .modal-content-custom {
-                    background: #ffffff;
-                    border-radius: 24px;
-                    width: 100%;
-                    max-width: 900px;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    padding: 40px;
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-                }
-
-                .detail-section-title {
-                    font-size: 12px;
-                    font-weight: 800;
-                    color: #94a3b8;
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                    margin-bottom: 16px;
-                    padding-bottom: 8px;
-                    border-bottom: 1px solid #f1f5f9;
-                }
-
-                .verify-image-card {
-                    background: #f8fafc;
-                    border: 1px solid #f1f5f9;
-                    border-radius: 16px;
-                    padding: 12px;
-                    margin-bottom: 16px;
-                }
-                .verify-image-card img {
-                    width: 100%;
-                    border-radius: 12px;
-                    display: block;
-                    cursor: zoom-in;
-                }
+                .view-toggle-container { display: flex; background: #f1f5f9; padding: 4px; border-radius: 14px; width: fit-content; margin-bottom: 32px; }
+                .view-toggle-btn { padding: 10px 20px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; color: #64748b; background: transparent; }
+                .view-toggle-btn.active { background: white; color: #6366f1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+                
+                .doc-card { background: white; border-radius: 24px; padding: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s; display: flex; gap: 24px; margin-bottom: 20px; }
+                .doc-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08); border-color: #e2e8f0; }
+                
+                .doc-avatar { width: 80px; height: 80px; border-radius: 20px; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justifyContent: center; font-size: 24px; font-weight: 900; color: #64748b; flex-shrink: 0; }
+                
+                .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; font-size: 12px; font-weight: 500; color: #64748b; margin-right: 8px; margin-top: 4px; }
             `}</style>
 
-            <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: '#1e293b' }}>Phê duyệt hồ sơ</h2>
-                    <p style={{ margin: '8px 0 0', fontSize: '15px', color: '#64748b' }}>Kiểm duyệt và xác minh danh tính bác sĩ trước khi cho phép hoạt động</p>
-                </div>
-                <div style={{ background: '#eef2ff', padding: '8px 16px', borderRadius: '12px', color: '#6366f1', fontWeight: 800, fontSize: '14px' }}>
-                    {doctors.length} hồ sơ đang chờ
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>Danh sách bác sĩ</h2>
+                    <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#64748b' }}>Phê duyệt hồ sơ chuyên môn và quản lý đội ngũ bác sĩ hệ thống.</p>
                 </div>
             </div>
 
-            {doctors.length === 0 ? (
-                <div className="doctor-pending-card" style={{ justifyContent: 'center', padding: '80px', textAlign: 'center', flexDirection: 'column' }}>
-                    <div style={{ fontSize: '64px', marginBottom: '20px' }}>⭐</div>
-                    <h3 style={{ margin: 0, color: '#1e293b' }}>Hệ thống đã sạch hồ sơ!</h3>
-                    <p style={{ color: '#64748b', margin: '8px 0 0' }}>Không còn bác sĩ nào đang chờ bạn phê duyệt vào lúc này.</p>
+            <div className="view-toggle-container">
+                <button className={`view-toggle-btn ${viewMode === "all" ? "active" : ""}`} onClick={() => setViewMode("all")}>Tất cả bác sĩ</button>
+                <button className={`view-toggle-btn ${viewMode === "pending" ? "active" : ""}`} onClick={() => setViewMode("pending")}>Đang chờ duyệt</button>
+            </div>
+
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '100px' }}><div className="skeleton-pulse" style={{ height: '300px', borderRadius: '24px' }} /></div>
+            ) : doctors.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '100px', background: 'white', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📂</div>
+                    <div style={{ color: '#64748b', fontWeight: 700 }}>Danh sách hiện đang trống</div>
                 </div>
             ) : (
-                <div className="doctors-list">
-                    {doctors.map(doctor => (
-                        <div key={doctor.doctorId} className="doctor-pending-card">
-                            <div className="avatar-wrapper">
-                                {doctor.avatarUrl ? (
-                                    <img src={doctor.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                ) : (
-                                    <div style={{ 
-                                        width: '100%', height: '100%', display: 'flex', 
-                                        alignItems: 'center', justify_content: 'center', 
-                                        background: '#eef2ff', color: '#6366f1', 
-                                        fontWeight: 900, fontSize: '24px' 
-                                    }}>
-                                        {(() => {
-                                            const name = doctor.user?.fullName || doctor.fullName || "DR";
-                                            const parts = name.split(" ");
-                                            return parts.length >= 2 ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
-                                        })()}
+                <div className="reveal">
+                    {doctors.map(doc => (
+                        <div key={doc.doctorId} className="doc-card">
+                            <div className="doc-avatar">
+                                {doc.user?.avatarUrl || doc.avatarUrl ? (
+                                    <img src={doc.user?.avatarUrl || doc.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = '👨‍⚕️' }} />
+                                ) : '👨‍⚕️'}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>BS. {doc.user?.fullName || doc.fullName}</h3>
+                                        <div style={{ marginTop: '4px' }}>
+                                            <span className="chip">📧 {doc.user?.email}</span>
+                                            <span className="chip">🏥 {doc.specialty?.specialtyName || doc.specialtyName}</span>
+                                            <span style={{ 
+                                                padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800,
+                                                background: getStatusBadge(doc.verificationStatus).bg,
+                                                color: getStatusBadge(doc.verificationStatus).color
+                                            }}>
+                                                {getStatusBadge(doc.verificationStatus).label}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => handleViewDetail(doc.doctorId)} style={{ background: '#f1f5f9', color: '#1e293b', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Xem hồ sơ</button>
+                                </div>
+                                {doc.verificationStatus === 'PENDING' && (
+                                    <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                                        <button onClick={() => handleApprove(doc.doctorId)} style={{ background: '#1063ff', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Phê duyệt ngay</button>
+                                        <button onClick={() => setRejectModal({ show: true, doctor: doc, reason: "" })} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Từ chối</button>
                                     </div>
                                 )}
                             </div>
-
-                            <div className="doctor-main-info">
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <div>
-                                        <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>
-                                            BS. {doctor.user?.fullName || doctor.fullName}
-                                        </h3>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                                            <span className="info-chip">📧 {doctor.user?.email || doctor.email}</span>
-                                            <span className="info-chip">📱 {doctor.user?.phoneNumber || doctor.phoneNumber}</span>
-                                            <span className="info-chip">🏥 {doctor.specialtyName || doctor.specialty?.specialtyName}</span>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        className="btn-secondary-custom" 
-                                        style={{ padding: '8px 16px', background: '#f8fafc', borderColor: '#6366f1', color: '#6366f1' }}
-                                        onClick={() => handleViewDetail(doctor.doctorId)}
-                                    >
-                                        Hồ sơ chi tiết
-                                    </button>
-                                </div>
-
-                                <div className="action-group">
-                                    <button className="btn-primary-custom" onClick={() => handleApprove(doctor.doctorId)}>
-                                        Duyệt hồ sơ nhanh
-                                    </button>
-                                    <button 
-                                        className="btn-secondary-custom" 
-                                        style={{ color: '#ef4444', borderColor: '#fee2e2' }}
-                                        onClick={() => setRejectModal({ show: true, doctor, reason: "" })}
-                                    >
-                                        Từ chối
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     ))}
+                    {viewMode === "all" && totalPages > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '32px' }}>
+                            <button disabled={page === 0} onClick={() => setPage(p => p - 1)} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Trước</button>
+                            <span style={{ fontWeight: 800, color: '#0f172a' }}>Trang {page + 1} / {totalPages}</span>
+                            <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>Sau →</button>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Detail Modal */}
             {detailModal.show && (
-                <div className="modal-overlay-custom" onClick={() => setDetailModal({ show: false, data: null, loading: false })}>
-                    <div className="modal-content-custom" onClick={e => e.stopPropagation()}>
-                        {detailModal.loading ? (
-                            <div style={{ textAlign: 'center', padding: '60px', color: '#64748b' }}>Đang nạp dữ liệu hồ sơ chi tiết...</div>
-                        ) : detailModal.data && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '20px' }} onClick={() => setDetailModal({ show: false, data: null, loading: false })}>
+                    <div className="reveal" style={{ background: 'white', borderRadius: '32px', padding: '40px', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+                        {detailModal.loading ? <div style={{ textAlign: 'center', padding: '60px' }}>Đang tải...</div> : (
                             <>
-                                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>Hồ sơ chuyên môn chi tiết</h2>
-                                    <button onClick={() => setDetailModal({ show: false, data: null, loading: false })} style={{ border: 'none', background: 'none', fontSize: '32px', cursor: 'pointer', color: '#94a3b8' }}>×</button>
-                                </header>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '40px' }}>
-                                    {/* Column 1 */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
+                                    <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>Chi tiết hồ sơ bác sĩ</h3>
+                                    <button onClick={() => setDetailModal({ show: false, data: null, loading: false })} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
                                     <div>
-                                        <div className="detail-section-title">Thông tin nhân sự</div>
-                                        <div style={{ marginBottom: '24px' }}>
-                                            <p style={{ margin: '8px 0', fontSize: '15px' }}><strong>Họ và tên:</strong> {detailModal.data.user?.fullName}</p>
-                                            <p style={{ margin: '8px 0', fontSize: '15px' }}><strong>Email chuyên môn:</strong> {detailModal.data.user?.email}</p>
-                                            <p style={{ margin: '8px 0', fontSize: '15px' }}><strong>Điện thoại:</strong> {detailModal.data.user?.phoneNumber || 'N/A'}</p>
-                                        </div>
-
-                                        <div className="detail-section-title">Năng lực & Kinh nghiệm</div>
-                                        <div style={{ marginBottom: '24px' }}>
-                                            <p style={{ margin: '8px 0', fontSize: '15px' }}><strong>Học hàm / Học vị:</strong> {detailModal.data.degree}</p>
-                                            <p style={{ margin: '8px 0', fontSize: '15px' }}><strong>Thâm niên công tác:</strong> {detailModal.data.experienceYears} năm</p>
-                                            <p style={{ margin: '8px 0', fontSize: '15px' }}><strong>Giá khám niêm yết:</strong> {Number(detailModal.data.price).toLocaleString('vi-VN')} VNĐ/lượt</p>
-                                            <p style={{ margin: '8px 0', fontSize: '15px' }}><strong>Chuyên khoa:</strong> {detailModal.data.specialty?.specialtyName}</p>
-                                            <p style={{ margin: '8px 0', fontSize: '15px' }}><strong>Cơ sở trực thuộc:</strong> {detailModal.data.facility?.facilityName}</p>
-                                        </div>
-
-                                        <div className="detail-section-title">Lời giới thiệu</div>
-                                        <div style={{ 
-                                            background: '#f8fafc', padding: '20px', borderRadius: '16px', 
-                                            fontSize: '14px', color: '#475569', lineHeight: 1.6, border: '1px solid #f1f5f9'
-                                        }}>
-                                            {detailModal.data.bio || "Không có nội dung giới thiệu."}
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Họ tên:</b> {detailModal.data?.user?.fullName}</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Học vị:</b> {detailModal.data?.degree}</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Kinh nghiệm:</b> {detailModal.data?.experienceYears} năm</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Chuyên khoa:</b> {detailModal.data?.specialty?.specialtyName}</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Giá khám:</b> {detailModal.data?.price?.toLocaleString()} VNĐ</p>
+                                        <div style={{ marginTop: '20px', padding: '20px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                                            <b style={{ display: 'block', marginBottom: '8px' }}>Giới thiệu chuyên môn:</b>
+                                            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6, color: '#475569' }}>{detailModal.data?.bio}</p>
                                         </div>
                                     </div>
-
-                                    {/* Column 2 */}
                                     <div>
-                                        <div className="detail-section-title">Tài liệu pháp lý xác minh</div>
-                                        
-                                        <div className="verify-image-card">
-                                            <p style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>Ảnh Thẻ Căn Cước / Hộ chiếu:</p>
-                                            <img src={detailModal.data.idCardUrl} alt="CCCD" />
-                                        </div>
-
-                                        <div className="verify-image-card">
-                                            <p style={{ margin: '0 0 10px', fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>Giấy phép / Chứng chỉ hành nghề:</p>
-                                            <img src={detailModal.data.certificateUrl} alt="Chứng chỉ" />
-                                        </div>
+                                        {detailModal.data?.certificateUrl && (
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <b>Chứng chỉ hành nghề:</b>
+                                                <img src={detailModal.data.certificateUrl} alt="" style={{ width: '100%', borderRadius: '16px', marginTop: '12px', border: '1px solid #f1f5f9' }} />
+                                            </div>
+                                        )}
+                                        {detailModal.data?.idCardUrl && (
+                                            <div>
+                                                <b>CCCD/Hộ chiếu:</b>
+                                                <img src={detailModal.data.idCardUrl} alt="" style={{ width: '100%', borderRadius: '16px', marginTop: '12px', border: '1px solid #f1f5f9' }} />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-
-                                <div style={{ 
-                                    marginTop: '40px', paddingTop: '32px', borderTop: '1px solid #f1f5f9', 
-                                    display: 'flex', justifyContent: 'flex-end', gap: '16px' 
-                                }}>
-                                    <button 
-                                        className="btn-primary-custom" 
-                                        style={{ padding: '14px 40px' }}
-                                        onClick={() => handleApprove(detailModal.data.doctorId)}
-                                    >
-                                        Phê duyệt hồ sơ này
-                                    </button>
-                                    <button 
-                                        className="btn-secondary-custom" 
-                                        style={{ padding: '14px 40px', color: '#ef4444', borderColor: '#fee2e2' }}
-                                        onClick={() => {
-                                            const doc = detailModal.data;
-                                            setRejectModal({ show: true, doctor: { doctorId: doc.doctorId, fullName: doc.user?.fullName }, reason: "" });
-                                        }}
-                                    >
-                                        Từ chối hồ sơ
-                                    </button>
-                                </div>
+                                {detailModal.data?.verificationStatus === 'PENDING' && (
+                                    <div style={{ display: 'flex', gap: '16px', marginTop: '40px', borderTop: '1px solid #f1f5f9', paddingTop: '32px', justifyContent: 'flex-end' }}>
+                                        <button onClick={() => handleApprove(detailModal.data.doctorId)} style={{ background: '#1063ff', color: 'white', border: 'none', padding: '12px 32px', borderRadius: '16px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}>Phê duyệt hồ sơ</button>
+                                        <button onClick={() => setRejectModal({ show: true, doctor: detailModal.data, reason: "" })} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '12px 32px', borderRadius: '16px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}>Từ chối</button>
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>
                 </div>
             )}
 
-            {/* Reject Modal */}
             {rejectModal.show && (
-                <div className="modal-overlay-custom" style={{ zIndex: 1002 }} onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })}>
-                    <div className="modal-content-custom" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
-                        <h3 style={{ margin: '0 0 16px', fontWeight: 800 }}>Lý do từ chối hồ sơ</h3>
-                        <p style={{ color: '#64748b', fontSize: '15px', marginBottom: '24px' }}>
-                            Thông báo từ chối sẽ được gửi đến <strong>BS. {rejectModal.doctor?.fullName}</strong>. Vui lòng nêu rõ lý do để bác sĩ có thể cập nhật lại hồ sơ.
-                        </p>
-
-                        <div style={{ marginBottom: '24px' }}>
-                            <textarea
-                                value={rejectModal.reason}
-                                onChange={e => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}
-                                placeholder="Ví dụ: Chứng chỉ hành nghề đã hết hạn, Ảnh CCCD bị mờ..."
-                                style={{
-                                    width: '100%', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0',
-                                    minHeight: '120px', fontSize: '14px', boxSizing: 'border-box', outline: 'none'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '16px' }}>
-                            <button className="btn-secondary-custom" style={{ flex: 1 }} onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })}>Quay lại</button>
-                            <button className="btn-primary-custom" style={{ flex: 1.5, background: '#ef4444' }} onClick={handleReject}>Gửi thông báo từ chối</button>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200, padding: '20px' }} onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })}>
+                    <div className="reveal" style={{ background: 'white', borderRadius: '24px', padding: '32px', maxWidth: '400px', width: '100%' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 800 }}>Lý do từ chối</h3>
+                        <textarea value={rejectModal.reason} onChange={e => setRejectModal({ ...rejectModal, reason: e.target.value })} placeholder="Nhập lý do gửi bác sĩ..." style={{ width: '100%', minHeight: '120px', padding: '16px', borderRadius: '16px', border: '1.5px solid #e2e8f0', outline: 'none', marginBottom: '24px' }} />
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: 'white', fontWeight: 700, cursor: 'pointer' }}>Quay lại</button>
+                            <button onClick={handleReject} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Gửi từ chối</button>
                         </div>
                     </div>
                 </div>

@@ -60,10 +60,27 @@ const RelativeManagement = () => {
         setShowModal(true)
     }
 
+    const validateForm = () => {
+        if (!formData.fullName.trim()) return "Họ tên không được để trống"
+        if (!formData.phoneNumber.match(/^(0|\+84)(\s|\.)?((3[2-9])|(5[689])|(7[06-9])|(8[1-689])|(9[0-46-9]))(\d)(\s|\.)?(\d{3})(\s|\.)?(\d{3})$/)) {
+            return "Số điện thoại không đúng định dạng Việt Nam"
+        }
+        if (!formData.dateOfBirth) return "Vui lòng chọn ngày sinh"
+        if (!formData.relationship.trim()) return "Vui lòng nhập mối quan hệ"
+        if (!formData.address.trim()) return "Địa chỉ không được để trống"
+        return null
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
-        setSubmitting(true)
+        
+        const errorMsg = validateForm()
+        if (errorMsg) {
+            toast.error(errorMsg)
+            return
+        }
 
+        setSubmitting(true)
         try {
             if (editingRelative) {
                 await patientService.updateRelative(editingRelative.patientId, formData)
@@ -93,347 +110,222 @@ const RelativeManagement = () => {
         }
     }
 
-    const getGenderStyles = (gender) => {
-        switch (gender) {
-            case 'MALE': return { bg: '#e0f2fe', color: '#0369a1', text: 'Nam' }
-            case 'FEMALE': return { bg: '#fdf2f8', color: '#be185d', text: 'Nữ' }
-            default: return { bg: '#f1f5f9', color: '#475569', text: gender }
-        }
+    const getGenderLabel = (gender) => {
+        return gender === 'MALE' ? 'Nam' : gender === 'FEMALE' ? 'Nữ' : 'Khác'
     }
 
     if (loading) {
         return (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
                 {[1, 2, 3].map(i => (
-                    <div key={i} className="skeleton" style={{ height: '240px', width: '100%', borderRadius: '20px' }} />
+                    <div key={i} className="skeleton-pulse" style={{ height: '180px', width: '100%', borderRadius: '24px', background: '#f1f5f9' }} />
                 ))}
-            </div>
-        )
-    }
-
-    if (error) {
-        return (
-            <div className="reveal" style={{ textAlign: 'center', padding: '60px' }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-                <h3 style={{ color: '#ef4444', margin: '0 0 8px' }}>Lỗi tải dữ liệu</h3>
-                <p style={{ color: '#64748b' }}>{error}</p>
-                <button 
-                    onClick={fetchRelatives}
-                    style={{ marginTop: '16px', color: '#6366f1', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer' }}
-                >
-                    Thử lại
-                </button>
             </div>
         )
     }
 
     return (
         <div className="reveal">
+            <style>{`
+                .relative-card {
+                    background: white;
+                    border-radius: 24px;
+                    padding: 24px;
+                    border: 1px solid #f1f5f9;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+                .relative-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+                    border-color: #6366f1;
+                }
+                .relative-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; width: 4px; height: 100%;
+                    background: #6366f1;
+                    opacity: 0;
+                    transition: opacity 0.3s;
+                }
+                .relative-card:hover::before {
+                    opacity: 1;
+                }
+                .info-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 12px;
+                    color: #475569;
+                    font-size: 14px;
+                }
+                .info-icon {
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #f8fafc;
+                    border-radius: 8px;
+                    font-size: 12px;
+                }
+                .floating-label-input {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+                .floating-label-input label {
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #64748b;
+                    margin-left: 4px;
+                }
+                .floating-label-input input, .floating-label-input select {
+                    padding: 12px 16px;
+                    border-radius: 12px;
+                    border: 1.5px solid #e2e8f0;
+                    font-size: 15px;
+                    color: #1e293b;
+                    outline: none;
+                    transition: all 0.2s;
+                }
+                .floating-label-input input:focus, .floating-label-input select:focus {
+                    border-color: #6366f1;
+                    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+                }
+            `}</style>
+            
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>Hồ sơ người thân</h2>
-                    <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#64748b' }}>Quản lý thông tin y tế cho gia đình bạn.</p>
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>Hồ sơ người thân</h2>
+                    <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#64748b' }}>Lưu trữ thông tin để đặt lịch khám nhanh chóng hơn.</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
                     style={{
-                        padding: '12px 24px',
-                        borderRadius: '14px',
+                        padding: '14px 28px',
+                        borderRadius: '16px',
                         border: 'none',
-                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                        background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
                         color: 'white',
                         cursor: 'pointer',
                         fontWeight: '700',
-                        fontSize: '14px',
+                        fontSize: '15px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)'
+                        gap: '10px',
+                        boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)'
                     }}
                 >
-                    <span style={{ fontSize: '18px' }}>+</span> Thêm người thân
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Thêm hồ sơ mới
                 </button>
             </div>
 
-            {relatives.length === 0 ? (
-                <div 
-                    className="premium-card" 
-                    style={{ textAlign: 'center', padding: '80px 40px', background: 'linear-gradient(to bottom, #fff, #f8fafc)' }}
-                >
-                    <div style={{ 
-                        width: '80px', height: '80px', borderRadius: '50%', 
-                        background: '#eef2ff', display: 'flex', alignItems: 'center', 
-                        justifyContent: 'center', margin: '0 auto 24px', fontSize: '32px' 
-                    }}>
-                        👨‍👩‍👧
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '24px' }}>
+                {relatives.length === 0 ? (
+                    <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '80px', background: '#f8fafc', borderRadius: '32px', border: '2px dashed #e2e8f0' }}>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📂</div>
+                        <h3 style={{ color: '#64748b', margin: 0 }}>Chưa có hồ sơ người thân nào</h3>
+                        <p style={{ color: '#94a3b8', marginTop: '8px' }}>Hãy nhấn vào nút "Thêm hồ sơ mới" để bắt đầu.</p>
                     </div>
-                    <h3 style={{ color: '#1e293b', margin: '0 0 8px', fontSize: '20px', fontWeight: 800 }}>Chưa có hồ sơ nào</h3>
-                    <p style={{ color: '#64748b', fontSize: '15px', maxWidth: '360px', margin: '0 auto 28px' }}>
-                        Hãy thêm thông tin người thân để bạn có thể dễ dàng đặt lịch khám cho cả gia đình.
-                    </p>
-                    <button
-                        onClick={() => handleOpenModal()}
-                        style={{ background: 'none', border: '2px dashed #6366f1', color: '#6366f1', padding: '10px 24px', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}
-                    >
-                        Bắt đầu ngay
-                    </button>
-                </div>
-            ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
-                    {relatives.map(relative => {
-                        const gender = getGenderStyles(relative.gender);
-                        return (
-                            <div
-                                key={relative.patientId}
-                                className="premium-card"
-                                style={{ padding: '24px', position: 'relative', overflow: 'hidden' }}
-                            >
-                                <div style={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', background: gender.bg }} />
-                                
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                        <div style={{ 
-                                            width: '48px', height: '48px', borderRadius: '14px', 
-                                            background: '#f1f5f9', display: 'flex', alignItems: 'center', 
-                                            justifyContent: 'center', fontSize: '20px' 
-                                        }}>
-                                            👤
-                                        </div>
-                                        <div>
-                                            <h4 style={{ margin: 0, color: '#1e293b', fontSize: '16px', fontWeight: 800 }}>{relative.fullName}</h4>
-                                            <span style={{ 
-                                                fontSize: '12px', fontWeight: 700, 
-                                                color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.05em' 
-                                            }}>
-                                                {relative.relationship || 'Người thân'}
-                                            </span>
-                                        </div>
+                ) : (
+                    relatives.map(r => (
+                        <div key={r.patientId} className="relative-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: r.gender === 'MALE' ? '#e0f2fe' : '#fce7f3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                                        {r.gender === 'MALE' ? '👨' : '👩'}
                                     </div>
-                                    <div style={{ 
-                                        padding: '4px 10px', borderRadius: '8px', 
-                                        background: gender.bg, color: gender.color, 
-                                        fontSize: '11px', fontWeight: 800 
-                                    }}>
-                                        {gender.text}
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#1e293b' }}>{r.fullName}</h3>
+                                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.relationship}</span>
                                     </div>
                                 </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', color: '#475569', fontSize: '14px', marginBottom: '24px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <span style={{ fontSize: '16px', opacity: 0.7 }}>📱</span>
-                                        <span style={{ fontWeight: 600 }}>{relative.phoneNumber || 'Chưa cập nhật'}</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <span style={{ fontSize: '16px', opacity: 0.7 }}>🎂</span>
-                                        <span style={{ fontWeight: 600 }}>{relative.dateOfBirth || 'Chưa cập nhật'}</span>
-                                    </div>
-                                    {relative.address && (
-                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginTop: '4px' }}>
-                                            <span style={{ fontSize: '16px', opacity: 0.7 }}>📍</span>
-                                            <span style={{ lineHeight: 1.4, color: '#64748b' }}>{relative.address}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button
-                                        onClick={() => handleOpenModal(relative)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '10px',
-                                            borderRadius: '12px',
-                                            border: '1px solid #e2e8f0',
-                                            background: '#fff',
-                                            color: '#1e293b',
-                                            fontWeight: '700',
-                                            fontSize: '13px',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={e => e.currentTarget.style.borderColor = '#6366f1'}
-                                        onMouseLeave={e => e.currentTarget.style.borderColor = '#e2e8f0'}
-                                    >
-                                        ✏️ Sửa
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button onClick={() => handleOpenModal(r)} style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </button>
-                                    <button
-                                        onClick={() => handleDelete(relative.patientId)}
-                                        style={{
-                                            padding: '10px 16px',
-                                            borderRadius: '12px',
-                                            border: '1px solid #fee2e2',
-                                            background: '#fff',
-                                            color: '#ef4444',
-                                            fontWeight: '700',
-                                            fontSize: '13px',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s'
-                                        }}
-                                        onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
-                                        onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-                                    >
-                                        🗑️
+                                    <button onClick={() => handleDelete(r.patientId)} style={{ background: '#fee2e2', border: 'none', width: '32px', height: '32px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     </button>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-            )}
+                            
+                            <div className="info-item">
+                                <div className="info-icon">🎂</div>
+                                <span>{new Date(r.dateOfBirth).toLocaleDateString('vi-VN')} ({getGenderLabel(r.gender)})</span>
+                            </div>
+                            <div className="info-item">
+                                <div className="info-icon">📞</div>
+                                <span>{r.phoneNumber}</span>
+                            </div>
+                            <div className="info-item">
+                                <div className="info-icon">📍</div>
+                                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.address}</span>
+                            </div>
+                            
+                            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'center' }}>
+                                <button style={{ background: 'none', border: 'none', fontSize: '13px', fontWeight: 700, color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    Xem lịch sử khám bệnh
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
 
-            {/* Modal */}
             {showModal && (
-                <div
-                    className="glass"
-                    style={{
-                        position: 'fixed',
-                        inset: 0,
-                        zIndex: 1000,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        padding: '20px',
-                        background: 'rgba(0,0,0,0.4)',
-                        backdropFilter: 'blur(8px)'
-                    }}
-                    onClick={() => setShowModal(false)}
-                >
-                    <div
-                        className="premium-card reveal"
-                        style={{
-                            maxWidth: '500px',
-                            width: '100%',
-                            maxHeight: '90vh',
-                            overflowY: 'auto',
-                            padding: '32px'
-                        }}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-                            <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>
-                                {editingRelative ? 'Cập nhật hồ sơ' : 'Thêm người thân'}
-                            </h3>
-                            <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#cbd5e1' }}>×</button>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }} onClick={() => setShowModal(false)}>
+                    <div className="reveal" style={{ background: 'white', borderRadius: '32px', padding: '40px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.2)' }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                            <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>{editingRelative ? 'Chỉnh sửa hồ sơ' : 'Thêm người thân mới'}</h3>
+                            <button onClick={() => setShowModal(false)} style={{ background: '#f8fafc', border: 'none', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', color: '#64748b', fontSize: '20px' }}>×</button>
                         </div>
 
-                        <form onSubmit={handleSubmit}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '14px' }}>
-                                        Họ và tên <span style={{ color: '#ef4444' }}>*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.fullName}
-                                        onChange={e => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                                        placeholder="Nhập tên đầy đủ..."
-                                        required
-                                        className="premium-input-style"
-                                        style={{
-                                            width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                            border: '1px solid #e2e8f0', fontSize: '14px', boxSizing: 'border-box'
-                                        }}
-                                    />
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                <div className="floating-label-input">
+                                    <label>Họ tên đầy đủ *</label>
+                                    <input type="text" placeholder="VD: Nguyễn Văn A" value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} required />
                                 </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '14px' }}>Số điện thoại</label>
-                                        <input
-                                            type="tel"
-                                            value={formData.phoneNumber}
-                                            onChange={e => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                                            placeholder="09xx..."
-                                            style={{
-                                                width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                                border: '1px solid #e2e8f0', fontSize: '14px', boxSizing: 'border-box'
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '14px' }}>Mối quan hệ</label>
-                                        <input
-                                            type="text"
-                                            value={formData.relationship}
-                                            onChange={e => setFormData(prev => ({ ...prev, relationship: e.target.value }))}
-                                            placeholder="Con, Bố, Mẹ..."
-                                            style={{
-                                                width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                                border: '1px solid #e2e8f0', fontSize: '14px', boxSizing: 'border-box'
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '16px' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '14px' }}>Ngày sinh</label>
-                                        <input
-                                            type="date"
-                                            value={formData.dateOfBirth}
-                                            onChange={e => setFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-                                            style={{
-                                                width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                                border: '1px solid #e2e8f0', fontSize: '14px', boxSizing: 'border-box',
-                                                fontFamily: 'inherit'
-                                            }}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '14px' }}>Giới tính</label>
-                                        <select
-                                            value={formData.gender}
-                                            onChange={e => setFormData(prev => ({ ...prev, gender: e.target.value }))}
-                                            style={{
-                                                width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                                border: '1px solid #e2e8f0', fontSize: '14px', boxSizing: 'border-box',
-                                                fontFamily: 'inherit', background: '#fff'
-                                            }}
-                                        >
-                                            <option value="MALE">Nam</option>
-                                            <option value="FEMALE">Nữ</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '14px' }}>Địa chỉ liên hệ</label>
-                                    <textarea
-                                        value={formData.address}
-                                        onChange={e => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                                        placeholder="Nhập địa chỉ cư trú..."
-                                        style={{
-                                            width: '100%', padding: '12px 16px', borderRadius: '12px',
-                                            border: '1px solid #e2e8f0', fontSize: '14px', boxSizing: 'border-box',
-                                            minHeight: '80px', resize: 'none', fontFamily: 'inherit'
-                                        }}
-                                    />
+                                <div className="floating-label-input">
+                                    <label>Số điện thoại *</label>
+                                    <input type="tel" placeholder="VD: 0987654321" value={formData.phoneNumber} onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })} required />
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    style={{
-                                        flex: 1, padding: '14px', borderRadius: '14px',
-                                        border: '1px solid #e2e8f0', background: '#fff',
-                                        fontWeight: '700', cursor: 'pointer'
-                                    }}
-                                >
-                                    Hủy
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={submitting}
-                                    style={{
-                                        flex: 2, padding: '14px', borderRadius: '14px',
-                                        border: 'none', background: submitting ? '#cbd5e1' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                                        color: 'white', fontWeight: '700', cursor: submitting ? 'not-allowed' : 'pointer',
-                                        boxShadow: '0 8px 20px rgba(99, 102, 241, 0.25)'
-                                    }}
-                                >
-                                    {submitting ? '⏳ Đang lưu...' : 'Lưu hồ sơ'}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                <div className="floating-label-input">
+                                    <label>Ngày sinh *</label>
+                                    <input type="date" value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} required />
+                                </div>
+                                <div className="floating-label-input">
+                                    <label>Giới tính *</label>
+                                    <select value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} required>
+                                        <option value="MALE">Nam</option>
+                                        <option value="FEMALE">Nữ</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="floating-label-input">
+                                <label>Mối quan hệ *</label>
+                                <input type="text" placeholder="VD: Bố, Mẹ, Con, Vợ..." value={formData.relationship} onChange={e => setFormData({ ...formData, relationship: e.target.value })} required />
+                            </div>
+
+                            <div className="floating-label-input">
+                                <label>Địa chỉ liên lạc *</label>
+                                <input type="text" placeholder="Nhập địa chỉ chi tiết" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} required />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+                                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '16px', borderRadius: '16px', border: '1.5px solid #e2e8f0', background: 'white', color: '#64748b', cursor: 'pointer', fontWeight: 700, fontSize: '15px' }}>Hủy bỏ</button>
+                                <button type="submit" disabled={submitting} style={{ flex: 2, padding: '16px', borderRadius: '16px', border: 'none', background: submitting ? '#cbd5e1' : 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '15px', boxShadow: submitting ? 'none' : '0 10px 15px -3px rgba(99, 102, 241, 0.3)' }}>
+                                    {submitting ? 'Đang lưu...' : editingRelative ? 'Cập nhật hồ sơ' : 'Lưu hồ sơ ngay'}
                                 </button>
                             </div>
                         </form>

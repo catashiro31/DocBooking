@@ -335,54 +335,37 @@ const DoctorDashboard = () => {
                     <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #e5e7eb' }} />
 
                     <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <Link
-                            to="/doctor/profile"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '12px 16px',
-                                borderRadius: '10px',
-                                color: '#374151',
-                                textDecoration: 'none',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <span>👩‍⚕️</span>
-                            <span>Hồ sơ chuyên môn</span>
-                        </Link>
-                        <Link
-                            to="/profile"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '12px 16px',
-                                borderRadius: '10px',
-                                color: '#374151',
-                                textDecoration: 'none',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <span>👤</span>
-                            <span>Thông tin cá nhân</span>
-                        </Link>
-                        <Link
-                            to="/change-password"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '12px 16px',
-                                borderRadius: '10px',
-                                color: '#374151',
-                                textDecoration: 'none',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <span>🔐</span>
-                            <span>Đổi mật khẩu</span>
-                        </Link>
+                        {[
+                            { to: "/doctor/profile", icon: "👩‍⚕️", label: "Hồ sơ chuyên môn" },
+                            { to: "/profile", icon: "👤", label: "Thông tin cá nhân" },
+                            { to: "/change-password", icon: "🔐", label: "Đổi mật khẩu" }
+                        ].map((link) => {
+                            const isActive = location.pathname === link.to;
+                            return (
+                                <Link
+                                    key={link.to}
+                                    to={link.to}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        padding: '12px 16px',
+                                        borderRadius: '10px',
+                                        color: isActive ? 'white' : '#374151',
+                                        background: isActive ? '#5f6dfc' : 'transparent',
+                                        textDecoration: 'none',
+                                        fontSize: '15px',
+                                        fontWeight: isActive ? '500' : '400',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={e => !isActive && (e.currentTarget.style.background = '#f1f5f9')}
+                                    onMouseOut={e => !isActive && (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <span>{link.icon}</span>
+                                    <span>{link.label}</span>
+                                </Link>
+                            );
+                        })}
                     </nav>
                 </aside>
 

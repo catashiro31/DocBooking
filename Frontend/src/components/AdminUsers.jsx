@@ -11,17 +11,17 @@ const AdminUsers = () => {
     const [blockModal, setBlockModal] = useState({ show: false, user: null, reason: "" })
 
     useEffect(() => {
-        fetchUsers()
+        fetchUsers(page)
     }, [page])
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (pageNum) => {
         try {
             setLoading(true)
-            const data = await adminService.getAllUsers(page, 10)
-            setUsers(data?.content || data || [])
-            setTotalPages(data?.totalPages || 1)
+            const data = await adminService.getAllUsers(pageNum, 10)
+            setUsers(data?.content || [])
+            setTotalPages(data?.totalPages || 0)
         } catch (err) {
-            setError("Không thể tải danh sách người dùng")
+            setError("Không thể nạp danh sách người dùng")
             console.error(err)
         } finally {
             setLoading(false)
@@ -30,323 +30,170 @@ const AdminUsers = () => {
 
     const handleBlock = async () => {
         if (!blockModal.user || !blockModal.reason.trim()) {
-            toast.warning("Vui lòng nhập lý do khóa tài khoản")
+            toast.warning("Vui lòng nhập lý do khóa")
             return
         }
 
         try {
             await adminService.blockUser(blockModal.user.userId, blockModal.reason)
-            toast.success("Đã khóa tài khoản thành công")
+            toast.success("Đã khóa tài khoản người dùng")
             setBlockModal({ show: false, user: null, reason: "" })
-            fetchUsers()
+            fetchUsers(page)
         } catch (err) {
             toast.error(err.response?.data || "Không thể khóa tài khoản")
         }
     }
 
-    const getRoleStyle = (role) => {
-        const styles = {
-            'ADMIN': { background: '#fefce8', color: '#854d0e', border: '#fef08a' },
-            'DOCTOR': { background: '#eff6ff', color: '#1e40af', border: '#dbeafe' },
-            'PATIENT': { background: '#f0fdf4', color: '#166534', border: '#dcfce7' }
+    const handleUnblock = async (userId) => {
+        if (!window.confirm("Mở khóa tài khoản này?")) return
+        try {
+            await adminService.unblockUser(userId)
+            toast.success("Đã mở khóa tài khoản")
+            fetchUsers(page)
+        } catch (err) {
+            toast.error(err.response?.data || "Không thể mở khóa")
         }
-        return styles[role] || { background: '#f8fafc', color: '#64748b', border: '#f1f5f9' }
+    }
+
+    const getRoleBadge = (role) => {
+        const styles = {
+            ADMIN: { bg: '#fee2e2', color: '#dc2626', icon: '👑' },
+            DOCTOR: { bg: '#eef2ff', color: '#4f46e5', icon: '👨‍⚕️' },
+            PATIENT: { bg: '#f0fdf4', color: '#16a34a', icon: '👤' }
+        }
+        const s = styles[role] || { bg: '#f1f5f9', color: '#475569', icon: '❓' }
+        return (
+            <span style={{ 
+                background: s.bg, color: s.color, 
+                padding: '4px 10px', borderRadius: '8px', 
+                fontSize: '12px', fontWeight: 800,
+                display: 'inline-flex', alignItems: 'center', gap: '4px'
+            }}>
+                {s.icon} {role}
+            </span>
+        )
     }
 
     return (
-        <div className="admin-view-transition">
+        <div className="reveal">
             <style>{`
-                .admin-view-transition {
-                    animation: slideUp 0.4s ease-out;
-                }
-                @keyframes slideUp {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
-                .user-card-container {
-                    background: #ffffff;
-                    border-radius: 24px;
-                    border: 1px solid #f1f5f9;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-                    overflow: hidden;
-                }
-
-                .table-premium {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-                .table-premium th {
-                    padding: 18px 24px;
-                    background: #f8fafc;
-                    font-size: 11px;
-                    font-weight: 700;
-                    color: #94a3b8;
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                    text-align: left;
-                    border-bottom: 1px solid #f1f5f9;
-                }
-                .table-premium td {
-                    padding: 20px 24px;
-                    border-bottom: 1px solid #f1f5f9;
-                    font-size: 14px;
-                }
-                .table-premium tr:last-child td {
-                    border-bottom: none;
-                }
-                .table-premium tr:hover {
-                    background: #fafbfc;
-                }
-
-                .role-badge {
-                    display: inline-flex;
-                    padding: 4px 10px;
-                    border-radius: 8px;
-                    font-size: 11px;
-                    font-weight: 800;
-                    border: 1px solid;
-                }
-
-                .status-indicator {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    font-weight: 600;
-                    font-size: 13px;
-                }
-
-                .pagination-btn {
-                    padding: 10px 20px;
-                    border-radius: 12px;
-                    border: 1px solid #e2e8f0;
-                    background: #ffffff;
-                    color: #1e293b;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .pagination-btn:hover:not(:disabled) {
-                    background: #f8fafc;
-                    border-color: #cbd5e1;
-                    transform: translateY(-1px);
-                }
-                .pagination-btn:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                }
-
-                .block-modal-overlay {
-                    position: fixed;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(15, 23, 42, 0.6);
-                    backdrop-filter: blur(4px);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1000;
-                    animation: fadeIn 0.2s ease-out;
-                }
-                .block-modal-content {
-                    background: #ffffff;
-                    border-radius: 24px;
-                    padding: 32px;
-                    width: 100%;
-                    maxWidth: 480px;
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-                    animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-                }
-                @keyframes zoomIn {
-                    from { opacity: 0; transform: scale(0.95); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-
-                .btn-danger {
-                    background: #ef4444;
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 12px;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .btn-danger:hover {
-                    background: #dc2626;
-                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-                }
+                .premium-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
+                .premium-table th { padding: 16px; text-align: left; color: #64748b; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+                .premium-table tr td { padding: 16px; background: white; transition: all 0.2s; }
+                .premium-table tr td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid #f1f5f9; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+                .premium-table tr td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid #f1f5f9; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+                .premium-table tr:hover td { background: #f8fafc; transform: scaleY(1.02); border-color: #e2e8f0; }
+                .user-avatar { width: 44px; height: 44px; border-radius: 14px; background: #f1f5f9; overflow: hidden; display: flex; alignItems: center; justifyContent: center; font-weight: 800; color: #64748b; }
+                .pagination-dot { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; cursor: pointer; transition: all 0.2s; }
+                .pagination-dot.active { background: #6366f1; transform: scale(1.5); }
             `}</style>
 
-            <div style={{ marginBottom: '32px' }}>
-                <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: '#1e293b' }}>Quản lý người dùng</h2>
-                <p style={{ margin: '8px 0 0', fontSize: '15px', color: '#64748b' }}>Phân quyền, kiểm soát truy cập và bảo mật tài khoản toàn hệ thống</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div>
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>Quản lý người dùng</h2>
+                    <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#64748b' }}>Phân quyền, kiểm soát trạng thái hoạt động toàn hệ thống.</p>
+                </div>
             </div>
 
-            <div className="user-card-container">
-                <table className="table-premium">
-                    <thead>
-                        <tr>
-                            <th>Hồ sơ thành viên</th>
-                            <th>Vai trò</th>
-                            <th>Trạng thái tài khoản</th>
-                            <th style={{ textAlign: 'center' }}>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading && users.length === 0 ? (
-                            <tr><td colSpan="4" style={{ textAlign: 'center', padding: '100px', color: '#94a3b8' }}>Đang tải danh sách...</td></tr>
-                        ) : users.map(user => (
-                            <tr key={user.userId}>
-                                <td>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ 
-                                            width: 40, height: 40, borderRadius: 12, 
-                                            background: `linear-gradient(135deg, #f1f5f9, #e2e8f0)`,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: 16, color: '#64748b', fontWeight: 700
-                                        }}>
-                                            {user.fullName?.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <div style={{ fontWeight: 700, color: '#1e293b' }}>{user.fullName}</div>
-                                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>{user.email}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span 
-                                        className="role-badge"
-                                        style={{
-                                            background: getRoleStyle(user.role).background,
-                                            color: getRoleStyle(user.role).color,
-                                            borderColor: getRoleStyle(user.role).border
-                                        }}
-                                    >
-                                        {user.role}
-                                    </span>
-                                </td>
-                                <td>
-                                    {user.isActive ? (
-                                        <div className="status-indicator" style={{ color: '#10b981' }}>
-                                            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
-                                            Đang hoạt động
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <div className="status-indicator" style={{ color: '#ef4444' }}>
-                                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
-                                                Đã khóa
-                                            </div>
-                                            {user.reasonBanned && (
-                                                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', maxWidth: '200px' }}>
-                                                    Lý do: {user.reasonBanned}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </td>
-                                <td style={{ textAlign: 'center' }}>
-                                    {user.role !== 'ADMIN' && user.isActive && (
-                                        <button
-                                            className="pagination-btn"
-                                            style={{ color: '#ef4444', borderColor: '#fee2e2', padding: '6px 14px' }}
-                                            onClick={() => setBlockModal({ show: true, user, reason: "" })}
-                                        >
-                                            Khóa tài khoản
-                                        </button>
-                                    )}
-                                </td>
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '100px' }}>
+                    <div className="skeleton-pulse" style={{ height: '400px', borderRadius: '24px' }} />
+                </div>
+            ) : (
+                <>
+                    <table className="premium-table">
+                        <thead>
+                            <tr>
+                                <th>Thành viên</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái</th>
+                                <th style={{ textAlign: 'right' }}>Hành động</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {users.map(u => (
+                                <tr key={u.userId}>
+                                    <td>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                            <div className="user-avatar">
+                                                {u.avatarUrl ? (
+                                                    <img src={u.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                         onError={(e) => { e.target.src = ''; e.target.parentElement.innerHTML = u.fullName?.charAt(0) || 'U' }} />
+                                                ) : (
+                                                    u.fullName?.charAt(0) || 'U'
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '15px' }}>{u.fullName}</div>
+                                                <div style={{ color: '#94a3b8', fontSize: '12px' }}>{u.email}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{getRoleBadge(u.role)}</td>
+                                    <td>
+                                        {u.isActive ? (
+                                            <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700 }}>
+                                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} /> Hoạt động
+                                            </span>
+                                        ) : (
+                                            <div>
+                                                <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700 }}>
+                                                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} /> Bị khóa
+                                                </span>
+                                                {u.reasonBanned && <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px', maxWidth: '150px' }}>{u.reasonBanned}</div>}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                        {u.role !== 'ADMIN' && (
+                                            u.isActive ? (
+                                                <button 
+                                                    onClick={() => setBlockModal({ show: true, user: u, reason: "" })}
+                                                    style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                                                >
+                                                    Khóa
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => handleUnblock(u.userId)}
+                                                    style={{ background: '#dcfce7', color: '#16a34a', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                                                >
+                                                    Mở khóa
+                                                </button>
+                                            )
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div style={{ 
-                        padding: '24px 32px', 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'center',
-                        borderTop: '1px solid #f1f5f9',
-                        background: '#f8fafc'
-                    }}>
-                        <span style={{ fontSize: '14px', color: '#64748b' }}>
-                            Trang <strong>{page + 1}</strong> trên <strong>{totalPages}</strong>
-                        </span>
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                            <button
-                                className="pagination-btn"
-                                onClick={() => setPage(p => Math.max(0, p - 1))}
-                                disabled={page === 0}
-                            >
-                                Trước
-                            </button>
-                            <button
-                                className="pagination-btn"
-                                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                                disabled={page >= totalPages - 1}
-                            >
-                                Tiếp theo
-                            </button>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginTop: '32px' }}>
+                        <button disabled={page === 0} onClick={() => setPage(p => p - 1)} style={{ background: 'none', border: 'none', color: page === 0 ? '#cbd5e1' : '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Trước</button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            {[...Array(totalPages)].map((_, i) => (
+                                <div key={i} className={`pagination-dot ${page === i ? 'active' : ''}`} onClick={() => setPage(i)} />
+                            ))}
                         </div>
+                        <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} style={{ background: 'none', border: 'none', color: page >= totalPages - 1 ? '#cbd5e1' : '#6366f1', fontWeight: 800, cursor: 'pointer' }}>Sau →</button>
                     </div>
-                )}
-            </div>
+                </>
+            )}
 
-            {/* Block Modal */}
             {blockModal.show && (
-                <div className="block-modal-overlay" onClick={() => setBlockModal({ show: false, user: null, reason: "" })}>
-                    <div className="block-modal-content" onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>Xác nhận khóa tài khoản</h3>
-                            <button onClick={() => setBlockModal({ show: false, user: null, reason: "" })} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: '#94a3b8' }}>×</button>
-                        </div>
-                        
-                        <p style={{ color: '#475569', fontSize: '15px', lineHeight: 1.6, marginBottom: '24px' }}>
-                            Bạn đang thực hiện khóa tài khoản của <strong>{blockModal.user?.fullName}</strong>. Người dùng này sẽ không thể đăng nhập vào hệ thống cho đến khi được mở khóa.
-                        </p>
-
-                        <div style={{ marginBottom: '24px' }}>
-                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
-                                Lý do khóa (Bắt buộc)
-                            </label>
-                            <textarea
-                                value={blockModal.reason}
-                                onChange={e => setBlockModal(prev => ({ ...prev, reason: e.target.value }))}
-                                placeholder="Nhập lý do cụ thể..."
-                                style={{
-                                    width: '100%',
-                                    padding: '14px',
-                                    borderRadius: '12px',
-                                    border: '1px solid #e2e8f0',
-                                    minHeight: '100px',
-                                    fontSize: '14px',
-                                    outline: 'none',
-                                    transition: 'border-color 0.2s',
-                                    boxSizing: 'border-box'
-                                }}
-                                onFocus={e => e.target.style.borderColor = '#6366f1'}
-                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '16px' }}>
-                            <button
-                                className="pagination-btn"
-                                style={{ flex: 1 }}
-                                onClick={() => setBlockModal({ show: false, user: null, reason: "" })}
-                            >
-                                Hủy bỏ
-                            </button>
-                            <button
-                                className="btn-danger"
-                                style={{ flex: 1.5 }}
-                                onClick={handleBlock}
-                            >
-                                Khóa tài khoản ngay
-                            </button>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '20px' }} onClick={() => setBlockModal({ show: false, user: null, reason: "" })}>
+                    <div className="reveal" style={{ background: 'white', borderRadius: '24px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.2)' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ margin: '0 0 12px', fontSize: '20px', fontWeight: 800 }}>Khóa tài khoản</h3>
+                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '20px' }}>Lý do khóa tài khoản của <b>{blockModal.user?.fullName}</b>:</p>
+                        <textarea 
+                            value={blockModal.reason}
+                            onChange={e => setBlockModal({ ...blockModal, reason: e.target.value })}
+                            placeholder="Nhập lý do chi tiết..."
+                            style={{ width: '100%', minHeight: '100px', padding: '16px', borderRadius: '16px', border: '1.5px solid #e2e8f0', outline: 'none', fontSize: '14px', marginBottom: '24px' }}
+                        />
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button onClick={() => setBlockModal({ show: false, user: null, reason: "" })} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: 'white', fontWeight: 700, cursor: 'pointer' }}>Hủy</button>
+                            <button onClick={handleBlock} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Gửi lệnh khóa</button>
                         </div>
                     </div>
                 </div>

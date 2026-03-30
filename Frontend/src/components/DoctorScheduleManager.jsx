@@ -3,9 +3,8 @@ import { doctorService } from "../services/doctorService"
 import { toast } from 'react-toastify'
 
 const TIME_SLOTS = [
-    'SLOT_07_00', 'SLOT_07_30', 'SLOT_08_00', 'SLOT_08_30', 'SLOT_09_00', 'SLOT_09_30',
-    'SLOT_10_00', 'SLOT_10_30', 'SLOT_11_00', 'SLOT_11_30', 'SLOT_13_00', 'SLOT_13_30',
-    'SLOT_14_00', 'SLOT_14_30', 'SLOT_15_00', 'SLOT_15_30', 'SLOT_16_00', 'SLOT_16_30'
+    'SLOT_09_00', 'SLOT_10_00', 'SLOT_11_00', 
+    'SLOT_14_00', 'SLOT_15_00', 'SLOT_16_00', 'SLOT_17_00'
 ]
 
 const formatTimeSlot = (slot) => {
@@ -294,7 +293,7 @@ const DoctorScheduleManager = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                                 {TIME_SLOTS.map(slot => (
                                     <button
                                         key={slot}

@@ -347,138 +347,161 @@ const DoctorAppointments = () => {
                 <div
                     style={{
                         position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
+                        inset: 0,
+                        background: 'rgba(15, 23, 42, 0.4)',
+                        backdropFilter: 'blur(8px)',
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        zIndex: 1000
+                        zIndex: 1000,
+                        padding: '20px'
                     }}
                     onClick={() => setShowResultModal(false)}
                 >
                     <div
+                        className="reveal"
                         style={{
                             background: 'white',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            maxWidth: '500px',
-                            width: '90%',
+                            borderRadius: '24px',
+                            padding: '32px',
+                            maxWidth: '550px',
+                            width: '100%',
                             maxHeight: '90vh',
-                            overflow: 'auto'
+                            overflow: 'auto',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+                            position: 'relative'
                         }}
                         onClick={e => e.stopPropagation()}
                     >
-                        <h3 style={{ marginBottom: '20px' }}>
-                            {resultMode === "edit" ? "Sửa kết quả khám" : "Kết quả khám bệnh"}
-                        </h3>
-                        <p style={{ color: '#6b7280', marginBottom: '20px' }}>
-                            Bệnh nhân: <strong>{selectedAppointment?.patientName}</strong>
-                        </p>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
-                                    Chẩn đoán *
+                                <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+                                    {resultMode === "edit" ? "Cập nhật kết quả" : "Trả kết quả khám"}
+                                </h3>
+                                <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
+                                    Bệnh nhân: <span style={{ color: '#0f172a', fontWeight: 700 }}>{selectedAppointment?.patientName}</span>
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setShowResultModal(false)}
+                                style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', color: '#64748b', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '13px', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Chẩn đoán bệnh <span style={{ color: '#ef4444' }}>*</span>
                                 </label>
                                 <textarea
                                     value={resultData.diagnosis}
                                     onChange={e => setResultData(prev => ({ ...prev, diagnosis: e.target.value }))}
-                                    placeholder="Nhập chẩn đoán..."
+                                    placeholder="Bác sĩ nhập chẩn đoán cụ thể..."
                                     style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #d1d5db',
-                                        minHeight: '80px',
-                                        resize: 'vertical',
-                                        boxSizing: 'border-box'
+                                        width: '100%', padding: '14px', borderRadius: '12px', border: '1.5px solid #cbd5e1',
+                                        minHeight: '100px', resize: 'vertical', boxSizing: 'border-box', fontSize: '15px', color: '#1e293b',
+                                        outline: 'none', transition: 'border-color 0.2s', fontFamily: 'inherit'
                                     }}
+                                    onFocus={e => e.target.style.borderColor = '#5f6dfc'}
+                                    onBlur={e => e.target.style.borderColor = '#cbd5e1'}
                                 />
                             </div>
 
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
-                                    Đơn thuốc (nội dung)
-                                </label>
-                                <textarea
-                                    value={resultData.prescription}
-                                    onChange={e => setResultData(prev => ({ ...prev, prescription: e.target.value }))}
-                                    placeholder="Ghi đơn thuốc dạng text..."
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #d1d5db',
-                                        minHeight: '80px',
-                                        resize: 'vertical',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '13px', color: '#64748b' }}>
+                                        Nội dung đơn thuốc (dạng text)
+                                    </label>
+                                    <textarea
+                                        value={resultData.prescription}
+                                        onChange={e => setResultData(prev => ({ ...prev, prescription: e.target.value }))}
+                                        placeholder="Tên thuốc, liều dùng..."
+                                        style={{
+                                            width: '100%', padding: '14px', borderRadius: '12px', border: '1.5px solid #e2e8f0',
+                                            minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', fontSize: '14px', color: '#475569',
+                                            outline: 'none', transition: 'border-color 0.2s', fontFamily: 'inherit'
+                                        }}
+                                        onFocus={e => e.target.style.borderColor = '#5f6dfc'}
+                                        onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '13px', color: '#64748b' }}>
+                                        Tệp đính kèm (Ảnh/PDF đơn thuốc)
+                                    </label>
+                                    <div style={{ position: 'relative', overflow: 'hidden' }}>
+                                        <input
+                                            type="file"
+                                            accept="image/*,.pdf"
+                                            onChange={e => setPrescriptionFile(e.target.files?.[0] || null)}
+                                            style={{
+                                                width: '100%', padding: '10px 14px', borderRadius: '12px', border: '1.5px dashed #cbd5e1',
+                                                background: '#f8fafc', fontSize: '13px', cursor: 'pointer'
+                                            }}
+                                        />
+                                        {prescriptionFile && (
+                                            <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#10b981', fontWeight: 600 }}>
+                                                ✓ Đã chọn: {prescriptionFile.name}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
-                                    Tệp đơn thuốc (ảnh/PDF, tùy chọn)
-                                </label>
-                                <input
-                                    type="file"
-                                    accept="image/*,.pdf"
-                                    onChange={e => setPrescriptionFile(e.target.files?.[0] || null)}
-                                    style={{ width: '100%' }}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>
-                                    Ghi chú / lời dặn
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '13px', color: '#64748b' }}>
+                                    Lời nhắn / Dặn dò bệnh nhân
                                 </label>
                                 <textarea
                                     value={resultData.notes}
                                     onChange={e => setResultData(prev => ({ ...prev, notes: e.target.value }))}
-                                    placeholder="Lời dặn, tái khám..."
+                                    placeholder="Dặn dò uống thuốc, ngày tái khám..."
                                     style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #d1d5db',
-                                        minHeight: '60px',
-                                        resize: 'vertical',
-                                        boxSizing: 'border-box'
+                                        width: '100%', padding: '14px', borderRadius: '12px', border: '1.5px solid #e2e8f0',
+                                        minHeight: '80px', resize: 'vertical', boxSizing: 'border-box', fontSize: '14px', color: '#475569',
+                                        outline: 'none', transition: 'border-color 0.2s', fontFamily: 'inherit'
                                     }}
+                                    onFocus={e => e.target.style.borderColor = '#5f6dfc'}
+                                    onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                                 />
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '32px', borderTop: '1px solid #f1f5f9', paddingTop: '24px' }}>
                             <button
                                 type="button"
                                 onClick={() => setShowResultModal(false)}
                                 style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #d1d5db',
-                                    background: 'white',
-                                    cursor: 'pointer'
+                                    flex: 1, padding: '14px', borderRadius: '14px', border: '1.5px solid #e2e8f0',
+                                    background: 'white', color: '#64748b', cursor: 'pointer', fontWeight: 700,
+                                    fontSize: '15px', transition: 'all 0.2s'
                                 }}
+                                onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
+                                onMouseOut={e => e.currentTarget.style.background = 'white'}
                             >
-                                Hủy
+                                Đóng
                             </button>
                             <button
                                 type="button"
                                 onClick={handleSubmitResult}
                                 disabled={submitting || !resultData.diagnosis?.trim()}
                                 style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    background: submitting || !resultData.diagnosis?.trim() ? '#ccc' : '#5f6dfc',
-                                    color: 'white',
-                                    cursor: submitting || !resultData.diagnosis?.trim() ? 'not-allowed' : 'pointer'
+                                    flex: 2, padding: '14px', borderRadius: '14px', border: 'none',
+                                    background: submitting || !resultData.diagnosis?.trim() ? '#cbd5e1' : 'linear-gradient(135deg, #5f6dfc, #3b82f6)',
+                                    color: 'white', cursor: submitting || !resultData.diagnosis?.trim() ? 'not-allowed' : 'pointer',
+                                    fontWeight: 700, fontSize: '15px', boxShadow: submitting ? 'none' : '0 8px 20px rgba(95,109,252,0.3)',
+                                    transition: 'all 0.2s'
                                 }}
                             >
-                                {submitting ? 'Đang lưu...' : resultMode === "edit" ? 'Cập nhật' : 'Lưu kết quả'}
+                                {submitting ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                        <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                                        Đang lưu...
+                                    </div>
+                                ) : resultMode === "edit" ? 'Cập nhật kết quả' : 'Lưu kết quả & Hoàn tất'}
                             </button>
                         </div>
                     </div>

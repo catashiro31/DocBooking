@@ -124,6 +124,11 @@ public class AdminController {
         return ResponseEntity.ok().body(adminService.setBlockedUser(id,reason));
     }
 
+    @PatchMapping("/users/{id}/unblock")
+    public ResponseEntity<?> setUnblocked(@PathVariable Integer id) {
+        return ResponseEntity.ok().body(adminService.unblockUser(id));
+    }
+
     @GetMapping("/appointments")
     public ResponseEntity<?> getAllAppointments(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,

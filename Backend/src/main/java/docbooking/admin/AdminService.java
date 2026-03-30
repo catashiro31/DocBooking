@@ -50,11 +50,12 @@ public class AdminService {
         // 3. Đóng gói vào kết quả trả về
         return Stat.builder()
                 .numberOfDoctors(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.DOCTOR, startDT, endDT))
-                .numberOfPatients(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.PATIENT, startDT, endDT))
+                .numberOfPatients(
+                        userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.PATIENT, startDT, endDT))
                 .numberOfSuccessAppointments(appStats.getCompleted())
                 .numberOfPendingAppointments(appStats.getPending())
                 .numberOfFailingAppointments(appStats.getCancelled())
-                
+
                 // Bổ sung các thông số tuyệt đối
                 .totalUsers(userRepository.count())
                 .totalDoctors(userRepository.countByRole(User.RoleStatus.DOCTOR))
@@ -62,7 +63,9 @@ public class AdminService {
                 .totalAppointments(appointmentRepository.count())
                 .totalReviews(reviewRepository.count())
                 .pendingDoctors(doctorDetail.countByVerificationStatus(DoctorDetail.VerificationStatus.PENDING))
-                .todayAppointments(todayStats != null ? (todayStats.getCompleted() + todayStats.getPending() + todayStats.getCancelled()) : 0)
+                .todayAppointments(todayStats != null
+                        ? (todayStats.getCompleted() + todayStats.getPending() + todayStats.getCancelled())
+                        : 0)
                 .build();
     }
 
@@ -132,8 +135,7 @@ public class AdminService {
         // Hủy tất cả lịch hẹn đang active của user này (với tư cách bệnh nhân)
         List<Appointment.BookingStatus> activeStatuses = List.of(
                 Appointment.BookingStatus.PENDING,
-                Appointment.BookingStatus.CONFIRMED
-        );
+                Appointment.BookingStatus.CONFIRMED);
         List<Appointment> activeAppointments = appointmentRepository.findByPatient_User_UserIdAndBookingStatusIn(
                 userId, activeStatuses);
         for (Appointment app : activeAppointments) {
@@ -147,11 +149,13 @@ public class AdminService {
             }
         }
 
-        // Nếu user là bác sĩ, hủy tất cả lịch hẹn của bệnh nhân với bác sĩ này và đóng các slot
+        // Nếu user là bác sĩ, hủy tất cả lịch hẹn của bệnh nhân với bác sĩ này và đóng
+        // các slot
         if (savedUser.getRole() == User.RoleStatus.DOCTOR) {
             // Hủy tất cả appointment đang active của bác sĩ
-            List<Appointment> doctorAppointments = appointmentRepository.findBySchedule_Doctor_User_UserIdAndBookingStatusIn(
-                    userId, activeStatuses);
+            List<Appointment> doctorAppointments = appointmentRepository
+                    .findBySchedule_Doctor_User_UserIdAndBookingStatusIn(
+                            userId, activeStatuses);
             for (Appointment app : doctorAppointments) {
                 app.setBookingStatus(Appointment.BookingStatus.CANCELLED);
                 appointmentRepository.save(app);
@@ -163,9 +167,19 @@ public class AdminService {
         contextEmail.sendPermanentBanEmail(
                 savedUser.getEmail(),
                 savedUser.getFullName(),
-                reason
-        );
+                reason);
         return "Đã khóa tài khoản id " + userId;
+    }
+
+    public String unblockUser(Integer userId) {
+        User user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new RuntimeException("Không tìm thấy người dùng với ID: " + userId);
+        }
+        user.setIsActive(true);
+        user.setReasonBanned(null);
+        userRepository.save(user);
+        return "Đã mở khóa tài khoản id " + userId;
     }
 
     public String addSpecialty(Specialty req) {
@@ -268,12 +282,14 @@ public class AdminService {
         return "Đã xóa thành công cơ sở!";
     }
 
-    public Page<AppointmentAdminResponse> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo, Appointment.BookingStatus status, Pageable pageable) {
+    public Page<AppointmentAdminResponse> getAllAppointments(LocalDateTime dateFrom, LocalDateTime dateTo,
+            Appointment.BookingStatus status, Pageable pageable) {
         if (dateFrom.isAfter(dateTo)) {
             throw new RuntimeException("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
         }
-        Page<Appointment> appointments = appointmentRepository.findAllByPeriodAndStatus(dateFrom, dateTo, status, pageable);
-        
+        Page<Appointment> appointments = appointmentRepository.findAllByPeriodAndStatus(dateFrom, dateTo, status,
+                pageable);
+
         return appointments.map(this::mapToAdminResponse);
     }
 
@@ -295,7 +311,9 @@ public class AdminService {
                 .specialtyName(d != null && d.getSpecialty() != null ? d.getSpecialty().getSpecialtyName() : "N/A")
                 .facilityName(d != null && d.getFacility() != null ? d.getFacility().getFacilityName() : "N/A")
                 .dateWorking(s != null ? s.getDateWorking() : null)
-                .timeSlot(s != null && s.getTimeSlot() != null ? s.getTimeSlot().name().replace("SLOT_", "").replace("_", ":") : "N/A")
+                .timeSlot(s != null && s.getTimeSlot() != null
+                        ? s.getTimeSlot().name().replace("SLOT_", "").replace("_", ":")
+                        : "N/A")
                 .reason(a.getReason())
                 .bookingStatus(a.getBookingStatus())
                 .createdAt(a.getCreatedAt())

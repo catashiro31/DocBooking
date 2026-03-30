@@ -20,6 +20,11 @@ export const adminService = {
         });
         return res.data;
     },
+    
+    unblockUser: async (userId) => {
+        const res = await api.patch(`/admin/users/${userId}/unblock`);
+        return res.data;
+    },
 
     getPendingDoctors: async () => {
         const res = await api.get("/admin/doctor-pending");

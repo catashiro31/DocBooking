@@ -18,7 +18,7 @@ const AdminDashboard = () => {
     const tabs = [
         { id: "stats", label: "Tổng quan", icon: "📊" },
         { id: "users", label: "Người dùng", icon: "👥" },
-        { id: "doctors", label: "Phê duyệt BS", icon: "👨‍⚕️" },
+        { id: "doctors", label: "Bác sĩ", icon: "👨‍⚕️" },
         { id: "appointments", label: "Lịch hẹn", icon: "📅" },
         { id: "reviews", label: "Đánh giá", icon: "⭐" },
         { id: "specialties", label: "Chuyên khoa", icon: "🏥" },
@@ -32,145 +32,112 @@ const AdminDashboard = () => {
 
     const renderContent = () => {
         switch (activeTab) {
-            case "stats":
-                return <AdminStats />
-            case "users":
-                return <AdminUsers />
-            case "doctors":
-                return <AdminDoctors />
-            case "appointments":
-                return <AdminAppointments />
-            case "reviews":
-                return <AdminReviews />
-            case "specialties":
-                return <AdminSpecialties />
-            case "facilities":
-                return <AdminFacilities />
-            default:
-                return <AdminStats />
+            case "stats": return <AdminStats />
+            case "users": return <AdminUsers />
+            case "doctors": return <AdminDoctors />
+            case "appointments": return <AdminAppointments />
+            case "reviews": return <AdminReviews />
+            case "specialties": return <AdminSpecialties />
+            case "facilities": return <AdminFacilities />
+            default: return <AdminStats />
         }
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f7fb' }}>
+        <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+            <style>{`
+                .admin-sidebar-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    width: 100%;
+                    padding: 12px 16px;
+                    border: none;
+                    border-radius: 12px;
+                    background: transparent;
+                    color: #475569;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    text-align: left;
+                }
+                .admin-sidebar-btn:hover { background: #f1f5f9; color: #6366f1; }
+                .admin-sidebar-btn.active { background: #6366f1; color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
+            `}</style>
+
             {/* Header */}
             <header style={{
                 background: 'white',
                 padding: '16px 40px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                sticky: 'top',
+                zIndex: 100
             }}>
+                <Logo onClick={() => navigate('/')} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <Logo onClick={() => navigate('/')} />
-                    <span style={{ 
-                        padding: '4px 12px', 
-                        background: '#fef3c7', 
-                        color: '#d97706', 
-                        borderRadius: '20px',
-                        fontSize: '13px',
-                        fontWeight: '500'
-                    }}>
-                        Admin
-                    </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '12px',
-                        padding: '8px 16px',
-                        background: '#f3f4f6',
-                        borderRadius: '8px'
-                    }}>
-                        <span style={{ fontWeight: '500' }}>{user?.fullName || user?.email}</span>
-                        <button
-                            onClick={handleLogout}
-                            style={{
-                                padding: '6px 12px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                background: '#ef4444',
-                                color: 'white',
-                                cursor: 'pointer',
-                                fontSize: '13px'
-                            }}
-                        >
-                            Đăng xuất
-                        </button>
+                    <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a' }}>Hệ thống quản trị</div>
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>Phiên bản 2.0 Premium</div>
                     </div>
+                    <button 
+                        onClick={handleLogout}
+                        style={{ background: '#fef2f2', color: '#ef4444', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
+                    >
+                        Đăng xuất
+                    </button>
                 </div>
             </header>
 
-            <div style={{ display: 'flex', maxWidth: '1400px', margin: '0 auto', padding: '30px 40px', gap: '30px' }}>
+            <div style={{ display: 'flex', flex: 1, padding: '32px 40px', gap: '32px', maxWidth: '1600px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
                 {/* Sidebar */}
-                <aside style={{
-                    width: '240px',
-                    background: 'white',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                    height: 'fit-content'
-                }}>
-                    <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-                        <div style={{
-                            width: '64px',
-                            height: '64px',
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            margin: '0 auto 12px',
-                            fontSize: '28px'
-                        }}>
-                            👑
+                <aside style={{ width: '280px', flexShrink: 0 }}>
+                    <div style={{ 
+                        background: 'white', 
+                        borderRadius: '24px', 
+                        padding: '32px 24px', 
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                        border: '1px solid #f1f5f9'
+                    }}>
+                        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                            <div style={{ 
+                                width: '80px', height: '80px', borderRadius: '24px', 
+                                background: 'linear-gradient(135deg, #6366f1, #4f46e5)', 
+                                margin: '0 auto 16px', display: 'flex', alignItems: 'center', 
+                                justifyContent: 'center', fontSize: '32px', color: 'white',
+                                boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)',
+                                overflow: 'hidden'
+                            }}>
+                                {user?.avatarUrl ? (
+                                    <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = '👑' }} />
+                                ) : "👑"}
+                            </div>
+                            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>Quản trị viên</h3>
+                            <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>{user?.email}</p>
                         </div>
-                        <h3 style={{ margin: '0 0 4px', fontSize: '16px' }}>Quản trị viên</h3>
-                        <p style={{ margin: 0, color: '#6b7280', fontSize: '13px' }}>{user?.email}</p>
-                    </div>
 
-                    <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                    padding: '12px 16px',
-                                    borderRadius: '10px',
-                                    border: 'none',
-                                    background: activeTab === tab.id ? '#5f6dfc' : 'transparent',
-                                    color: activeTab === tab.id ? 'white' : '#374151',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                    fontWeight: activeTab === tab.id ? '500' : '400',
-                                    transition: 'all 0.2s',
-                                    textAlign: 'left'
-                                }}
-                            >
-                                <span>{tab.icon}</span>
-                                <span>{tab.label}</span>
-                            </button>
-                        ))}
-                    </nav>
+                        <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    className={`admin-sidebar-btn ${activeTab === tab.id ? 'active' : ''}`}
+                                    onClick={() => setActiveTab(tab.id)}
+                                >
+                                    <span style={{ fontSize: '18px' }}>{tab.icon}</span>
+                                    <span>{tab.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
                 </aside>
 
-                {/* Main Content */}
-                <main style={{ flex: 1 }}>
-                    <div style={{
-                        background: 'white',
-                        borderRadius: '16px',
-                        padding: '24px',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                        minHeight: '500px'
-                    }}>
-                        {renderContent()}
-                    </div>
+                {/* Content */}
+                <main style={{ flex: 1, minWidth: 0 }}>
+                    {renderContent()}
                 </main>
             </div>
         </div>

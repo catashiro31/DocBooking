@@ -27,10 +27,22 @@ api.interceptors.response.use(
     const message = error.response?.data;
 
     if (status === 401) {
-      // Token hết hạn hoặc không hợp lệ -> redirect to login
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      window.location.href = "/signin";
+      // Trường hợp 1: Lỗi từ API Đăng nhập -> Trả về lỗi để component xử lý (ví dụ: Sai mật khẩu)
+      if (error.config.url.toLowerCase().includes('/auth/signin')) {
+        return Promise.reject(error);
+      }
+
+      // Trường hợp 2: Token hết hạn hoặc không hợp lệ -> Xóa token và chuyển về trang signin
+      // Chỉ redirect nếu hiện tại KHÔNG phải là trang signin hoặc login để tránh reload loop
+      const path = window.location.pathname.toLowerCase();
+      if (!path.includes('/signin') && !path.includes('/login')) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+        window.location.href = "/signin";
+      } else {
+        // Nếu đang ở trang đăng nhập mà gặp 401 (ngoài endpoint /signin) thì cứ reject
+        return Promise.reject(error);
+      }
     }
 
     if (status === 403) {

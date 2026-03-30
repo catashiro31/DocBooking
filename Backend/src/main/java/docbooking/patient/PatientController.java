@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class PatientController {
     private final PatientService patientService;
     @PostMapping("/relatives")
-    public ResponseEntity<?> createRelative(@RequestBody Relative req) {
+    public ResponseEntity<?> createRelative(@Valid @RequestBody Relative req) {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(patientService.addRelative(currentUser, req));
     }
@@ -38,7 +38,7 @@ public class PatientController {
     }
 
     @PutMapping("/relatives/{id}")
-    public ResponseEntity<?> updateRelative(@PathVariable Integer id, @RequestBody Relative req) {
+    public ResponseEntity<?> updateRelative(@PathVariable Integer id, @Valid @RequestBody Relative req) {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(patientService.updateRelative(id, currentUser, req));
     }
