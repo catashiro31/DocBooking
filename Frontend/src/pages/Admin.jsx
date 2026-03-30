@@ -4,8 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import HeaderAdmin from "../components/HeaderAdmin";
 import Sidebar from "../components/SidebarAdmin";
 import Dashboard from "../components/Dashboard";
-import Appointments from "../components/AppointmentsAdmin";
-import DoctorsListAdmin from "../components/DoctorsListAdmin";
+import Appointments from "../components/AdminAppointments";
 import AdminUsers from "../components/AdminUsers";
 import AdminDoctors from "../components/AdminDoctors";
 import AdminSpecialties from "../components/AdminSpecialties";
@@ -14,47 +13,76 @@ import AdminReviews from "../components/AdminReviews";
 
 const Admin = () => {
   return (
-    <>
+    <div className="reveal">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-        .admin-content::-webkit-scrollbar { width: 6px; }
-        .admin-content::-webkit-scrollbar-track { background: #f7f9fc; }
-        .admin-content::-webkit-scrollbar-thumb { background: #c7ccff; border-radius: 10px; }
-        .admin-content::-webkit-scrollbar-thumb:hover { background: #5f6dfc; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+          margin: 0;
+          font-family: 'Inter', sans-serif;
+          -webkit-font-smoothing: antialiased;
+        }
+
+        .admin-content-wrapper::-webkit-scrollbar { 
+          width: 5px; 
+        }
+        .admin-content-wrapper::-webkit-scrollbar-track { 
+          background: transparent; 
+        }
+        .admin-content-wrapper::-webkit-scrollbar-thumb { 
+          background: #cbd5e1; 
+          border-radius: 20px; 
+        }
+        .admin-content-wrapper::-webkit-scrollbar-thumb:hover { 
+          background: #94a3b8; 
+        }
+
+        .admin-view-transition {
+          animation: adminViewReveal 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes adminViewReveal {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
 
-      <div style={{ display: 'flex', height: '100vh', background: '#f7f9fc', fontFamily: "'Nunito', sans-serif", overflow: 'hidden' }}>
+      <div style={{ display: 'flex', height: '100vh', background: '#f1f5f9', overflow: 'hidden' }}>
+        {/* Sidebar */}
+        <Sidebar aria-label="Admin Navigation" />
 
-        <Sidebar />
-
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, position: 'relative' }}>
+          {/* Header */}
           <HeaderAdmin />
 
-          <div
-            className="admin-content"
-            style={{ flex: 1, overflowY: 'auto', background: '#f7f9fc', scrollbarWidth: 'thin', scrollbarColor: '#c7ccff #f7f9fc' }}
+          {/* Main Content Area */}
+          <main
+            className="admin-content-wrapper"
+            style={{ 
+              flex: 1, 
+              overflowY: 'auto', 
+              padding: '32px',
+              background: '#f8fafc',
+              position: 'relative'
+            }}
           >
-            <Routes>
-              {/* Redirect /admin to /admin/board */}
-              <Route path="/" element={<Navigate to="/admin/board" />} />
-              
-              <Route path="/board" element={<Dashboard />} />
-              <Route path="/appointment" element={<Appointments />} />
-              <Route path="/doctors" element={<DoctorsListAdmin />} />
-              
-              {/* New Admin Routes mapped to existing components */}
-              <Route path="/users" element={<AdminUsers />} />
-              <Route path="/pending-doctors" element={<AdminDoctors />} />
-              <Route path="/specialties" element={<AdminSpecialties />} />
-              <Route path="/facilities" element={<AdminFacilities />} />
-              <Route path="/reviews" element={<AdminReviews />} />
-            </Routes>
-          </div>
-
+            <div className="admin-view-transition" style={{ maxWidth: '1400px', margin: '0 auto' }}>
+              <Routes>
+                <Route path="/" element={<Navigate to="/admin/board" replace />} />
+                <Route path="/board" element={<Dashboard />} />
+                <Route path="/appointment" element={<Appointments />} />
+                <Route path="/users" element={<AdminUsers />} />
+                <Route path="/pending-doctors" element={<AdminDoctors />} />
+                <Route path="/specialties" element={<AdminSpecialties />} />
+                <Route path="/facilities" element={<AdminFacilities />} />
+                <Route path="/reviews" element={<AdminReviews />} />
+              </Routes>
+            </div>
+          </main>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export default Admin;
+export default Admin;

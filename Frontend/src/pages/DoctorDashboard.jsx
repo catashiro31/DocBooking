@@ -6,6 +6,7 @@ import DoctorAppointments from "../components/DoctorAppointments"
 import DoctorScheduleManager from "../components/DoctorScheduleManager"
 import DoctorOverdueAppointments from "../components/DoctorOverdueAppointments"
 import DoctorReviews from "../components/DoctorReviews"
+import { Outlet } from "react-router-dom"
 
 const DoctorDashboard = () => {
     const location = useLocation()
@@ -35,6 +36,7 @@ const DoctorDashboard = () => {
 
     const [profile, setProfile] = useState(null)
     const [overdueCount, setOverdueCount] = useState(0)
+    const [initialLoading, setInitialLoading] = useState(true)
     const { user, logout } = useAuth()
 
     const tabs = [
@@ -45,8 +47,11 @@ const DoctorDashboard = () => {
     ]
 
     useEffect(() => {
-        fetchProfile()
-        fetchOverdueCount()
+        const init = async () => {
+            await Promise.all([fetchProfile(), fetchOverdueCount()])
+            setInitialLoading(false)
+        }
+        init()
     }, [])
 
     const fetchProfile = async () => {
@@ -72,11 +77,27 @@ const DoctorDashboard = () => {
         navigate("/signin")
     }
 
-    const renderContent = () => {
-        const currentStatus = profile?.verificationStatus || user?.verificationStatus;
-        const isApproved = currentStatus === 'APPROVED';
+    if (initialLoading) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f7fb' }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div className="skeleton-pulse" style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#e2e8f0', margin: '0 auto 20px' }}></div>
+                    <p style={{ color: '#64748b', fontSize: '14px' }}>Đang khởi tạo...</p>
+                </div>
+                <style>{`
+                    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+                    .skeleton-pulse { animation: pulse 1.5s ease-in-out infinite; }
+                `}</style>
+            </div>
+        )
+    }
 
-        if (!isApproved) {
+    const currentStatus = profile?.verificationStatus || user?.verificationStatus;
+    const isApproved = currentStatus === 'APPROVED';
+    const isProfilePage = location.pathname.includes('/doctor/profile');
+
+    const renderMainContent = () => {
+        if (!isApproved && !isProfilePage) {
             let icon = '✨';
             let title = 'Chào mừng bạn đến với DocBooking!';
             let desc = 'Để bắt đầu nhận lịch hẹn từ bệnh nhân, bạn cần hoàn thiện hồ sơ chuyên môn và thông tin xác thực.';
@@ -120,13 +141,7 @@ const DoctorDashboard = () => {
             )
         }
 
-        switch (activeTab) {
-            case "appointments": return <DoctorAppointments />
-            case "schedule": return <DoctorScheduleManager />
-            case "overdue": return <DoctorOverdueAppointments />
-            case "reviews": return <DoctorReviews />
-            default: return <DoctorAppointments />
-        }
+        return <Outlet />
     }
 
     return (
@@ -223,12 +238,12 @@ const DoctorDashboard = () => {
                         <h3 style={{ margin: '0 0 4px', fontSize: '18px' }}>
                             BS. {profile?.fullName || user?.fullName || 'Bác sĩ'}
                         </h3>
-                        <p style={{ margin: '0 0 8px', color: '#6b7280', fontSize: '14px' }}>
-                            {profile?.specialtyName || 'Chuyên khoa'}
+                        <p style={{ margin: '0 0 8px', color: '#64748b', fontSize: '14px', fontWeight: 500 }}>
+                            {profile?.specialty?.specialtyName || profile?.specialtyName || 'Chuyên khoa'}
                         </p>
-                        {profile?.facilityName && (
+                        {(profile?.facility?.facilityName || profile?.facilityName) && (
                             <p style={{ margin: 0, color: '#9ca3af', fontSize: '13px' }}>
-                                📍 {profile.facilityName}
+                                📍 {profile?.facility?.facilityName || profile?.facilityName}
                             </p>
                         )}
 
@@ -380,7 +395,7 @@ const DoctorDashboard = () => {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                         minHeight: '500px'
                     }}>
-                        {renderContent()}
+                        {renderMainContent()}
                     </div>
                 </main>
             </div>

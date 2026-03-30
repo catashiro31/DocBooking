@@ -13,9 +13,16 @@ import Admin from "./pages/Admin"
 import DoctorProfile from "./pages/DoctorProfile"
 import PatientDashboard from "./pages/PatientDashboard"
 import DoctorDashboard from "./pages/DoctorDashboard"
-import UserProfile from "./pages/UserProfile"
+import DoctorAppointments from "./components/DoctorAppointments"
+import DoctorScheduleManager from "./components/DoctorScheduleManager"
+import DoctorOverdueAppointments from "./components/DoctorOverdueAppointments"
+import DoctorReviews from "./components/DoctorReviews"
 import ChangePassword from "./pages/ChangePassword"
 import Facilities from "./pages/Facilities"
+import PatientAppointments from "./components/PatientAppointments"
+import PatientHistory from "./components/PatientHistory"
+import RelativeManagement from "./components/RelativeManagement"
+import UserProfile from "./pages/UserProfile"
 import { useAuth } from "./context/AuthContext"
 
 function App() {
@@ -51,18 +58,26 @@ function App() {
         {/* ===== HOME ===== */}
         <Route path="/" element={<HomePage />} />
 
-        {/* ===== Doctor Profile (hoàn thiện hồ sơ) ===== */}
-        <Route path="/doctor/profile" element={<DoctorProfile />} />
+        {/* ===== Doctor Dashboard (All doctor routes wrapped) ===== */}
+        <Route path="/doctor" element={user?.role === "DOCTOR" ? <DoctorDashboard /> : <Navigate to="/signin" />}>
+            <Route index element={<Navigate to="/doctor/appointments" />} />
+            <Route path="appointments" element={<DoctorAppointments />} />
+            <Route path="schedules" element={<DoctorScheduleManager />} />
+            <Route path="overdue" element={<DoctorOverdueAppointments />} />
+            <Route path="reviews" element={<DoctorReviews />} />
+            <Route path="profile" element={<DoctorProfile />} />
+        </Route>
 
-        {/* ===== Patient Dashboard ===== */}
-        <Route path="/patient/*" element={user?.role === "PATIENT" ? <PatientDashboard /> : <Navigate to="/signin" />} />
-
-        {/* ===== Doctor Dashboard ===== */}
-        <Route path="/doctor/*" element={user?.role === "DOCTOR" ? <DoctorDashboard /> : <Navigate to="/signin" />} />
-
-        {/* ===== User Settings ===== */}
-        <Route path="/profile" element={user ? <UserProfile /> : <Navigate to="/signin" />} />
         <Route path="/change-password" element={user ? <ChangePassword /> : <Navigate to="/signin" />} />
+        <Route path="/profile" element={user ? <UserProfile /> : <Navigate to="/signin" />} />
+
+        {/* ===== Patient Portal (Unified Routing) ===== */}
+        <Route path="/patient" element={user?.role === "PATIENT" ? <PatientDashboard /> : <Navigate to="/signin" />}>
+            <Route index element={<Navigate to="/patient/appointments" />} />
+            <Route path="appointments" element={<PatientAppointments />} />
+            <Route path="history" element={<PatientHistory />} />
+            <Route path="relatives" element={<RelativeManagement />} />
+        </Route>
 
         {/* ===== ADMIN ===== */}
         <Route

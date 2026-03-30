@@ -84,6 +84,7 @@ const PatientHistory = () => {
             } else {
                 await patientService.createReview(appointmentId, reviewData.rating, reviewData.comment)
             }
+            toast.success("Cảm ơn bạn đã đánh giá!")
             setShowReviewModal(false)
             setReviewAppointmentId(null)
             fetchHistory()
@@ -100,95 +101,138 @@ const PatientHistory = () => {
     }
 
     if (loading) {
-        return <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải...</div>
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="skeleton" style={{ height: '140px', width: '100%', borderRadius: '16px' }} />
+                ))}
+            </div>
+        )
     }
 
     if (error) {
-        return <div style={{ color: '#dc2626', textAlign: 'center', padding: '40px' }}>{error}</div>
+        return (
+            <div className="reveal" style={{ textAlign: 'center', padding: '60px' }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+                <h3 style={{ color: '#ef4444', margin: '0 0 8px' }}>Lỗi tải dữ liệu</h3>
+                <p style={{ color: '#64748b' }}>{error}</p>
+                <button 
+                    onClick={fetchHistory}
+                    style={{ marginTop: '16px', color: '#6366f1', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer' }}
+                >
+                    Thử lại
+                </button>
+            </div>
+        )
     }
 
     if (history.length === 0) {
         return (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>
-                <p style={{ fontSize: '18px' }}>Bạn chưa có lịch sử khám bệnh</p>
+            <div className="reveal" style={{ textAlign: 'center', padding: '80px 40px', color: '#64748b' }}>
+                <div style={{ 
+                    width: '80px', height: '80px', borderRadius: '50%', 
+                    background: '#f1f5f9', display: 'flex', alignItems: 'center', 
+                    justifyContent: 'center', margin: '0 auto 24px', fontSize: '32px' 
+                }}>
+                    📋
+                </div>
+                <h3 style={{ color: '#1e293b', margin: '0 0 8px', fontSize: '20px', fontWeight: 800 }}>Chưa có lịch sử khám</h3>
+                <p style={{ margin: 0 }}>Thông tin các lần khám bệnh sẽ được hiển thị tại đây.</p>
             </div>
         )
     }
 
     return (
-        <div>
-            <h3 style={{ marginBottom: '20px', color: '#333' }}>Lịch sử khám bệnh</h3>
+        <div className="reveal">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>Lịch sử khám bệnh</h2>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Hoàn thành ({history.length})</span>
+            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {history.map(apt => (
                     <div 
                         key={apt.appointmentId}
-                        style={{
-                            background: 'white',
-                            borderRadius: '12px',
-                            padding: '20px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-                        }}
+                        className="premium-card"
+                        style={{ padding: '24px' }}
                     >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                             <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                                    <span style={{ fontWeight: '600', fontSize: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                                    <h3 style={{ margin: 0, fontSize: '17px', fontWeight: '700', color: '#1e293b' }}>
                                         BS. {apt.doctorName}
-                                    </span>
+                                    </h3>
                                     {apt.patientName && (
-                                        <span style={{ fontWeight: '500', fontSize: '15px', color: '#4b5563' }}>
-                                            - BN: {apt.patientName}
+                                        <span style={{ fontWeight: '600', fontSize: '14px', color: '#64748b', background: '#f1f5f9', padding: '2px 10px', borderRadius: '6px' }}>
+                                            BN: {apt.patientName}
                                         </span>
                                     )}
                                     <span style={{
                                         padding: '4px 12px',
-                                        borderRadius: '20px',
-                                        fontSize: '12px',
-                                        fontWeight: '500',
-                                        background: '#dcfce7',
-                                        color: '#16a34a'
+                                        borderRadius: '8px',
+                                        fontSize: '11px',
+                                        fontWeight: '800',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        background: 'rgba(16, 185, 129, 0.1)',
+                                        color: '#059669',
+                                        border: '1px solid rgba(16, 185, 129, 0.2)'
                                     }}>
-                                        Đã hoàn thành
+                                        Hoàn thành
                                     </span>
                                 </div>
 
-                                <div style={{ color: '#6b7280', fontSize: '14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <div>📅 {apt.dateWorking} - {apt.timeSlot}</div>
-                                    <div>📍 {apt.facilityName || 'Không xác định'}</div>
-                                    {apt.specialtyName && <div>🏥 {apt.specialtyName}</div>}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 20px', color: '#475569', fontSize: '14px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ opacity: 0.7 }}>📅</span>
+                                        <span style={{ fontWeight: '600' }}>{apt.dateWorking}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ opacity: 0.7 }}>⏰</span>
+                                        <span style={{ fontWeight: '600' }}>{apt.timeSlot}</span>
+                                    </div>
+                                    <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ opacity: 0.7 }}>📍</span>
+                                        <span style={{ color: '#64748b' }}>{apt.facilityName || 'N/A'}</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '10px' }}>
                                 <button
-                                    type="button"
                                     onClick={() => handleViewDetail(apt)}
                                     disabled={detailLoading}
                                     style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
-                                        border: '1px solid #5f6dfc',
-                                        background: 'white',
-                                        color: '#5f6dfc',
-                                        cursor: detailLoading ? 'wait' : 'pointer'
+                                        padding: '10px 18px',
+                                        borderRadius: '12px',
+                                        border: '1px solid #e2e8f0',
+                                        background: '#fff',
+                                        color: '#1e293b',
+                                        fontSize: '13px',
+                                        fontWeight: '700',
+                                        cursor: detailLoading ? 'wait' : 'pointer',
+                                        transition: 'all 0.2s'
                                     }}
+                                    onMouseEnter={e => e.currentTarget.style.borderColor = '#6366f1'}
+                                    onMouseLeave={e => e.currentTarget.style.borderColor = '#e2e8f0'}
                                 >
-                                    Xem chi tiết
+                                    📄 Kết quả
                                 </button>
                                 <button
-                                    type="button"
                                     onClick={() => handleOpenReview(apt)}
                                     style={{
-                                        padding: '8px 16px',
-                                        borderRadius: '8px',
+                                        padding: '10px 18px',
+                                        borderRadius: '12px',
                                         border: 'none',
-                                        background: '#5f6dfc',
+                                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
                                         color: 'white',
-                                        cursor: 'pointer'
+                                        fontSize: '13px',
+                                        fontWeight: '700',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)'
                                     }}
                                 >
-                                    Đánh giá
+                                    ⭐ Đánh giá
                                 </button>
                             </div>
                         </div>
@@ -196,92 +240,136 @@ const PatientHistory = () => {
                 ))}
             </div>
 
+            {/* Detail Modal */}
             {detail && !showReviewModal && (
                 <div 
+                    className="glass"
                     style={{
                         position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
+                        inset: 0,
+                        zIndex: 1000,
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        zIndex: 1000
+                        padding: '20px',
+                        background: 'rgba(0,0,0,0.4)',
+                        backdropFilter: 'blur(8px)'
                     }}
                     onClick={() => setDetail(null)}
                 >
                     <div 
+                        className="premium-card reveal"
                         style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            maxWidth: '520px',
-                            width: '90%',
-                            maxHeight: '80vh',
-                            overflow: 'auto'
+                            maxWidth: '560px',
+                            width: '100%',
+                            maxHeight: '85vh',
+                            overflowY: 'auto',
+                            padding: '32px'
                         }}
                         onClick={e => e.stopPropagation()}
                     >
-                        <h3 style={{ marginBottom: '20px' }}>Chi tiết lịch khám</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                            <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#1e293b' }}>Chi tiết khám bệnh</h3>
+                            <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#94a3b8' }}>×</button>
+                        </div>
                         
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
-                            <div><strong>Bác sĩ:</strong> {detail.doctorName}</div>
-                            <div><strong>Bệnh nhân:</strong> {detail.patientName}</div>
-                            <div><strong>Ngày khám:</strong> {detail.dateWorking}</div>
-                            <div><strong>Giờ khám:</strong> {detail.timeSlot}</div>
-                            <div><strong>Cơ sở:</strong> {detail.facilityName || 'N/A'}</div>
-                            <div><strong>Chuyên khoa:</strong> {detail.specialtyName || 'N/A'}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div style={{ padding: '16px', borderRadius: '12px', background: '#f8fafc' }}>
+                                    <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Bác sĩ</label>
+                                    <span style={{ fontWeight: 700, color: '#1e293b' }}>BS. {detail.doctorName}</span>
+                                </div>
+                                <div style={{ padding: '16px', borderRadius: '12px', background: '#f8fafc' }}>
+                                    <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Bệnh nhân</label>
+                                    <span style={{ fontWeight: 700, color: '#1e293b' }}>{detail.patientName}</span>
+                                </div>
+                            </div>
 
-                            {detail.hasResult && (
-                                <div style={{ marginTop: '8px', padding: '12px', background: '#f0fdf4', borderRadius: '8px' }}>
+                            {detail.hasResult ? (
+                                <div style={{ padding: '24px', borderRadius: '16px', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+                                    <h4 style={{ margin: '0 0 16px', color: '#059669', fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        🩺 Kết quả lâm sàng
+                                    </h4>
+                                    
                                     {detail.diagnosis && (
-                                        <div style={{ marginBottom: '8px' }}>
-                                            <strong>Chẩn đoán:</strong>
-                                            <p style={{ margin: '6px 0 0' }}>{detail.diagnosis}</p>
+                                        <div style={{ marginBottom: '16px' }}>
+                                            <strong style={{ display: 'block', fontSize: '13px', color: '#374151', marginBottom: '4px' }}>Chẩn đoán:</strong>
+                                            <p style={{ margin: 0, padding: '12px', background: '#fff', borderRadius: '10px', fontSize: '14px', border: '1px solid #e2e8f0', color: '#1e293b', lineHeight: 1.5 }}>
+                                                {detail.diagnosis}
+                                            </p>
                                         </div>
                                     )}
+                                    
                                     {detail.doctorNotes && (
-                                        <div style={{ marginBottom: '8px' }}>
-                                            <strong>Ghi chú / lời dặn:</strong>
-                                            <p style={{ margin: '6px 0 0' }}>{detail.doctorNotes}</p>
+                                        <div style={{ marginBottom: '16px' }}>
+                                            <strong style={{ display: 'block', fontSize: '13px', color: '#374151', marginBottom: '4px' }}>Lời dặn của bác sĩ:</strong>
+                                            <p style={{ margin: 0, padding: '12px', background: '#fff', borderRadius: '10px', fontSize: '14px', border: '1px solid #e2e8f0', color: '#475569', fontStyle: 'italic', lineHeight: 1.5 }}>
+                                                "{detail.doctorNotes}"
+                                            </p>
                                         </div>
                                     )}
+
                                     {detail.prescriptionUrl && (
-                                        <div>
-                                            <strong>Đơn thuốc / tài liệu:</strong>{' '}
-                                            <a href={detail.prescriptionUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#5f6dfc' }}>
-                                                Xem file
+                                        <div style={{ marginTop: '12px' }}>
+                                            <a 
+                                                href={detail.prescriptionUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                style={{ 
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                                                    background: '#fff', color: '#059669', padding: '12px', borderRadius: '12px',
+                                                    textDecoration: 'none', fontWeight: 700, fontSize: '14px', border: '1px solid rgba(16, 185, 129, 0.2)',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
+                                                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                                            >
+                                                📄 Xem đơn thuốc (PDF)
                                             </a>
                                         </div>
                                     )}
                                 </div>
+                            ) : (
+                                <div style={{ padding: '24px', textAlign: 'center', borderRadius: '16px', background: '#f8fafc', border: '1px dashed #e2e8f0' }}>
+                                    <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>⏳</span>
+                                    <p style={{ margin: 0, color: '#64748b', fontSize: '14px', fontWeight: 600 }}>Bác sĩ chưa cập nhật kết quả</p>
+                                </div>
                             )}
 
                             {(detail.rating != null || (detail.comment && String(detail.comment).trim())) && (
-                                <div style={{ marginTop: '8px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                                    <strong>Đánh giá của bạn:</strong>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px' }}>
+                                <div style={{ padding: '20px', borderRadius: '16px', background: '#fcfcfe', border: '1px solid #eff0fe' }}>
+                                    <label style={{ fontSize: '12px', color: '#6366f1', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Đánh giá của bạn</label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '12px' }}>
                                         {[1, 2, 3, 4, 5].map(star => (
-                                            <span key={star} style={{ color: star <= (detail.rating || 0) ? '#fbbf24' : '#d1d5db' }}>★</span>
+                                            <span key={star} style={{ fontSize: '20px', color: star <= (detail.rating || 0) ? '#fbbf24' : '#e2e8f0' }}>★</span>
                                         ))}
                                     </div>
-                                    {detail.comment && <p style={{ margin: '8px 0 0', color: '#4b5563' }}>{detail.comment}</p>}
+                                    {detail.comment && (
+                                        <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.5, padding: '12px', background: '#fff', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                                            {detail.comment}
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>
 
                         <button
-                            type="button"
                             onClick={() => setDetail(null)}
                             style={{
-                                marginTop: '20px',
-                                padding: '10px 20px',
-                                borderRadius: '8px',
+                                marginTop: '32px',
+                                padding: '14px',
+                                borderRadius: '14px',
                                 border: 'none',
-                                background: '#5f6dfc',
+                                background: '#1e293b',
                                 color: 'white',
+                                fontSize: '14px',
+                                fontWeight: '700',
+                                width: '100%',
                                 cursor: 'pointer',
-                                width: '100%'
+                                transition: 'transform 0.2s'
                             }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         >
                             Đóng
                         </button>
@@ -289,34 +377,33 @@ const PatientHistory = () => {
                 </div>
             )}
 
+            {/* Review Modal */}
             {showReviewModal && (
                 <div 
+                    className="glass"
                     style={{
                         position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
+                        inset: 0,
+                        zIndex: 1001,
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        zIndex: 1000
+                        padding: '20px',
+                        background: 'rgba(0,0,0,0.5)',
+                        backdropFilter: 'blur(8px)'
                     }}
                     onClick={() => { setShowReviewModal(false); setReviewAppointmentId(null) }}
                 >
                     <div 
-                        style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            maxWidth: '400px',
-                            width: '90%'
-                        }}
+                        className="premium-card reveal"
+                        style={{ maxWidth: '440px', width: '100%', padding: '32px' }}
                         onClick={e => e.stopPropagation()}
                     >
-                        <h3 style={{ marginBottom: '20px' }}>Đánh giá bác sĩ</h3>
+                        <h3 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 800 }}>Đánh giá dịch vụ</h3>
+                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '28px' }}>Ý kiến của bạn giúp chúng tôi cải thiện chất lượng phục vụ.</p>
 
-                        <div style={{ marginBottom: '16px' }}>
-                            <span style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Số sao</span>
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                        <div style={{ marginBottom: '24px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
                                 {[1, 2, 3, 4, 5].map(star => (
                                     <button
                                         key={star}
@@ -325,62 +412,74 @@ const PatientHistory = () => {
                                         style={{
                                             background: 'none',
                                             border: 'none',
-                                            fontSize: '28px',
+                                            fontSize: '42px',
                                             cursor: 'pointer',
-                                            color: star <= reviewData.rating ? '#fbbf24' : '#d1d5db'
+                                            color: star <= reviewData.rating ? '#fbbf24' : '#e2e8f0',
+                                            transition: 'transform 0.2s'
                                         }}
+                                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                                     >
                                         ★
                                     </button>
                                 ))}
                             </div>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', marginTop: '8px', display: 'block' }}>
+                                {['Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Tuyệt vời'][reviewData.rating - 1]}
+                            </span>
                         </div>
 
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Nhận xét *</label>
+                        <div style={{ marginBottom: '28px' }}>
+                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', fontSize: '14px', color: '#1e293b' }}>Nhận xét của bạn *</label>
                             <textarea
                                 value={reviewData.comment}
                                 onChange={e => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
-                                placeholder="Nhập nhận xét của bạn..."
+                                placeholder="Hãy chia sẻ trải nghiệm của bạn về bác sĩ và phòng khám..."
                                 style={{
                                     width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #d1d5db',
-                                    minHeight: '100px',
-                                    resize: 'vertical',
-                                    boxSizing: 'border-box'
+                                    padding: '16px',
+                                    borderRadius: '14px',
+                                    border: '1px solid #e2e8f0',
+                                    minHeight: '120px',
+                                    fontSize: '14px',
+                                    fontFamily: 'inherit',
+                                    resize: 'none',
+                                    boxSizing: 'border-box',
+                                    transition: 'border-color 0.2s'
                                 }}
+                                onFocus={e => e.target.style.borderColor = '#6366f1'}
+                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                             />
                         </div>
 
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <button
-                                type="button"
                                 onClick={() => { setShowReviewModal(false); setReviewAppointmentId(null) }}
                                 style={{
                                     flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #d1d5db',
-                                    background: 'white',
+                                    padding: '14px',
+                                    borderRadius: '12px',
+                                    border: '1px solid #e2e8f0',
+                                    background: '#fff',
+                                    fontWeight: '700',
                                     cursor: 'pointer'
                                 }}
                             >
                                 Hủy
                             </button>
                             <button
-                                type="button"
                                 onClick={handleSubmitReview}
                                 disabled={submittingReview}
                                 style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
+                                    flex: 2,
+                                    padding: '14px',
+                                    borderRadius: '12px',
                                     border: 'none',
-                                    background: submittingReview ? '#ccc' : '#5f6dfc',
+                                    background: submittingReview ? '#cbd5e1' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
                                     color: 'white',
-                                    cursor: submittingReview ? 'not-allowed' : 'pointer'
+                                    fontWeight: '700',
+                                    cursor: submittingReview ? 'not-allowed' : 'pointer',
+                                    boxShadow: '0 8px 20px rgba(99, 102, 241, 0.25)'
                                 }}
                             >
                                 {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
