@@ -221,6 +221,8 @@ public class DoctorService {
         return appointmentPage.map(app -> {
             DoctorSchedule schedule = app.getSchedule();
             PatientProfile patient = app.getPatient();
+            Optional<docbooking.models.MedicalResult> medResult = medicalResultRepository.findByAppointmentId(app.getId());
+
             return Appointment.builder()
                     .appointmentId(app.getId())
                     .patientName(patient.getFullName())
@@ -231,6 +233,8 @@ public class DoctorService {
                     .reason(app.getReason())
                     .bookingStatus(app.getBookingStatus().name())
                     .createdAt(app.getCreatedAt())
+                    .diagnosis(medResult.map(docbooking.models.MedicalResult::getDiagnosis).orElse(null))
+                    .doctorNotes(medResult.map(docbooking.models.MedicalResult::getDoctorNotes).orElse(null))
                     .build();
         });
     }
@@ -352,6 +356,8 @@ public class DoctorService {
         return overdueAppointments.stream().map(app -> {
             DoctorSchedule schedule = app.getSchedule();
             PatientProfile patient = app.getPatient();
+            Optional<docbooking.models.MedicalResult> medResult = medicalResultRepository.findByAppointmentId(app.getId());
+
             return Appointment.builder()
                     .appointmentId(app.getId())
                     .patientName(patient.getFullName())
@@ -362,6 +368,8 @@ public class DoctorService {
                     .reason(app.getReason())
                     .bookingStatus(app.getBookingStatus().name())
                     .createdAt(app.getCreatedAt())
+                    .diagnosis(medResult.map(docbooking.models.MedicalResult::getDiagnosis).orElse(null))
+                    .doctorNotes(medResult.map(docbooking.models.MedicalResult::getDoctorNotes).orElse(null))
                     .build();
         }).toList();
     }

@@ -17,7 +17,9 @@ const DoctorDashboard = () => {
         if (path.includes("schedule")) return "schedule"
         if (path.includes("overdue")) return "overdue"
         if (path.includes("reviews")) return "reviews"
-        return "appointments"
+        // Chỉ highlight 'Lịch hẹn' nếu đúng là trang appointments hoặc trang chủ dashboard
+        if (path === "/doctor" || path === "/doctor/appointments") return "appointments"
+        return null
     }
 
     const [activeTab, setActiveTab] = useState(getTabFromUrl())

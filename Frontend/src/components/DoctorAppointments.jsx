@@ -56,10 +56,37 @@ const DoctorAppointments = () => {
         }
     }
 
+    const parseDoctorNotes = (fullNotes) => {
+        if (!fullNotes) return { prescription: "", notes: "" }
+        
+        const prescriptionMarker = "Đơn thuốc:\n"
+        const index = fullNotes.indexOf(prescriptionMarker)
+        
+        if (index === -1) {
+            return { prescription: "", notes: fullNotes.trim() }
+        }
+        
+        const notes = fullNotes.substring(0, index).trim()
+        const prescription = fullNotes.substring(index + prescriptionMarker.length).trim()
+        
+        return { prescription, notes }
+    }
+
     const openResultModal = (appointment, mode) => {
         setSelectedAppointment(appointment)
         setResultMode(mode)
-        setResultData({ diagnosis: "", prescription: "", notes: "" })
+        
+        if (mode === "edit" || appointment.diagnosis) {
+            const { prescription, notes } = parseDoctorNotes(appointment.doctorNotes)
+            setResultData({
+                diagnosis: appointment.diagnosis || "",
+                prescription: prescription,
+                notes: notes
+            })
+        } else {
+            setResultData({ diagnosis: "", prescription: "", notes: "" })
+        }
+        
         setPrescriptionFile(null)
         setShowResultModal(true)
     }

@@ -92,12 +92,14 @@ const DoctorScheduleManager = () => {
         }
     }
 
-    const groupedSchedules = schedules.reduce((acc, schedule) => {
-        const date = schedule.dateWorking
-        if (!acc[date]) acc[date] = []
-        acc[date].push(schedule)
-        return acc
-    }, {})
+    const groupedSchedules = schedules
+        .filter(s => s.slotStatus !== 'CLOSED')
+        .reduce((acc, schedule) => {
+            const date = schedule.dateWorking
+            if (!acc[date]) acc[date] = []
+            acc[date].push(schedule)
+            return acc
+        }, {})
 
     if (loading) {
         return <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải...</div>
@@ -173,17 +175,17 @@ const DoctorScheduleManager = () => {
                                                     gap: '8px',
                                                     padding: '8px 12px',
                                                     borderRadius: '8px',
-                                                    background: slot.isBooked ? '#fee2e2' : '#dcfce7',
-                                                    border: `1px solid ${slot.isBooked ? '#fecaca' : '#bbf7d0'}`
+                                                    background: slot.slotStatus === 'BOOKED' ? '#fee2e2' : '#dcfce7',
+                                                    border: `1px solid ${slot.slotStatus === 'BOOKED' ? '#fecaca' : '#bbf7d0'}`
                                                 }}
                                             >
                                                 <span style={{ 
                                                     fontWeight: '500',
-                                                    color: slot.isBooked ? '#dc2626' : '#16a34a'
+                                                    color: slot.slotStatus === 'BOOKED' ? '#dc2626' : '#16a34a'
                                                 }}>
                                                     {formatTimeSlot(slot.timeSlot)}
                                                 </span>
-                                                {slot.isBooked ? (
+                                                {slot.slotStatus === 'BOOKED' ? (
                                                     <span style={{ fontSize: '12px', color: '#dc2626' }}>Đã đặt</span>
                                                 ) : (
                                                     <button
