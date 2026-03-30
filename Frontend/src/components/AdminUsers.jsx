@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { adminService } from "../services/adminService"
 import { toast } from 'react-toastify'
 
@@ -180,9 +181,16 @@ const AdminUsers = () => {
                 </>
             )}
 
-            {blockModal.show && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '20px' }} onClick={() => setBlockModal({ show: false, user: null, reason: "" })}>
-                    <div className="reveal" style={{ background: 'white', borderRadius: '24px', padding: '32px', maxWidth: '400px', width: '100%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.2)' }} onClick={e => e.stopPropagation()}>
+            {blockModal.show && createPortal(
+                <div 
+                    className="modal-overlay"
+                    onClick={() => setBlockModal({ show: false, user: null, reason: "" })}
+                >
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '480px', padding: '32px' }} 
+                        onClick={e => e.stopPropagation()}
+                    >
                         <h3 style={{ margin: '0 0 12px', fontSize: '20px', fontWeight: 800 }}>Khóa tài khoản</h3>
                         <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '20px' }}>Lý do khóa tài khoản của <b>{blockModal.user?.fullName}</b>:</p>
                         <textarea 
@@ -196,7 +204,8 @@ const AdminUsers = () => {
                             <button onClick={handleBlock} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Gửi lệnh khóa</button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { doctorService, unwrapPage } from "../services/doctorService"
 import { toast } from 'react-toastify'
 
@@ -370,34 +371,14 @@ const DoctorAppointments = () => {
                 </div>
             )}
 
-            {showResultModal && (
+            {showResultModal && createPortal(
                 <div
-                    style={{
-                        position: 'fixed',
-                        inset: 0,
-                        background: 'rgba(15, 23, 42, 0.4)',
-                        backdropFilter: 'blur(8px)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1000,
-                        padding: '20px'
-                    }}
+                    className="modal-overlay"
                     onClick={() => setShowResultModal(false)}
                 >
                     <div
-                        className="reveal"
-                        style={{
-                            background: 'white',
-                            borderRadius: '24px',
-                            padding: '32px',
-                            maxWidth: '550px',
-                            width: '100%',
-                            maxHeight: '90vh',
-                            overflow: 'auto',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
-                            position: 'relative'
-                        }}
+                        className="modal-content"
+                        style={{ maxWidth: '600px', padding: '40px' }}
                         onClick={e => e.stopPropagation()}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -532,7 +513,8 @@ const DoctorAppointments = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

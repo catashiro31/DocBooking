@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { patientService } from "../services/patientService"
 import { toast } from 'react-toastify'
 
@@ -278,12 +279,36 @@ const RelativeManagement = () => {
                 )}
             </div>
 
-            {showModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }} onClick={() => setShowModal(false)}>
-                    <div className="reveal" style={{ background: 'white', borderRadius: '32px', padding: '40px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.2)' }} onClick={e => e.stopPropagation()}>
+            {showModal && createPortal(
+                <div 
+                    className="modal-overlay"
+                    onClick={() => setShowModal(false)}
+                >
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '600px', padding: '40px' }} 
+                        onClick={e => e.stopPropagation()}
+                    >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                            <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>{editingRelative ? 'Chỉnh sửa hồ sơ' : 'Thêm người thân mới'}</h3>
-                            <button onClick={() => setShowModal(false)} style={{ background: '#f8fafc', border: 'none', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', color: '#64748b', fontSize: '20px' }}>×</button>
+                            <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                                {editingRelative ? 'Chỉnh sửa hồ sơ' : 'Thêm người thân mới'}
+                            </h3>
+                            <button 
+                                onClick={() => setShowModal(false)} 
+                                style={{ 
+                                    background: '#f8fafc', 
+                                    border: 'none', 
+                                    width: '36px', 
+                                    height: '36px', 
+                                    borderRadius: '50%', 
+                                    cursor: 'pointer', 
+                                    color: '#64748b', 
+                                    fontSize: '20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >×</button>
                         </div>
 
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -330,7 +355,8 @@ const RelativeManagement = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

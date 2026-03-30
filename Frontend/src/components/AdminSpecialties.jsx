@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { adminService } from "../services/adminService"
 import { toast } from 'react-toastify'
 
@@ -208,15 +209,7 @@ const AdminSpecialties = () => {
                     z-index: 1000;
                     padding: 20px;
                 }
-                .modal-content {
-                    background: #ffffff;
-                    border-radius: 24px;
-                    padding: 32px;
-                    width: 100%;
-                    max-width: 500px;
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-                    animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-                }
+
                 @keyframes zoomIn {
                     from { opacity: 0; transform: scale(0.95); }
                     to { opacity: 1; transform: scale(1); }
@@ -304,9 +297,9 @@ const AdminSpecialties = () => {
                 </div>
             )}
 
-            {showModal && (
+            {showModal && createPortal(
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" style={{ maxWidth: '480px', padding: '32px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                             <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>
                                 {editingItem ? 'Cập nhật chuyên khoa' : 'Thêm chuyên khoa mới'}
@@ -348,7 +341,8 @@ const AdminSpecialties = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

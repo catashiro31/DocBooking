@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { adminService } from "../services/adminService"
 import { toast } from 'react-toastify'
 
@@ -169,9 +170,16 @@ const AdminDoctors = () => {
                 </div>
             )}
 
-            {detailModal.show && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '20px' }} onClick={() => setDetailModal({ show: false, data: null, loading: false })}>
-                    <div className="reveal" style={{ background: 'white', borderRadius: '32px', padding: '40px', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+            {detailModal.show && createPortal(
+                <div 
+                    className="modal-overlay"
+                    onClick={() => setDetailModal({ show: false, data: null, loading: false })}
+                >
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '800px', padding: '40px' }} 
+                        onClick={e => e.stopPropagation()}
+                    >
                         {detailModal.loading ? <div style={{ textAlign: 'center', padding: '60px' }}>Đang tải...</div> : (
                             <>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
@@ -214,12 +222,20 @@ const AdminDoctors = () => {
                             </>
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {rejectModal.show && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200, padding: '20px' }} onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })}>
-                    <div className="reveal" style={{ background: 'white', borderRadius: '24px', padding: '32px', maxWidth: '400px', width: '100%' }} onClick={e => e.stopPropagation()}>
+            {rejectModal.show && createPortal(
+                <div 
+                    className="modal-overlay"
+                    onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })}
+                >
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '480px', padding: '32px' }} 
+                        onClick={e => e.stopPropagation()}
+                    >
                         <h3 style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 800 }}>Lý do từ chối</h3>
                         <textarea value={rejectModal.reason} onChange={e => setRejectModal({ ...rejectModal, reason: e.target.value })} placeholder="Nhập lý do gửi bác sĩ..." style={{ width: '100%', minHeight: '120px', padding: '16px', borderRadius: '16px', border: '1.5px solid #e2e8f0', outline: 'none', marginBottom: '24px' }} />
                         <div style={{ display: 'flex', gap: '12px' }}>
@@ -227,7 +243,8 @@ const AdminDoctors = () => {
                             <button onClick={handleReject} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Gửi từ chối</button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

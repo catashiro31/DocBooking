@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { patientService, unwrapPage } from "../services/patientService"
 import { toast } from 'react-toastify'
 
@@ -240,112 +241,120 @@ const PatientHistory = () => {
                 ))}
             </div>
 
-            {/* Detail Modal */}
-            {detail && !showReviewModal && (
+            {/* Detail Modal - React Portal */}
+            {detail && !showReviewModal && createPortal(
                 <div 
-                    className="glass"
-                    style={{
-                        position: 'fixed',
-                        inset: 0,
-                        zIndex: 1000,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        padding: '20px',
-                        background: 'rgba(0,0,0,0.4)',
-                        backdropFilter: 'blur(8px)'
-                    }}
+                    className="modal-overlay"
                     onClick={() => setDetail(null)}
                 >
                     <div 
-                        className="premium-card reveal"
-                        style={{
-                            maxWidth: '560px',
-                            width: '100%',
-                            maxHeight: '85vh',
-                            overflowY: 'auto',
-                            padding: '32px'
-                        }}
+                        className="modal-content"
+                        style={{ maxWidth: '600px', padding: '40px', animation: 'modalScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}
                         onClick={e => e.stopPropagation()}
                     >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#1e293b' }}>Chi tiết khám bệnh</h3>
-                            <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#94a3b8' }}>×</button>
+                        {/* Header Section */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: '26px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>Kết quả khám bệnh</h3>
+                                <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#64748b', fontWeight: 500 }}>ID Lịch hẹn: #{detail.appointmentId}</p>
+                            </div>
+                            <button 
+                                onClick={() => setDetail(null)} 
+                                style={{ 
+                                    background: '#f1f5f9', 
+                                    border: 'none', 
+                                    width: '40px', 
+                                    height: '40px', 
+                                    borderRadius: '14px', 
+                                    cursor: 'pointer', 
+                                    color: '#64748b', 
+                                    fontSize: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a' }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#64748b' }}
+                            >×</button>
                         </div>
                         
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                <div style={{ padding: '16px', borderRadius: '12px', background: '#f8fafc' }}>
-                                    <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Bác sĩ</label>
-                                    <span style={{ fontWeight: 700, color: '#1e293b' }}>BS. {detail.doctorName}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                            {/* Doctor & Patient Info */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                <div style={{ padding: '20px', borderRadius: '20px', background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)', border: '1px solid #e2e8f0' }}>
+                                    <label style={{ fontSize: '11px', color: '#6366f1', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '6px', letterSpacing: '0.05em' }}>Bác sĩ phụ trách</label>
+                                    <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '16px' }}>BS. {detail.doctorName}</div>
                                 </div>
-                                <div style={{ padding: '16px', borderRadius: '12px', background: '#f8fafc' }}>
-                                    <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Bệnh nhân</label>
-                                    <span style={{ fontWeight: 700, color: '#1e293b' }}>{detail.patientName}</span>
+                                <div style={{ padding: '20px', borderRadius: '20px', background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)', border: '1px solid #e2e8f0' }}>
+                                    <label style={{ fontSize: '11px', color: '#6366f1', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '6px', letterSpacing: '0.05em' }}>Bệnh nhân</label>
+                                    <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '16px' }}>{detail.patientName}</div>
                                 </div>
                             </div>
 
                             {detail.hasResult ? (
-                                <div style={{ padding: '24px', borderRadius: '16px', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
-                                    <h4 style={{ margin: '0 0 16px', color: '#059669', fontSize: '15px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        🩺 Kết quả lâm sàng
-                                    </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    <div style={{ padding: '24px', borderRadius: '24px', background: '#ffffff', border: '1.5px solid #ecfdf5', boxShadow: '0 10px 15px -3px rgba(16, 185, 129, 0.05)' }}>
+                                        <h4 style={{ margin: '0 0 16px', color: '#059669', fontSize: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <span style={{ fontSize: '20px' }}>🩺</span> Chẩn đoán y khoa
+                                        </h4>
+                                        <p style={{ margin: 0, fontSize: '15px', color: '#1e293b', lineHeight: 1.6, fontWeight: 500 }}>
+                                            {detail.diagnosis}
+                                        </p>
+                                    </div>
                                     
-                                    {detail.diagnosis && (
-                                        <div style={{ marginBottom: '16px' }}>
-                                            <strong style={{ display: 'block', fontSize: '13px', color: '#374151', marginBottom: '4px' }}>Chẩn đoán:</strong>
-                                            <p style={{ margin: 0, padding: '12px', background: '#fff', borderRadius: '10px', fontSize: '14px', border: '1px solid #e2e8f0', color: '#1e293b', lineHeight: 1.5 }}>
-                                                {detail.diagnosis}
-                                            </p>
-                                        </div>
-                                    )}
-                                    
-                                    {detail.doctorNotes && (
-                                        <div style={{ marginBottom: '16px' }}>
-                                            <strong style={{ display: 'block', fontSize: '13px', color: '#374151', marginBottom: '4px' }}>Lời dặn của bác sĩ:</strong>
-                                            <p style={{ margin: 0, padding: '12px', background: '#fff', borderRadius: '10px', fontSize: '14px', border: '1px solid #e2e8f0', color: '#475569', fontStyle: 'italic', lineHeight: 1.5 }}>
-                                                "{detail.doctorNotes}"
-                                            </p>
-                                        </div>
-                                    )}
+                                    <div style={{ padding: '24px', borderRadius: '24px', background: '#fcfcfe', border: '1.5px solid #eef2ff' }}>
+                                        <h4 style={{ margin: '0 0 16px', color: '#4f46e5', fontSize: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <span style={{ fontSize: '20px' }}>📝</span> Lời dặn của bác sĩ
+                                        </h4>
+                                        <p style={{ margin: 0, fontSize: '15px', color: '#475569', fontStyle: 'italic', lineHeight: 1.6 }}>
+                                            "{detail.doctorNotes}"
+                                        </p>
+                                    </div>
 
                                     {detail.prescriptionUrl && (
-                                        <div style={{ marginTop: '12px' }}>
+                                        <div style={{ marginTop: '8px' }}>
                                             <a 
                                                 href={detail.prescriptionUrl} 
                                                 target="_blank" 
                                                 rel="noopener noreferrer" 
                                                 style={{ 
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                                                    background: '#fff', color: '#059669', padding: '12px', borderRadius: '12px',
-                                                    textDecoration: 'none', fontWeight: 700, fontSize: '14px', border: '1px solid rgba(16, 185, 129, 0.2)',
-                                                    transition: 'all 0.2s'
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
+                                                    background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', 
+                                                    padding: '18px', borderRadius: '20px',
+                                                    textDecoration: 'none', fontWeight: 800, fontSize: '15px',
+                                                    boxShadow: '0 10px 15px -3px rgba(16, 185, 129, 0.3)',
+                                                    transition: 'all 0.3s'
                                                 }}
-                                                onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
-                                                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(16, 185, 129, 0.4)' }}
+                                                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(16, 185, 129, 0.3)' }}
                                             >
-                                                📄 Xem đơn thuốc (PDF)
+                                                📄 Xem đơn thuốc (PDF Online)
                                             </a>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div style={{ padding: '24px', textAlign: 'center', borderRadius: '16px', background: '#f8fafc', border: '1px dashed #e2e8f0' }}>
-                                    <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>⏳</span>
-                                    <p style={{ margin: 0, color: '#64748b', fontSize: '14px', fontWeight: 600 }}>Bác sĩ chưa cập nhật kết quả</p>
+                                <div style={{ padding: '40px', textAlign: 'center', borderRadius: '28px', background: '#f8fafc', border: '2px dashed #e2e8f0' }}>
+                                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+                                    <h4 style={{ color: '#64748b', margin: 0, fontSize: '16px', fontWeight: 700 }}>Đang xử lý kết quả</h4>
+                                    <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: '14px' }}>Bác sĩ đang cập nhật hồ sơ, vui lòng quay lại sau.</p>
                                 </div>
                             )}
 
+                            {/* Existing Review - Visual enhancement */}
                             {(detail.rating != null || (detail.comment && String(detail.comment).trim())) && (
-                                <div style={{ padding: '20px', borderRadius: '16px', background: '#fcfcfe', border: '1px solid #eff0fe' }}>
-                                    <label style={{ fontSize: '12px', color: '#6366f1', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Đánh giá của bạn</label>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '12px' }}>
-                                        {[1, 2, 3, 4, 5].map(star => (
-                                            <span key={star} style={{ fontSize: '20px', color: star <= (detail.rating || 0) ? '#fbbf24' : '#e2e8f0' }}>★</span>
-                                        ))}
+                                <div style={{ padding: '24px', borderRadius: '24px', background: '#fffbeb', border: '1.5px solid #fef3c7', marginTop: '12px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                        <label style={{ fontSize: '12px', color: '#d97706', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Đánh giá từ bạn</label>
+                                        <div style={{ display: 'flex', gap: '2px' }}>
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <span key={star} style={{ fontSize: '18px', color: star <= (detail.rating || 0) ? '#fbbf24' : '#e2e8f0' }}>★</span>
+                                            ))}
+                                        </div>
                                     </div>
                                     {detail.comment && (
-                                        <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.5, padding: '12px', background: '#fff', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                                        <p style={{ margin: 0, fontSize: '14px', color: '#92400e', lineHeight: 1.5, padding: '16px', background: 'rgba(255, 255, 255, 0.5)', borderRadius: '14px', border: '1px solid rgba(217, 119, 6, 0.1)' }}>
                                             {detail.comment}
                                         </p>
                                     )}
@@ -356,54 +365,45 @@ const PatientHistory = () => {
                         <button
                             onClick={() => setDetail(null)}
                             style={{
-                                marginTop: '32px',
-                                padding: '14px',
-                                borderRadius: '14px',
+                                marginTop: '40px',
+                                padding: '16px',
+                                borderRadius: '18px',
                                 border: 'none',
-                                background: '#1e293b',
+                                background: '#0f172a',
                                 color: 'white',
-                                fontSize: '14px',
-                                fontWeight: '700',
+                                fontSize: '15px',
+                                fontWeight: '800',
                                 width: '100%',
                                 cursor: 'pointer',
-                                transition: 'transform 0.2s'
+                                transition: 'all 0.2s',
+                                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.2)'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                            onMouseLeave={e => { e.currentTarget.style.background = '#0f172a'; e.currentTarget.style.transform = 'translateY(0)' }}
                         >
-                            Đóng
+                            Hoàn tất xem
                         </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {/* Review Modal */}
-            {showReviewModal && (
+            {/* Review Modal - React Portal */}
+            {showReviewModal && createPortal(
                 <div 
-                    className="glass"
-                    style={{
-                        position: 'fixed',
-                        inset: 0,
-                        zIndex: 1001,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        padding: '20px',
-                        background: 'rgba(0,0,0,0.5)',
-                        backdropFilter: 'blur(8px)'
-                    }}
+                    className="modal-overlay"
                     onClick={() => { setShowReviewModal(false); setReviewAppointmentId(null) }}
                 >
                     <div 
-                        className="premium-card reveal"
-                        style={{ maxWidth: '440px', width: '100%', padding: '32px' }}
+                        className="modal-content"
+                        style={{ maxWidth: '480px', padding: '40px', animation: 'modalScaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}
                         onClick={e => e.stopPropagation()}
                     >
-                        <h3 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: 800 }}>Đánh giá dịch vụ</h3>
-                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '28px' }}>Ý kiến của bạn giúp chúng tôi cải thiện chất lượng phục vụ.</p>
+                        <h3 style={{ margin: '0 0 8px', fontSize: '26px', fontWeight: 950, color: '#0f172a', letterSpacing: '-0.02em' }}>Đánh giá trải nghiệm</h3>
+                        <p style={{ color: '#64748b', fontSize: '15px', marginBottom: '32px', fontWeight: 500 }}>Ý kiến của bạn là chìa khóa để chúng tôi nâng cao chất lượng phục vụ.</p>
 
-                        <div style={{ marginBottom: '24px', textAlign: 'center' }}>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                        <div style={{ marginBottom: '32px', textAlign: 'center', padding: '24px', background: '#f8fafc', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px' }}>
                                 {[1, 2, 3, 4, 5].map(star => (
                                     <button
                                         key={star}
@@ -412,81 +412,107 @@ const PatientHistory = () => {
                                         style={{
                                             background: 'none',
                                             border: 'none',
-                                            fontSize: '42px',
+                                            fontSize: '48px',
                                             cursor: 'pointer',
                                             color: star <= reviewData.rating ? '#fbbf24' : '#e2e8f0',
-                                            transition: 'transform 0.2s'
+                                            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                                            padding: 0
                                         }}
-                                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
-                                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.25) rotate(15deg)'}
+                                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1) rotate(0deg)'}
                                     >
                                         ★
                                     </button>
+                                    
                                 ))}
                             </div>
-                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#fbbf24', marginTop: '8px', display: 'block' }}>
-                                {['Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Tuyệt vời'][reviewData.rating - 1]}
-                            </span>
+                            <div style={{ 
+                                marginTop: '16px', 
+                                display: 'inline-block',
+                                padding: '6px 16px', 
+                                borderRadius: '10px',
+                                background: '#fffbeb',
+                                color: '#d97706',
+                                fontSize: '13px', 
+                                fontWeight: 800,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
+                            }}>
+                                {['Không hài lòng', 'Chưa tốt', 'Bình thường', 'Rất hài lòng', 'Tuyệt vời tuyệt đối'][reviewData.rating - 1]}
+                            </div>
                         </div>
 
-                        <div style={{ marginBottom: '28px' }}>
-                            <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', fontSize: '14px', color: '#1e293b' }}>Nhận xét của bạn *</label>
+                        <div style={{ marginBottom: '32px' }}>
+                            <label style={{ display: 'block', marginBottom: '12px', fontWeight: '800', fontSize: '15px', color: '#1e293b' }}>Nhận xét chi tiết *</label>
                             <textarea
                                 value={reviewData.comment}
                                 onChange={e => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
-                                placeholder="Hãy chia sẻ trải nghiệm của bạn về bác sĩ và phòng khám..."
+                                placeholder="Hãy viết vài câu chia sẻ về trải nghiệm của bạn..."
                                 style={{
                                     width: '100%',
-                                    padding: '16px',
-                                    borderRadius: '14px',
-                                    border: '1px solid #e2e8f0',
-                                    minHeight: '120px',
-                                    fontSize: '14px',
+                                    padding: '20px',
+                                    borderRadius: '20px',
+                                    border: '2px solid #f1f5f9',
+                                    background: '#fcfcfd',
+                                    minHeight: '140px',
+                                    fontSize: '15px',
                                     fontFamily: 'inherit',
                                     resize: 'none',
                                     boxSizing: 'border-box',
-                                    transition: 'border-color 0.2s'
+                                    transition: 'all 0.2s',
+                                    outline: 'none',
+                                    color: '#0f172a'
                                 }}
-                                onFocus={e => e.target.style.borderColor = '#6366f1'}
-                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                                onFocus={e => { e.target.style.borderColor = '#6366f1'; e.target.style.background = '#fff'; e.target.style.boxShadow = '0 0 0 4px rgba(99, 102, 241, 0.1)' }}
+                                onBlur={e => { e.target.style.borderColor = '#f1f5f9'; e.target.style.background = '#fcfcfd'; e.target.style.boxShadow = 'none' }}
                             />
                         </div>
 
-                        <div style={{ display: 'flex', gap: '12px' }}>
+                        <div style={{ display: 'flex', gap: '16px' }}>
                             <button
                                 onClick={() => { setShowReviewModal(false); setReviewAppointmentId(null) }}
                                 style={{
                                     flex: 1,
-                                    padding: '14px',
-                                    borderRadius: '12px',
-                                    border: '1px solid #e2e8f0',
+                                    padding: '16px',
+                                    borderRadius: '16px',
+                                    border: '2px solid #f1f5f9',
                                     background: '#fff',
-                                    fontWeight: '700',
-                                    cursor: 'pointer'
+                                    color: '#64748b',
+                                    fontWeight: '800',
+                                    fontSize: '15px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
                                 }}
+                                onMouseEnter={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#0f172a' }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#64748b' }}
                             >
-                                Hủy
+                                Quay lại
                             </button>
                             <button
                                 onClick={handleSubmitReview}
                                 disabled={submittingReview}
                                 style={{
-                                    flex: 2,
-                                    padding: '14px',
-                                    borderRadius: '12px',
+                                    flex: 1.8,
+                                    padding: '16px',
+                                    borderRadius: '16px',
                                     border: 'none',
-                                    background: submittingReview ? '#cbd5e1' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                    background: submittingReview ? '#cbd5e1' : 'linear-gradient(135deg, #6366f1, #4f46e5)',
                                     color: 'white',
-                                    fontWeight: '700',
+                                    fontSize: '15px',
+                                    fontWeight: '800',
                                     cursor: submittingReview ? 'not-allowed' : 'pointer',
-                                    boxShadow: '0 8px 20px rgba(99, 102, 241, 0.25)'
+                                    boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
+                                    transition: 'all 0.3s'
                                 }}
+                                onMouseEnter={e => { if(!submittingReview) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(99, 102, 241, 0.4)' } }}
+                                onMouseLeave={e => { if(!submittingReview) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(99, 102, 241, 0.3)' } }}
                             >
-                                {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                                {submittingReview ? 'Đang gửi...' : 'Gửi đánh giá ngay'}
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

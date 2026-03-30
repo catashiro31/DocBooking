@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { doctorService } from "../services/doctorService"
 import { toast } from 'react-toastify'
 
@@ -211,30 +212,15 @@ const DoctorScheduleManager = () => {
                 </div>
             )}
 
-            {/* Create Schedule Modal */}
-            {showModal && (
+            {/* Create Schedule Modal - React Portal */}
+            {showModal && createPortal(
                 <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1000
-                    }}
+                    className="modal-overlay"
                     onClick={() => setShowModal(false)}
                 >
                     <div
-                        style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            maxWidth: '500px',
-                            width: '90%',
-                            maxHeight: '90vh',
-                            overflow: 'auto'
-                        }}
+                        className="modal-content"
+                        style={{ maxWidth: '500px', padding: '40px' }}
                         onClick={e => e.stopPropagation()}
                     >
                         <h3 style={{ marginBottom: '20px' }}>Tạo lịch làm việc</h3>
@@ -353,7 +339,8 @@ const DoctorScheduleManager = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

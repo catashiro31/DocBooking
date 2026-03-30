@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { adminService } from "../services/adminService"
 import { toast } from 'react-toastify'
 
@@ -345,9 +346,9 @@ const AdminFacilities = () => {
                 </div>
             )}
 
-            {showModal && (
+            {showModal && createPortal(
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" style={{ maxWidth: '500px', padding: '32px' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                             <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>
                                 {editingItem ? 'Cập nhật cơ sở' : 'Thêm cơ sở mới'}
@@ -416,7 +417,8 @@ const AdminFacilities = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )
