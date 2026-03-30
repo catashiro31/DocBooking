@@ -99,7 +99,7 @@ const AdminDoctors = () => {
                 .doc-card { background: white; border-radius: 24px; padding: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s; display: flex; gap: 24px; margin-bottom: 20px; }
                 .doc-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08); border-color: #e2e8f0; }
                 
-                .doc-avatar { width: 80px; height: 80px; border-radius: 20px; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justifyContent: center; font-size: 24px; font-weight: 900; color: #64748b; flex-shrink: 0; }
+                .doc-avatar { width: 80px; height: 80px; border-radius: 50%; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justifyContent: center; font-size: 24px; font-weight: 900; color: #64748b; flex-shrink: 0; border: 2px solid #f1f5f9; }
                 
                 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; font-size: 12px; font-weight: 500; color: #64748b; margin-right: 8px; margin-top: 4px; }
             `}</style>
@@ -128,10 +128,10 @@ const AdminDoctors = () => {
                     {doctors.map(doc => (
                         <div key={doc.doctorId} className="doc-card">
                             <div className="doc-avatar">
-                                {doc.user?.avatarUrl || doc.avatarUrl ? (
+                                {(doc.user?.avatarUrl || doc.avatarUrl) ? (
                                     <img src={doc.user?.avatarUrl || doc.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = '👨‍⚕️' }} />
-                                ) : '👨‍⚕️'}
+                                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerText = (doc.user?.fullName || doc.fullName || 'B')?.charAt(0) }} />
+                                ) : (doc.user?.fullName || doc.fullName || '👨‍⚕️')?.charAt(0)}
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -186,9 +186,14 @@ const AdminDoctors = () => {
                                     <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>Chi tiết hồ sơ bác sĩ</h3>
                                     <button onClick={() => setDetailModal({ show: false, data: null, loading: false })} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr', gap: '32px' }}>
+                                    <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: '#f1f5f9', overflow: 'hidden', border: '3px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', color: '#64748b' }}>
+                                        {(detailModal.data?.user?.avatarUrl || detailModal.data?.avatarUrl) ? (
+                                            <img src={detailModal.data.user?.avatarUrl || detailModal.data.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (detailModal.data?.user?.fullName || detailModal.data?.fullName || '👨‍⚕️')?.charAt(0)}
+                                    </div>
                                     <div>
-                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Họ tên:</b> {detailModal.data?.user?.fullName}</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Họ tên:</b> {detailModal.data?.user?.fullName || detailModal.data?.fullName}</p>
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Học vị:</b> {detailModal.data?.degree}</p>
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Kinh nghiệm:</b> {detailModal.data?.experienceYears} năm</p>
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Chuyên khoa:</b> {detailModal.data?.specialty?.specialtyName}</p>

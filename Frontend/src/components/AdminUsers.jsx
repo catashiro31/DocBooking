@@ -84,7 +84,7 @@ const AdminUsers = () => {
                 .premium-table tr td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid #f1f5f9; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
                 .premium-table tr td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid #f1f5f9; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
                 .premium-table tr:hover td { background: #f8fafc; transform: scaleY(1.02); border-color: #e2e8f0; }
-                .user-avatar { width: 44px; height: 44px; border-radius: 14px; background: #f1f5f9; overflow: hidden; display: flex; alignItems: center; justifyContent: center; font-weight: 800; color: #64748b; }
+                .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: #f1f5f9; overflow: hidden; display: flex; alignItems: center; justifyContent: center; font-weight: 800; color: #64748b; border: 1.5px solid #f1f5f9; }
                 .pagination-dot { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; cursor: pointer; transition: all 0.2s; }
                 .pagination-dot.active { background: #6366f1; transform: scale(1.5); }
             `}</style>
@@ -119,7 +119,7 @@ const AdminUsers = () => {
                                             <div className="user-avatar">
                                                 {u.avatarUrl ? (
                                                     <img src={u.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                                         onError={(e) => { e.target.src = ''; e.target.parentElement.innerHTML = u.fullName?.charAt(0) || 'U' }} />
+                                                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerText = u.fullName?.charAt(0) || 'U' }} />
                                                 ) : (
                                                     u.fullName?.charAt(0) || 'U'
                                                 )}

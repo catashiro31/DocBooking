@@ -83,6 +83,14 @@ const AdminDashboard = () => {
                         <div style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a' }}>Hệ thống quản trị</div>
                         <div style={{ fontSize: '12px', color: '#64748b' }}>Phiên bản 2.0 Premium</div>
                     </div>
+                    <div style={{ 
+                        width: '40px', height: '40px', borderRadius: '50%', 
+                        background: user?.avatarUrl ? `url(${user.avatarUrl}) center/cover` : '#f1f5f9',
+                        overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '18px', border: '2px solid #f1f5f9'
+                    }}>
+                        {!user?.avatarUrl && '👑'}
+                    </div>
                     <button 
                         onClick={handleLogout}
                         style={{ background: '#fef2f2', color: '#ef4444', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}

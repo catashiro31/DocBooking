@@ -111,16 +111,19 @@ const PatientDashboard = () => {
                                 width: '72px',
                                 height: '72px',
                                 borderRadius: '24px',
-                                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                background: user?.avatarUrl 
+                                    ? `url(${user.avatarUrl}) center/cover` 
+                                    : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 margin: '0 auto 16px',
                                 fontSize: '28px',
                                 color: 'white',
-                                boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)'
+                                boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)',
+                                overflow: 'hidden'
                             }}>
-                                {user?.fullName?.charAt(0) || '👤'}
+                                {!user?.avatarUrl && (user?.fullName?.charAt(0) || '👤')}
                             </div>
                             <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800 }}>{user?.fullName || 'Bệnh nhân'}</h3>
                             <p style={{ margin: 0, color: '#64748b', fontSize: '13px', fontWeight: 500 }}>{user?.email}</p>

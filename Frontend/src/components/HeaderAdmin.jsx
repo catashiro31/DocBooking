@@ -116,8 +116,20 @@ const HeaderAdmin = () => {
               <span className="user-name">{user?.fullName || "Quản trị viên"}</span>
               <span className="user-role">ADMIN</span>
             </div>
-            <div className="user-avatar">
-              {user?.fullName?.charAt(0) || "A"}
+            <div className="user-avatar" style={{ overflow: 'hidden' }}>
+              {user?.avatarUrl ? (
+                <img 
+                  src={user.avatarUrl} 
+                  alt="" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerText = (user?.fullName || "A").charAt(0);
+                  }}
+                />
+              ) : (
+                (user?.fullName || "A").charAt(0)
+              )}
             </div>
           </div>
 
