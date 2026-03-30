@@ -9,8 +9,18 @@ import { patientService } from '../services/patientService';
 import Footer from '../components/Footer';
 import { toast as rtToast } from 'react-toastify';
 
+const getInitials = (name) => {
+  if (!name) return "DR";
+  const parts = name.trim().split(" ");
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+};
+
 const css = `
-.appt-page { min-height: 100vh; background: #fdfdfd; font-family: 'Inter', sans-serif; color: #1e293b; padding-bottom: 60px; }
+.appt-page { 
+  min-height: 100vh; background: #fdfdfd; font-family: 'Inter', sans-serif; color: #1e293b; 
+  padding-top: 96px; padding-bottom: 60px; 
+}
 
 /* Breadcrumb */
 .breadcrumb { max-width: 1200px; margin: 24px auto 0; padding: 0 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #64748b; }
@@ -37,8 +47,14 @@ const css = `
   width: 320px; height: 380px; border-radius: 32px; overflow: hidden; flex-shrink: 0;
   background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   box-shadow: 0 20px 40px rgba(0,0,0,0.06); position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
 }
 .doc-img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+.initials-fallback {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: #eef2ff; color: #4f46e5; font-size: 84px; font-weight: 900; letter-spacing: -0.05em;
+}
 
 .info-wrap { flex: 1; position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; }
 .name-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
@@ -214,6 +230,9 @@ export default function Appointment() {
 
   if (!doctor) return <div className="appt-page"><Header /><div className="appt-container">Bác sĩ không tồn tại hoặc đã bị ẩn.</div><Footer /></div>;
 
+  const photo = doctor.avatarUrl || doctor.photo;
+  const isPlaceholder = !photo || photo.includes("placeholder") || photo.includes("dicebear") || photo.includes("ui-avatars") || photo.includes("null");
+
   return (
     <div className="appt-page">
       <style>{css}</style>
@@ -231,12 +250,19 @@ export default function Appointment() {
         {/* --- HERO SECTION --- */}
         <section className="hero-card">
           <div className="img-wrap">
-            <img 
-              src={doctor.avatarUrl} 
-              alt={doctor.fullName} 
-              className="doc-img"
-              onError={e => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.fullName)}&background=6366f1&color=fff&size=512`; }}
-            />
+            {isPlaceholder ? (
+              <div className="initials-fallback">{getInitials(doctor.fullName)}</div>
+            ) : (
+              <img 
+                src={photo} 
+                alt={doctor.fullName} 
+                className="doc-img"
+                onError={e => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = `<div class="initials-fallback">${getInitials(doctor.fullName)}</div>`;
+                }}
+              />
+            )}
           </div>
 
           <div className="info-wrap">
@@ -400,4 +426,3 @@ export default function Appointment() {
     </div>
   );
 }
-

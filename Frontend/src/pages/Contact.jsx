@@ -16,7 +16,7 @@ function Contact() {
       <Headers />
 
       {/* Contact Us Heading */}
-      <div style={{ textAlign: 'center', margin: '50px 0 36px', fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: 700, color: '#5a6072', position: 'relative' }}>
+      <div style={{ paddingTop: '96px', textAlign: 'center', margin: '0 0 36px', fontFamily: "'Playfair Display', serif", fontSize: '22px', fontWeight: 700, color: '#5a6072', position: 'relative' }}>
         Liên hệ với chúng tôi
         <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #5f6dfc, #a78bfa)', borderRadius: '2px', margin: '8px auto 0' }} />
       </div>

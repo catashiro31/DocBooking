@@ -8,9 +8,11 @@ const css = `
 
 .hdr {
   background: transparent;
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 200;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
   font-family: 'Inter', -apple-system, sans-serif;
   transition: all 0.3s ease;
   height: 80px;

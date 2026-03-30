@@ -129,6 +129,16 @@ export default function BookingSlots({ docId, onBook }) {
 
     const handleBook = async () => {
     if (!selectedSlot) return;
+    
+    // Redirect guests to login without reason validation
+    if (!isAuthenticated()) {
+      await onBook({ 
+        scheduleId: selectedSlot.scheduleId || selectedSlot.id 
+      });
+      return;
+    }
+
+    // Authenticated users must provide a reason
     if (!reason.trim()) {
       toast.warning('Vui lòng nhập lý do khám');
       return;
@@ -190,33 +200,43 @@ export default function BookingSlots({ docId, onBook }) {
           )}
         </div>
 
-        {selectedSlot && isAuthenticated() && (
+        {selectedSlot && (
           <div className="booking-form">
-            {relatives.length > 0 && (
-              <div>
-                <label>Đặt lịch cho (Bệnh nhân)</label>
-                <select 
-                  value={selectedPatient} 
-                  onChange={e => setSelectedPatient(e.target.value)}
-                >
-                  <option value="">-- Chọn hồ sơ khám --</option>
-                  {relatives.map(r => (
-                    <option key={r.patientId || r.id} value={r.patientId || r.id}>
-                      {r.fullName} ({r.relationship === 'SELF' ? 'Bản thân' : r.relationship || 'Người thân'})
-                    </option>
-                  ))}
-                </select>
+            {!isAuthenticated() ? (
+              <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                <p style={{ color: '#6366f1', margin: 0, fontSize: '15px', fontWeight: 600 }}>
+                  👉 Vui lòng đăng nhập để chọn hồ sơ bệnh nhân và mô tả lý do khám.
+                </p>
               </div>
-            )}
+            ) : (
+              <>
+                {relatives.length > 0 && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <label>Đặt lịch cho (Bệnh nhân)</label>
+                    <select 
+                      value={selectedPatient} 
+                      onChange={e => setSelectedPatient(e.target.value)}
+                    >
+                      <option value="">-- Chọn hồ sơ khám --</option>
+                      {relatives.map(r => (
+                        <option key={r.patientId || r.id} value={r.patientId || r.id}>
+                          {r.fullName} ({r.relationship === 'SELF' ? 'Bản thân' : r.relationship || 'Người thân'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
-            <div>
-              <label>Lý do khám <span style={{color:'#ef4444'}}>*</span></label>
-              <textarea
-                value={reason}
-                onChange={e => setReason(e.target.value)}
-                placeholder="Mô tả triệu chứng hoặc lý do khám..."
-              />
-            </div>
+                <div>
+                  <label>Lý do khám <span style={{color:'#ef4444'}}>*</span></label>
+                  <textarea
+                    value={reason}
+                    onChange={e => setReason(e.target.value)}
+                    placeholder="Mô tả triệu chứng hoặc lý do khám..."
+                  />
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -225,7 +245,7 @@ export default function BookingSlots({ docId, onBook }) {
           onClick={handleBook}
           disabled={!selectedSlot || booking}
         >
-          {booking ? 'Đang đặt lịch...' : 'Đặt lịch hẹn'}
+          {booking ? 'Đang đặt lịch...' : (!isAuthenticated() ? 'Tiếp tục đăng nhập' : 'Đặt lịch hẹn')}
         </button>
       </div>
     </>

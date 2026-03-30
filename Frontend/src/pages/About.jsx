@@ -32,7 +32,7 @@ function About() {
             <Navbar />
 
             {/* About Us Heading */}
-            <div style={{ textAlign: 'center', margin: '60px auto 48px', fontFamily: "'Playfair Display', serif", fontSize: '28px', fontWeight: 700, color: '#1e293b', position: 'relative' }}>
+            <div style={{ paddingTop: '96px', textAlign: 'center', margin: '0 auto 48px', fontFamily: "'Playfair Display', serif", fontSize: '28px', fontWeight: 700, color: '#1e293b', position: 'relative' }}>
                 Về chúng tôi
                 <div style={{ width: '48px', height: '4px', background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', borderRadius: '2px', margin: '12px auto 0' }} />
             </div>

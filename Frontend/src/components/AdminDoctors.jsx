@@ -232,7 +232,22 @@ const AdminDoctors = () => {
                     {doctors.map(doctor => (
                         <div key={doctor.doctorId} className="doctor-pending-card">
                             <div className="avatar-wrapper">
-                                {doctor.avatarUrl ? <img src={doctor.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👨‍⚕️'}
+                                {doctor.avatarUrl ? (
+                                    <img src={doctor.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <div style={{ 
+                                        width: '100%', height: '100%', display: 'flex', 
+                                        alignItems: 'center', justify_content: 'center', 
+                                        background: '#eef2ff', color: '#6366f1', 
+                                        fontWeight: 900, fontSize: '24px' 
+                                    }}>
+                                        {(() => {
+                                            const name = doctor.user?.fullName || doctor.fullName || "DR";
+                                            const parts = name.split(" ");
+                                            return parts.length >= 2 ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
+                                        })()}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="doctor-main-info">

@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 import Footer from '../components/Footer';
 
 const css = `
-.page { min-height: 100vh; background: #f8fafc; font-family: 'Inter', -apple-system, sans-serif; }
+.page { min-height: 100vh; background: #f8fafc; font-family: 'Inter', -apple-system, sans-serif; padding-top: 96px; }
 
 /* ===== HERO ===== */
 .hero-wrapper { max-width: 1280px; margin: 0 auto; padding: 24px 40px; }
