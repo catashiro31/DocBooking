@@ -8,7 +8,9 @@ import java.util.List;
 
 @Entity
 @Getter @Setter
-@Table(name = "specialties")
+@Table(name = "specialties", indexes = {
+    @Index(name = "idx_specialty_is_active", columnList = "is_active")
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

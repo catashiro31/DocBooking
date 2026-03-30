@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -182,6 +183,7 @@ public class AdminService {
         return "Đã mở khóa tài khoản id " + userId;
     }
 
+    @CacheEvict(value = "specialties", allEntries = true)
     public String addSpecialty(Specialty req) {
         String name = req.getSpecialtyName().trim();
 
@@ -199,6 +201,7 @@ public class AdminService {
         return "Đã thêm chuyên khoa";
     }
 
+    @CacheEvict(value = "specialties", allEntries = true)
     public String updateSpecialty(Integer specialtyId, Specialty req) {
         docbooking.models.Specialty specialty = specialtyRepository.findById(specialtyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa!"));
@@ -216,6 +219,7 @@ public class AdminService {
         return "Đã sửa thành công chuyên khoa";
     }
 
+    @CacheEvict(value = "specialties", allEntries = true)
     public String deleteSpecialty(Integer specialtyId) {
         docbooking.models.Specialty specialty = specialtyRepository.findById(specialtyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa với ID: " + specialtyId));
@@ -225,6 +229,7 @@ public class AdminService {
     }
 
     @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public String addFacility(Facility req) {
         // 1. Chuẩn hóa tên
         String name = req.getFacilityName().trim();
@@ -246,6 +251,7 @@ public class AdminService {
     }
 
     @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public String updateFacility(Integer facilityId, Facility req) {
         // 1. Kiểm tra tồn tại
         docbooking.models.Facility facility = facilityRepository.findByFacilityId(facilityId);
@@ -274,6 +280,7 @@ public class AdminService {
         return "Đã cập nhật thông tin cơ sở y tế";
     }
 
+    @CacheEvict(value = "facilities", allEntries = true)
     public String deleteFacility(Integer facilityId) {
         docbooking.models.Facility facility = facilityRepository.findById(facilityId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế với ID: " + facilityId));

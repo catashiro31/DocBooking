@@ -18,6 +18,8 @@ import jakarta.persistence.criteria.Predicate;
 
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.Cacheable;
+
 @RequiredArgsConstructor
 @Service
 public class PublicService {
@@ -32,12 +34,11 @@ public class PublicService {
         long totalDoctors = doctorDetailRepository.countByVerificationStatus(docbooking.models.DoctorDetail.VerificationStatus.APPROVED);
         long totalAppointments = appointmentRepository.count();
         
-        // Calculate global average rating from approved doctors
-        List<docbooking.models.DoctorDetail> approvedDoctors = doctorDetailRepository.findDoctorDetailByVerificationStatus(docbooking.models.DoctorDetail.VerificationStatus.APPROVED);
-        double totalRating = approvedDoctors.stream()
-                .mapToDouble(d -> d.getRatingAverage() != null ? d.getRatingAverage() : 5.0)
-                .sum();
-        double avgRating = approvedDoctors.isEmpty() ? 5.0 : totalRating / approvedDoctors.size();
+        // Calculate global average rating from approved doctors using DB query
+        Double avgRating = doctorDetailRepository.getAverageRatingByVerificationStatus(docbooking.models.DoctorDetail.VerificationStatus.APPROVED);
+        if (avgRating == null) {
+            avgRating = 5.0;
+        }
         
         return PortalStats.builder()
                 .totalDoctors(totalDoctors)
@@ -46,6 +47,7 @@ public class PublicService {
                 .build();
     }
 
+    @Cacheable("facilities")
     public List<Facilities> getAllFacilities() {
         return facilityRepository.findAllByIsActiveTrue().stream()
                 .map(f -> Facilities.builder()
@@ -57,6 +59,8 @@ public class PublicService {
                         .build())
                 .toList();
     }
+    
+    @Cacheable("specialties")
     public List<Specialties> getAllSpecialties() {
         return specialtyRepository.findAllByIsActiveTrue().stream()
                 .map(s -> Specialties.builder()

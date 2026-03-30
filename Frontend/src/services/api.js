@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 
 const api = axios.create({
   baseURL: 'http://localhost:5020/api/v1', 
+  timeout: 10000, // Thêm timeout 10s tránh treo app khi server chậm
   headers: {
     'Content-Type': 'application/json',
   },
@@ -23,6 +24,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Bỏ qua lỗi nếu là do request bị hủy (abort)
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+    
+    // Xử lý timeout
+    if (error.code === 'ECONNABORTED') {
+      toast.error('Kết nối đến máy chủ thất bại (Timeout). Vui lòng thử lại sau.');
+      return Promise.reject(error);
+    }
+
     const status = error.response?.status;
     const message = error.response?.data;
 

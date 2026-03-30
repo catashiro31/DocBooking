@@ -9,7 +9,9 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "facilities")
+@Table(name = "facilities", indexes = {
+    @Index(name = "idx_facility_is_active", columnList = "is_active")
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
