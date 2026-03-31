@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { doctorService } from "../services/doctorService"
 import { toast } from 'react-toastify'
 
 const TIME_SLOTS = [
-    'SLOT_07_00', 'SLOT_07_30', 'SLOT_08_00', 'SLOT_08_30', 'SLOT_09_00', 'SLOT_09_30',
-    'SLOT_10_00', 'SLOT_10_30', 'SLOT_11_00', 'SLOT_11_30', 'SLOT_13_00', 'SLOT_13_30',
-    'SLOT_14_00', 'SLOT_14_30', 'SLOT_15_00', 'SLOT_15_30', 'SLOT_16_00', 'SLOT_16_30'
+    'SLOT_09_00', 'SLOT_10_00', 'SLOT_11_00', 
+    'SLOT_14_00', 'SLOT_15_00', 'SLOT_16_00', 'SLOT_17_00'
 ]
 
 const formatTimeSlot = (slot) => {
@@ -93,12 +93,14 @@ const DoctorScheduleManager = () => {
         }
     }
 
-    const groupedSchedules = schedules.reduce((acc, schedule) => {
-        const date = schedule.dateWorking
-        if (!acc[date]) acc[date] = []
-        acc[date].push(schedule)
-        return acc
-    }, {})
+    const groupedSchedules = schedules
+        .filter(s => s.slotStatus !== 'CLOSED')
+        .reduce((acc, schedule) => {
+            const date = schedule.dateWorking
+            if (!acc[date]) acc[date] = []
+            acc[date].push(schedule)
+            return acc
+        }, {})
 
     if (loading) {
         return <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải...</div>
@@ -174,17 +176,17 @@ const DoctorScheduleManager = () => {
                                                     gap: '8px',
                                                     padding: '8px 12px',
                                                     borderRadius: '8px',
-                                                    background: slot.isBooked ? '#fee2e2' : '#dcfce7',
-                                                    border: `1px solid ${slot.isBooked ? '#fecaca' : '#bbf7d0'}`
+                                                    background: slot.slotStatus === 'BOOKED' ? '#fee2e2' : '#dcfce7',
+                                                    border: `1px solid ${slot.slotStatus === 'BOOKED' ? '#fecaca' : '#bbf7d0'}`
                                                 }}
                                             >
                                                 <span style={{ 
                                                     fontWeight: '500',
-                                                    color: slot.isBooked ? '#dc2626' : '#16a34a'
+                                                    color: slot.slotStatus === 'BOOKED' ? '#dc2626' : '#16a34a'
                                                 }}>
                                                     {formatTimeSlot(slot.timeSlot)}
                                                 </span>
-                                                {slot.isBooked ? (
+                                                {slot.slotStatus === 'BOOKED' ? (
                                                     <span style={{ fontSize: '12px', color: '#dc2626' }}>Đã đặt</span>
                                                 ) : (
                                                     <button
@@ -210,30 +212,15 @@ const DoctorScheduleManager = () => {
                 </div>
             )}
 
-            {/* Create Schedule Modal */}
-            {showModal && (
+            {/* Create Schedule Modal - React Portal */}
+            {showModal && createPortal(
                 <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1000
-                    }}
+                    className="modal-overlay"
                     onClick={() => setShowModal(false)}
                 >
                     <div
-                        style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            maxWidth: '500px',
-                            width: '90%',
-                            maxHeight: '90vh',
-                            overflow: 'auto'
-                        }}
+                        className="modal-content"
+                        style={{ maxWidth: '500px', padding: '40px' }}
                         onClick={e => e.stopPropagation()}
                     >
                         <h3 style={{ marginBottom: '20px' }}>Tạo lịch làm việc</h3>
@@ -294,7 +281,7 @@ const DoctorScheduleManager = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                                 {TIME_SLOTS.map(slot => (
                                     <button
                                         key={slot}
@@ -352,7 +339,8 @@ const DoctorScheduleManager = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

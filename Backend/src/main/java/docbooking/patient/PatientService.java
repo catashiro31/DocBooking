@@ -8,6 +8,9 @@ import docbooking.repositories.*;
 import docbooking.utils.Time;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +34,9 @@ public class PatientService {
     private final ReviewRepository reviewRepository;
     private final DoctorDetailRepository doctorDetailRepository;
 
+    @Caching(evict = {
+        @CacheEvict(value = "myRelatives", key = "#user.userId")
+    })
     public docbooking.patient.responses.Relative addRelative(User user, Relative req) {
         if (patientProfileRepository.existsByFullNameAndPhoneNumberAndUserAndIsActiveTrue(
                 req.getFullName(), req.getPhoneNumber(), user)) {
@@ -61,12 +67,14 @@ public class PatientService {
                 .build();
     }
 
+    @Cacheable(value = "relatives", key = "#id + '-' + #user.userId")
     public docbooking.patient.responses.Relative getRelativeById(Integer id, User user) {
         PatientProfile profile = patientProfileRepository.findByPatientIdAndUserAndIsActiveTrue(id, user)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người thân hoặc bạn không có quyền xem hồ sơ này!"));
         return mapToResponseDTO(profile);
     }
 
+    @Cacheable(value = "myRelatives", key = "#user.userId")
     public List<docbooking.patient.responses.Relative> getMyRelatives(User user) {
         List<PatientProfile> profiles = patientProfileRepository.findByUserAndIsActiveTrue(user);
         return profiles.stream()
@@ -74,6 +82,10 @@ public class PatientService {
                 .toList();
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "myRelatives", key = "#user.userId"),
+        @CacheEvict(value = "relatives", key = "#id + '-' + #user.userId")
+    })
     public docbooking.patient.responses.Relative updateRelative(Integer id, User user, Relative req) {
         PatientProfile profile = patientProfileRepository.findByPatientIdAndUserAndIsActiveTrue(id, user)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người thân hoặc bạn không có quyền xem hồ sơ này!"));
@@ -89,12 +101,23 @@ public class PatientService {
         if (req.getGender() != null) profile.setGender(req.getGender());
         if (req.getPhoneNumber() != null) profile.setPhoneNumber(req.getPhoneNumber());
         if (req.getAddress() != null) profile.setAddress(req.getAddress());
-        if (req.getRelationship() != null) profile.setRelationship(req.getRelationship());
+        
+        // Chỉ chặn sửa 'relationship' nếu nó là SELF, vẫn cho phép sửa các trường khác
+        if (req.getRelationship() != null && !req.getRelationship().equals(profile.getRelationship())) {
+            if ("SELF".equals(profile.getRelationship()) || "SELF".equals(req.getRelationship())) {
+                throw new RuntimeException("Không thể thay đổi kiểu quan hệ 'Bản thân (SELF)'!");
+            }
+            profile.setRelationship(req.getRelationship());
+        }
 
         return mapToResponseDTO(patientProfileRepository.save(profile));
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "myRelatives", key = "#user.userId"),
+        @CacheEvict(value = "relatives", key = "#id + '-' + #user.userId")
+    })
     public void deleteRelative(User user, Integer id) {
         PatientProfile profile = patientProfileRepository.findByPatientIdAndUserAndIsActiveTrue(id, user)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ hoặc hồ sơ đã bị xóa!"));

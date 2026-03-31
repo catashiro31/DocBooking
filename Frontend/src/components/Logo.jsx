@@ -54,10 +54,13 @@ const Logo = ({ size = 'normal', color = 'primary', showText = true, className =
             fontWeight: 800,
             color: color === 'white' ? '#fff' : '#0f172a',
             letterSpacing: '-0.03em',
-            fontFamily: "'Inter', -apple-system, sans-serif"
+            fontFamily: "'Inter', -apple-system, sans-serif",
+            display: 'inline-flex',
+            alignItems: 'baseline',
+            lineHeight: 1
           }}
         >
-          Doc<span style={{ color: color === 'white' ? '#fff' : '#6366f1' }}>Booking</span>
+          <span>Doc</span><span style={{ color: color === 'white' ? '#fff' : '#6366f1' }}>Booking</span>
         </span>
       )}
     </div>

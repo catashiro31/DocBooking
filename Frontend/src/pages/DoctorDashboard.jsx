@@ -6,6 +6,7 @@ import DoctorAppointments from "../components/DoctorAppointments"
 import DoctorScheduleManager from "../components/DoctorScheduleManager"
 import DoctorOverdueAppointments from "../components/DoctorOverdueAppointments"
 import DoctorReviews from "../components/DoctorReviews"
+import { Outlet } from "react-router-dom"
 
 const DoctorDashboard = () => {
     const location = useLocation()
@@ -16,11 +17,13 @@ const DoctorDashboard = () => {
         if (path.includes("schedule")) return "schedule"
         if (path.includes("overdue")) return "overdue"
         if (path.includes("reviews")) return "reviews"
-        return "appointments"
+        // Chỉ highlight 'Lịch hẹn' nếu đúng là trang appointments hoặc trang chủ dashboard
+        if (path === "/doctor" || path === "/doctor/appointments") return "appointments"
+        return null
     }
 
     const [activeTab, setActiveTab] = useState(getTabFromUrl())
-    
+
     useEffect(() => {
         setActiveTab(getTabFromUrl())
     }, [location.pathname])
@@ -35,6 +38,7 @@ const DoctorDashboard = () => {
 
     const [profile, setProfile] = useState(null)
     const [overdueCount, setOverdueCount] = useState(0)
+    const [initialLoading, setInitialLoading] = useState(true)
     const { user, logout } = useAuth()
 
     const tabs = [
@@ -45,8 +49,11 @@ const DoctorDashboard = () => {
     ]
 
     useEffect(() => {
-        fetchProfile()
-        fetchOverdueCount()
+        const init = async () => {
+            await Promise.all([fetchProfile(), fetchOverdueCount()])
+            setInitialLoading(false)
+        }
+        init()
     }, [])
 
     const fetchProfile = async () => {
@@ -72,29 +79,55 @@ const DoctorDashboard = () => {
         navigate("/signin")
     }
 
-    const renderContent = () => {
-        const isApproved = profile?.verificationStatus === 'APPROVED' || user?.verificationStatus === 'APPROVED'
+    if (initialLoading) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f7fb' }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div className="skeleton-pulse" style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#e2e8f0', margin: '0 auto 20px' }}></div>
+                    <p style={{ color: '#64748b', fontSize: '14px' }}>Đang khởi tạo...</p>
+                </div>
+                <style>{`
+                    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+                    .skeleton-pulse { animation: pulse 1.5s ease-in-out infinite; }
+                `}</style>
+            </div>
+        )
+    }
 
-        if (!isApproved) {
+    const currentStatus = profile?.verificationStatus || user?.verificationStatus;
+    const isApproved = currentStatus === 'APPROVED';
+    const isProfilePage = location.pathname.includes('/doctor/profile');
+
+    const renderMainContent = () => {
+        if (!isApproved && !isProfilePage) {
+            let icon = '✨';
+            let title = 'Chào mừng bạn đến với DocBooking!';
+            let desc = 'Để bắt đầu nhận lịch hẹn từ bệnh nhân, bạn cần hoàn thiện hồ sơ chuyên môn và thông tin xác thực.';
+            let buttonText = 'Bắt đầu hoàn thiện hồ sơ';
+            let showButton = true;
+
+            if (currentStatus === 'PENDING') {
+                icon = '⏳';
+                title = 'Hồ sơ của bạn đang được duyệt';
+                desc = 'Ban quản trị đang xem xét hồ sơ năng lực của bạn. Vui lòng quay lại sau khi nhận được thông báo phê duyệt.';
+                showButton = false;
+            } else if (currentStatus === 'REJECTED') {
+                icon = '❌';
+                title = 'Hồ sơ bị từ chối';
+                desc = 'Rất tiếc, hồ sơ của bạn không đủ điều kiện phê duyệt lúc này. Vui lòng cập nhật lại thông tin theo yêu cầu của Admin.';
+                buttonText = 'Cập nhật lại hồ sơ';
+                showButton = true;
+            }
+
             return (
                 <div style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     minHeight: '400px', textAlign: 'center', padding: '40px'
                 }}>
-                    <div style={{ fontSize: '64px', marginBottom: '20px' }}>
-                        {profile?.verificationStatus === 'PENDING' ? '⏳' : '✨'}
-                    </div>
-                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '12px' }}>
-                        {profile?.verificationStatus === 'PENDING' 
-                            ? 'Hồ sơ của bạn đang được duyệt' 
-                            : 'Chào mừng bạn đến với DocBooking!'}
-                    </h2>
-                    <p style={{ color: '#6b7280', maxWidth: '400px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-                        {profile?.verificationStatus === 'PENDING'
-                            ? 'Ban quản trị đang xem xét hồ sơ năng lực của bạn. Vui lòng quay lại sau khi nhận được thông báo phê duyệt.'
-                            : 'Để bắt đầu nhận lịch hẹn từ bệnh nhân, bạn cần hoàn thiện hồ sơ chuyên môn và thông tin xác thực.'}
-                    </p>
-                    {profile?.verificationStatus !== 'PENDING' && (
+                    <div style={{ fontSize: '64px', marginBottom: '20px' }}>{icon}</div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '12px' }}>{title}</h2>
+                    <p style={{ color: '#6b7280', maxWidth: '400px', margin: '0 auto 24px', lineHeight: 1.6 }}>{desc}</p>
+                    {showButton && (
                         <button
                             onClick={() => navigate('/doctor/profile')}
                             style={{
@@ -103,25 +136,14 @@ const DoctorDashboard = () => {
                                 boxShadow: '0 4px 14px rgba(95,109,252,0.3)'
                             }}
                         >
-                            Bắt đầu hoàn thiện hồ sơ
+                            {buttonText}
                         </button>
                     )}
                 </div>
             )
         }
 
-        switch (activeTab) {
-            case "appointments":
-                return <DoctorAppointments />
-            case "schedule":
-                return <DoctorScheduleManager />
-            case "overdue":
-                return <DoctorOverdueAppointments />
-            case "reviews":
-                return <DoctorReviews />
-            default:
-                return <DoctorAppointments />
-        }
+        return <Outlet />
     }
 
     return (
@@ -137,9 +159,9 @@ const DoctorDashboard = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <Link to="/" style={{ textDecoration: 'none' }}>
-                        <h1 style={{ 
-                            margin: 0, 
-                            fontSize: '24px', 
+                        <h1 style={{
+                            margin: 0,
+                            fontSize: '24px',
                             background: 'linear-gradient(135deg, #5f6dfc, #a78bfa)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent'
@@ -147,10 +169,10 @@ const DoctorDashboard = () => {
                             DocBooking
                         </h1>
                     </Link>
-                    <span style={{ 
-                        padding: '4px 12px', 
-                        background: '#dbeafe', 
-                        color: '#2563eb', 
+                    <span style={{
+                        padding: '4px 12px',
+                        background: '#dbeafe',
+                        color: '#2563eb',
                         borderRadius: '20px',
                         fontSize: '13px',
                         fontWeight: '500'
@@ -160,9 +182,9 @@ const DoctorDashboard = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: '12px',
                         padding: '8px 16px',
                         background: '#f3f4f6',
@@ -203,7 +225,7 @@ const DoctorDashboard = () => {
                             width: '100px',
                             height: '100px',
                             borderRadius: '50%',
-                            background: profile?.avatarUrl 
+                            background: profile?.avatarUrl
                                 ? `url(${profile.avatarUrl}) center/cover`
                                 : 'linear-gradient(135deg, #5f6dfc, #a78bfa)',
                             display: 'flex',
@@ -218,15 +240,15 @@ const DoctorDashboard = () => {
                         <h3 style={{ margin: '0 0 4px', fontSize: '18px' }}>
                             BS. {profile?.fullName || user?.fullName || 'Bác sĩ'}
                         </h3>
-                        <p style={{ margin: '0 0 8px', color: '#6b7280', fontSize: '14px' }}>
-                            {profile?.specialtyName || 'Chuyên khoa'}
+                        <p style={{ margin: '0 0 8px', color: '#64748b', fontSize: '14px', fontWeight: 500 }}>
+                            {profile?.specialty?.specialtyName || profile?.specialtyName || 'Chuyên khoa'}
                         </p>
-                        {profile?.facilityName && (
+                        {(profile?.facility?.facilityName || profile?.facilityName) && (
                             <p style={{ margin: 0, color: '#9ca3af', fontSize: '13px' }}>
-                                📍 {profile.facilityName}
+                                📍 {profile?.facility?.facilityName || profile?.facilityName}
                             </p>
                         )}
-                        
+
                         {profile?.verificationStatus === 'PENDING' && (
                             <div style={{
                                 marginTop: '12px',
@@ -315,38 +337,37 @@ const DoctorDashboard = () => {
                     <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #e5e7eb' }} />
 
                     <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <Link
-                            to="/doctor/profile"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '12px 16px',
-                                borderRadius: '10px',
-                                color: '#374151',
-                                textDecoration: 'none',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <span>👤</span>
-                            <span>Hồ sơ chuyên môn</span>
-                        </Link>
-                        <Link
-                            to="/change-password"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '12px 16px',
-                                borderRadius: '10px',
-                                color: '#374151',
-                                textDecoration: 'none',
-                                fontSize: '15px'
-                            }}
-                        >
-                            <span>🔐</span>
-                            <span>Đổi mật khẩu</span>
-                        </Link>
+                        {[
+                            { to: "/doctor/profile", icon: "👩‍⚕️", label: "Hồ sơ chuyên môn" },
+                            { to: "/profile", icon: "👤", label: "Thông tin cá nhân" },
+                            { to: "/change-password", icon: "🔐", label: "Đổi mật khẩu" }
+                        ].map((link) => {
+                            const isActive = location.pathname === link.to;
+                            return (
+                                <Link
+                                    key={link.to}
+                                    to={link.to}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        padding: '12px 16px',
+                                        borderRadius: '10px',
+                                        color: isActive ? 'white' : '#374151',
+                                        background: isActive ? '#5f6dfc' : 'transparent',
+                                        textDecoration: 'none',
+                                        fontSize: '15px',
+                                        fontWeight: isActive ? '500' : '400',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={e => !isActive && (e.currentTarget.style.background = '#f1f5f9')}
+                                    onMouseOut={e => !isActive && (e.currentTarget.style.background = 'transparent')}
+                                >
+                                    <span>{link.icon}</span>
+                                    <span>{link.label}</span>
+                                </Link>
+                            );
+                        })}
                     </nav>
                 </aside>
 
@@ -359,7 +380,7 @@ const DoctorDashboard = () => {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                         minHeight: '500px'
                     }}>
-                        {renderContent()}
+                        {renderMainContent()}
                     </div>
                 </main>
             </div>

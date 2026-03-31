@@ -1,6 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const getInitials = (name) => {
+  if (!name) return "DR";
+  const parts = name.split(" ");
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+};
+
 const css = `
 .card { 
   background: #fff; 
@@ -19,22 +26,36 @@ const css = `
   border-color: #6366f1; 
 }
 .avatar-wrap { 
-  background: linear-gradient(180deg, #f8fafc 0%, #e0e7ff 100%); 
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%); 
   display: flex; 
-  align-items: flex-end; 
+  align-items: center; 
   justify-content: center; 
   height: 200px; 
   overflow: hidden; 
   position: relative;
 }
 .avatar { 
-  height: 95%; 
-  width: 90%; 
+  height: 100%; 
+  width: 100%; 
   object-fit: cover; 
   object-position: top; 
   transition: transform 0.5s ease; 
 }
 .card:hover .avatar { transform: scale(1.08); }
+
+.initials-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 48px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
 .card-body { padding: 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; border-top: 1px solid #f1f5f9; }
 .avail-badge { display: flex; align-items: center; gap: 6px; }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
@@ -69,20 +90,29 @@ export default function DoctorCard({ doctor }) {
   const rating = doctor.ratingAverage != null ? doctor.ratingAverage : (doctor.rating || 5.0);
   const exp = doctor.experience || doctor.experienceYears || 0;
   const fee = doctor.fee || doctor.price || doctor.consultationFee || 0;
+  const name = doctor.doctorName || doctor.name || doctor.fullName || "Bác sĩ";
+  
+  const photo = doctor.photo || doctor.avatarUrl || doctor.imageUrl;
+  const isPlaceholder = !photo || photo.includes("placeholder") || photo.includes("dicebear") || photo.includes("ui-avatars");
 
   return (
     <>
       <style>{css}</style>
       <div className="card" onClick={() => navigate(`/appointment/${doctor.doctorId || doctor.id}`)}>
         <div className="avatar-wrap">
-          <img
-            src={doctor.photo || doctor.avatarUrl || doctor.imageUrl}
-            alt={doctor.doctorName || doctor.name || doctor.fullName}
-            className="avatar"
-            onError={e => {
-              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.doctorName || doctor.name || doctor.fullName || 'Doctor')}&background=dbeafe&color=1e40af&size=160`;
-            }}
-          />
+          {isPlaceholder ? (
+            <div className="initials-avatar">{getInitials(name)}</div>
+          ) : (
+            <img
+              src={photo}
+              alt={name}
+              className="avatar"
+              onError={e => {
+                 e.target.style.display = 'none';
+                 e.target.parentElement.innerHTML = `<div class="initials-avatar">${getInitials(name)}</div>`;
+              }}
+            />
+          )}
         </div>
         <div className="card-body">
           <div className="avail-badge">
@@ -91,7 +121,7 @@ export default function DoctorCard({ doctor }) {
               {doctor.available !== false ? 'Đang hoạt động' : 'Tạm nghỉ'}
             </span>
           </div>
-          <h3 className="doc-name">{doctor.doctorName || doctor.name || doctor.fullName}</h3>
+          <h3 className="doc-name">{name}</h3>
           <p className="doc-spec">{doctor.specialtyName || doctor.specialty || doctor.specialization}</p>
           
           <div className="meta-row">

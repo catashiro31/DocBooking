@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 import Footer from '../components/Footer';
 
 const css = `
-.page { min-height: 100vh; background: #f8fafc; font-family: 'Inter', -apple-system, sans-serif; }
+.page { min-height: 100vh; background: #f8fafc; font-family: 'Inter', -apple-system, sans-serif; padding-top: 96px; }
 
 /* ===== HERO ===== */
 .hero-wrapper { max-width: 1280px; margin: 0 auto; padding: 24px 40px; }
@@ -105,41 +105,34 @@ export default function Doctors() {
   const [specialties, setSpecialties] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSpecId, setSelectedSpecId] = useState(null);
-  const [selectedFacilityId, setSelectedFacilityId] = useState(null);
-  const [minPrice, setMinPrice] = useState(null);
-  const [maxPrice, setMaxPrice] = useState(null);
-  const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [selectedSpecId, setSelectedSpecId] = useState(() => searchParams.get('specId') ? Number(searchParams.get('specId')) : null);
+  const [selectedFacilityId, setSelectedFacilityId] = useState(() => searchParams.get('facilityId') ? Number(searchParams.get('facilityId')) : null);
+  const [minPrice, setMinPrice] = useState(() => searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : null);
+  const [maxPrice, setMaxPrice] = useState(() => searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : null);
+  const [search, setSearch] = useState(() => searchParams.get('keyword') || '');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   // Load filters
   useEffect(() => {
     doctorService.getSpecialties()
-      .then(data => setSpecialties(Array.isArray(data) ? data : []))
+      .then(data => {
+        const specs = Array.isArray(data) ? data : [];
+        setSpecialties(specs.map(s => ({ ...s, id: s.specialtyId || s.id, name: s.specialtyName || s.name })));
+      })
       .catch(err => console.error("Error loading specialties:", err));
-      
+
     doctorService.getFacilities()
-      .then(data => setFacilities(Array.isArray(data) ? data : []))
+      .then(data => {
+        const facs = Array.isArray(data) ? data : [];
+        setFacilities(facs.map(f => ({ ...f, id: f.facilityId || f.id, name: f.facilityName || f.name })));
+      })
       .catch(err => console.error("Error loading facilities:", err));
   }, []);
 
-  // Load URL params ON MOUNT
-  useEffect(() => {
-    const sId = searchParams.get('specId');
-    const fId = searchParams.get('facilityId');
-    const minP = searchParams.get('minPrice');
-    const maxP = searchParams.get('maxPrice');
-    const kw = searchParams.get('keyword');
-    
-    // Use explicit existence checks to handle 0 and other values correctly
-    if (sId !== null) setSelectedSpecId(Number(sId));
-    if (fId !== null) setSelectedFacilityId(Number(fId));
-    if (minP !== null) setMinPrice(Number(minP));
-    if (maxP !== null) setMaxPrice(Number(maxP));
-    if (kw !== null) setSearch(kw);
-  }, []);
+  // States initialized synchronously from searchParams
 
   // Fetch doctors with filters
   const fetchDoctors = useCallback(async () => {
@@ -222,7 +215,7 @@ export default function Doctors() {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
-    return (
+  return (
     <>
       <style>{css}</style>
       <Header />
@@ -257,7 +250,7 @@ export default function Doctors() {
                 Chuyên khoa
               </h3>
               <div className="spec-list">
-                <button 
+                <button
                   className={`spec-item ${!selectedSpecId ? 'active' : ''}`}
                   onClick={() => handleSpecialtySelect(null)}
                 >
@@ -281,7 +274,7 @@ export default function Doctors() {
                 Cơ sở y tế
               </h3>
               <div className="spec-list">
-                <button 
+                <button
                   className={`spec-item ${!selectedFacilityId ? 'active' : ''}`}
                   onClick={() => handleFacilitySelect(null)}
                 >
@@ -305,7 +298,7 @@ export default function Doctors() {
                 Khoảng giá
               </h3>
               <div className="spec-list">
-                <button 
+                <button
                   className={`spec-item ${minPrice === null && maxPrice === null ? 'active' : ''}`}
                   onClick={() => handlePriceSelect(null, null)}
                 >
@@ -330,7 +323,7 @@ export default function Doctors() {
             ) : doctors.length === 0 ? (
               <div className="empty reveal">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 20 }}>
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><path d="M8 11h6" />
                 </svg>
                 <p style={{ margin: 0, fontWeight: 600 }}>Không tìm thấy bác sĩ phù hợp</p>
                 <p style={{ margin: '8px 0 0', fontSize: '14px', opacity: 0.7 }}>Vui lòng thử lại với các tiêu chí lọc khác.</p>
@@ -342,10 +335,10 @@ export default function Doctors() {
                     <DoctorCard doctor={doc} />
                   </div>
                 ))}
-                
+
                 {totalPages > 1 && (
                   <div className="pagination reveal">
-                    <button 
+                    <button
                       onClick={() => setPage(p => Math.max(0, p - 1))}
                       disabled={page === 0}
                     >
@@ -360,7 +353,7 @@ export default function Doctors() {
                         {i + 1}
                       </button>
                     ))}
-                    <button 
+                    <button
                       onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                       disabled={page >= totalPages - 1}
                     >
@@ -376,4 +369,4 @@ export default function Doctors() {
       <Footer />
     </>
   );
-}
+}

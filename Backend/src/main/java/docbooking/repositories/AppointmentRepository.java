@@ -4,6 +4,7 @@ import docbooking.admin.responses.AppointmentStats;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorSchedule;
 import docbooking.models.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,6 +36,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "WHERE a.createdAt BETWEEN :dateFrom AND :dateTo " +
             "AND (:status IS NULL OR a.bookingStatus = :status) " +
             "ORDER BY a.createdAt DESC")
+    @EntityGraph(attributePaths = {"schedule", "patient", "schedule.doctor"})
     Page<Appointment> findAllByPeriodAndStatus(
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo,
@@ -42,12 +44,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             Pageable pageable
     );
 
+    @EntityGraph(attributePaths = {"schedule", "schedule.doctor", "schedule.doctor.specialty", "schedule.doctor.facility"})
     Page<Appointment> findByPatient_UserOrderByCreatedAtDesc(User user, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"schedule", "schedule.doctor", "schedule.doctor.specialty", "schedule.doctor.facility"})
     Page<Appointment> findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(
             User user, Appointment.BookingStatus status, Pageable pageable
     );
 
+    @EntityGraph(attributePaths = {"schedule", "patient"})
     Page<Appointment> findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(User user, Pageable pageable);
 
 

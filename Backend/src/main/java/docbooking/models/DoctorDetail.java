@@ -8,7 +8,9 @@ import java.util.List;
 
 @Entity
 @Getter @Setter
-@Table(name = "doctor_details")
+@Table(name = "doctor_details", indexes = {
+    @Index(name = "idx_doctor_specialty_facility", columnList = "specialty_id, facility_id")
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -19,18 +21,15 @@ public class DoctorDetail {
     @Column(name = "doctor_id")
     private Integer doctorId;
 
-    @JsonIgnore
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", unique = true)
     private User user;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "specialty_id", nullable = false)
     private Specialty specialty;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "facility_id", nullable = false)
     private Facility facility;
 

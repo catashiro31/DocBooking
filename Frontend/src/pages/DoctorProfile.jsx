@@ -139,7 +139,17 @@ function DoctorProfile() {
   const { user } = useAuth()
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(user?.verificationStatus === "PENDING")
+  const [approved, setApproved] = useState(user?.verificationStatus === "APPROVED")
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
+  
+  // Du lieu ho so (khi da duoc duyet)
+  const [profileData, setProfileData] = useState(null)
+  
+  // Form sua gia, tieu su (Khi da duoc duyet)
+  const [editMode, setEditMode] = useState(false)
+  const [editForm, setEditForm] = useState({ bio: "", price: "" })
+  const [savingEdit, setSavingEdit] = useState(false)
 
   const [form, setForm] = useState({
     bio: "", degree: "", experienceYears: "", price: "",
@@ -151,16 +161,70 @@ function DoctorProfile() {
   const [loadingOptions, setLoadingOptions] = useState(true)
 
   useEffect(() => {
-    Promise.all([api.get("/portal/specialties"), api.get("/portal/facilities")])
-      .then(([specRes, facRes]) => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get("/doctor/profile")
+        const status = res.data?.verificationStatus;
+        if (status === "APPROVED") {
+          setApproved(true)
+          setProfileData(res.data)
+          setEditForm({ bio: res.data.bio || "", price: res.data.price || "" })
+        }
+        else if (status === "PENDING") {
+          setSubmitted(true)
+        }
+        else if (status === "REJECTED") {
+          setSubmitted(false);
+          setApproved(false);
+          setForm({
+            bio: res.data.bio || "",
+            degree: res.data.degree || "",
+            experienceYears: res.data.experienceYears || "",
+            price: res.data.price || "",
+            specialtyId: res.data.specialty?.id || "",
+            facilityId: res.data.facility?.id || "",
+            idCardUrl: res.data.idCardUrl || "",
+            certificateUrl: res.data.certificateUrl || ""
+          });
+        }
+      } catch (err) {}
+
+      try {
+        const [specRes, facRes] = await Promise.all([api.get("/portal/specialties"), api.get("/portal/facilities")])
         setSpecialties(specRes.data?.content || specRes.data || [])
         setFacilities(facRes.data?.content || facRes.data || [])
-      })
-      .catch(() => console.error("Không tải được danh sách chuyên khoa / cơ sở y tế"))
-      .finally(() => setLoadingOptions(false))
+      } catch (err) {}
+      
+      setLoadingOptions(false)
+      setInitialLoading(false)
+    }
+
+    fetchData()
   }, [])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
+
+  const handleEditChange = (e) => setEditForm({ ...editForm, [e.target.name]: e.target.value })
+  
+  const handleSaveEdit = async () => {
+    if (Number(editForm.price) < 0) {
+        toast.error("Giá khám không được là số âm")
+        return
+    }
+    setSavingEdit(true)
+    try {
+        await api.put("/doctor/profile", {
+            bio: editForm.bio,
+            price: Number(editForm.price)
+        })
+        toast.success("Cập nhật hồ sơ thành công")
+        setProfileData(prev => ({ ...prev, bio: editForm.bio, price: Number(editForm.price) }))
+        setEditMode(false)
+    } catch (err) {
+        toast.error(err.response?.data || "Đã xảy ra lỗi khi cập nhật")
+    }
+    setSavingEdit(false)
+  }
 
   const handleUpload = (e, type) => {
     const file = e.target.files[0]
@@ -177,6 +241,10 @@ function DoctorProfile() {
   }
 
   const handleSubmit = async () => {
+    if (Number(form.experienceYears) < 0 || Number(form.price) < 0) {
+        toast.error("Số năm kinh nghiệm và giá khám không được âm")
+        return
+    }
     setLoading(true)
     try {
       const formData = new FormData()
@@ -186,8 +254,8 @@ function DoctorProfile() {
       formData.append("price", form.price)
       formData.append("specialtyId", form.specialtyId)
       formData.append("facilityId", form.facilityId)
-      if (files.idCard) formData.append("idCard", files.idCard)
-      if (files.certificate) formData.append("certificate", files.certificate)
+      if (files.idCard) formData.append("idCardImage", files.idCard)
+      if (files.certificate) formData.append("certificatePdf", files.certificate)
 
       await api.post("/doctor/profile", formData, {
         transformRequest: (data) => data,
@@ -224,6 +292,177 @@ function DoctorProfile() {
     display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
     padding: '3rem 1rem',
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+  }
+
+  if (initialLoading) {
+    return (
+      <div style={{...pageWrapStyle, alignItems: 'center', justifyContent: 'center'}}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="skeleton-pulse" style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#0ea47a', opacity: 0.2, margin: '0 auto 16px' }}></div>
+          <p style={{ color: '#64748b', fontSize: '13px', fontWeight: 500 }}>Đang tải thông tin hồ sơ...</p>
+        </div>
+        <style>{`
+          @keyframes pulse { 0% { opacity: 0.1; } 50% { opacity: 0.3; } 100% { opacity: 0.1; } }
+          .skeleton-pulse { animation: pulse 1.5s infinite; }
+        `}</style>
+      </div>
+    )
+  }
+
+  // ===== APPROVED SCREEN =====
+  if (approved && profileData) {
+      return (
+          <div style={{...pageWrapStyle, display: 'block', padding: '100px 20px 40px'}}>
+              <div style={{ maxWidth: '900px', margin: '0 auto' }} className="reveal">
+                  
+                  {/* Header Profile */}
+                  <div style={{ background: '#fff', borderRadius: '24px', padding: '32px', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '24px', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#0ea47a' }} />
+                      <div style={{ width: '100px', height: '100px', borderRadius: '20px', background: 'linear-gradient(135deg, #0ea47a, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '36px', fontWeight: 800, flexShrink: 0 }}>
+                          {user?.avatarUrl ? <img src={user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '20px' }} alt="" /> : user?.fullName?.[0]}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                              <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>{user?.fullName}</h1>
+                              <div style={{ background: '#e8faf3', color: '#0ea47a', padding: '4px 12px', borderRadius: '30px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                  Đã xác minh
+                              </div>
+                          </div>
+                          <p style={{ margin: 0, color: '#64748b', fontSize: '15px', fontWeight: 500 }}>
+                              {profileData.degree} • {profileData.specialty?.specialtyName || profileData.specialtyName}
+                          </p>
+                      </div>
+                      <div style={{ textAlign: 'right', minWidth: '220px' }}>
+                          {!editMode ? (
+                              <button 
+                                onClick={() => setEditMode(true)} 
+                                style={{ 
+                                    padding: '12px 24px', background: 'linear-gradient(135deg, #0ea47a, #059669)', 
+                                    color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', 
+                                    fontWeight: 700, fontSize: '14px', transition: 'all 0.3s', 
+                                    boxShadow: '0 8px 16px rgba(14,164,122,0.2)',
+                                    display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+                              >
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                  Chỉnh sửa tiểu sử & giá
+                              </button>
+                          ) : (
+                              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                                  <button 
+                                    onClick={() => setEditMode(false)} 
+                                    style={{ 
+                                        padding: '12px 20px', background: '#f8fafc', color: '#64748b', 
+                                        border: '1.5px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', 
+                                        fontWeight: 700, fontSize: '14px', transition: 'all 0.2s' 
+                                    }}
+                                  >
+                                    Hủy
+                                  </button>
+                                  <button 
+                                    onClick={handleSaveEdit} 
+                                    disabled={savingEdit} 
+                                    style={{ 
+                                        padding: '12px 24px', background: '#0ea47a', color: 'white', 
+                                        border: 'none', borderRadius: '12px', cursor: 'pointer', 
+                                        fontWeight: 700, fontSize: '14px', boxShadow: '0 8px 16px rgba(14,164,122,0.2)',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={e => !savingEdit && (e.currentTarget.style.opacity = '0.9')}
+                                    onMouseOut={e => e.currentTarget.style.opacity = '1'}
+                                  >
+                                      {savingEdit ? "Đang lưu..." : "Lưu thay đổi"}
+                                  </button>
+                              </div>
+                          )}
+                      </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '24px' }}>
+                      
+                      {/* Left: Official Info (Locked) */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                          <div style={{ background: '#fff', borderRadius: '24px', padding: '24px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', border: '1px solid #f1f5f9' }}>
+                              <h3 style={{ margin: '0 0 20px', fontSize: '14px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                  Thông tin xác thực
+                              </h3>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                  <div>
+                                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Học vị / Bằng cấp</label>
+                                      <p style={{ margin: 0, fontWeight: 600, color: '#1e293b' }}>{profileData.degree}</p>
+                                  </div>
+                                  <div>
+                                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Chuyên khoa</label>
+                                      <p style={{ margin: 0, fontWeight: 600, color: '#1e293b' }}>{profileData.specialty?.specialtyName || profileData.specialtyName || "—"}</p>
+                                  </div>
+                                  <div>
+                                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Nơi làm việc</label>
+                                      <p style={{ margin: 0, fontWeight: 600, color: '#1e293b' }}>{profileData.facility?.facilityName || profileData.facilityName || "—"}</p>
+                                  </div>
+                                  <div>
+                                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Kinh nghiệm</label>
+                                      <p style={{ margin: 0, fontWeight: 600, color: '#1e293b' }}>{profileData.experienceYears} năm thực hành</p>
+                                  </div>
+                                  <div style={{ marginTop: '8px', padding: '12px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0' }}>
+                                      <p style={{ margin: 0, fontSize: '11px', color: '#64748b', lineHeight: 1.5 }}>
+                                          <strong>Lưu ý:</strong> Các thông tin trên đã được chuyên viên pháp chế xác minh. Nếu cần thay đổi, vui lòng liên hệ bộ phận hỗ trợ.
+                                      </p>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+
+                      {/* Right: Editable Profile */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                          
+                          <div style={{ background: '#fff', borderRadius: '24px', padding: '32px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', border: '1px solid #f1f5f9', flex: 1 }}>
+                              <h3 style={{ margin: '0 0 24px', fontSize: '14px', fontWeight: 800, color: '#0ea47a', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                  Hồ sơ công khai
+                              </h3>
+
+                              <div style={{ marginBottom: '28px' }}>
+                                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Giá khám tư vấn (VNĐ)</span>
+                                      {editMode && <span style={{ fontSize: '11px', color: '#0ea47a', fontWeight: 600 }}>Cho phép chỉnh sửa</span>}
+                                  </label>
+                                  {editMode ? (
+                                      <div style={{ position: 'relative' }}>
+                                          <input type="number" name="price" value={editForm.price} onChange={handleEditChange} style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '2px solid #0ea47a', fontSize: '16px', fontWeight: 700, color: '#0ea47a', background: '#fff', outline: 'none' }} />
+                                          <span style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: '#0ea47a' }}>đ</span>
+                                      </div>
+                                  ) : (
+                                      <div style={{ background: '#f0fdf4', padding: '16px 20px', borderRadius: '16px', border: '1px solid #dcfce7' }}>
+                                          <span style={{ fontSize: '24px', fontWeight: 800, color: '#0ea47a' }}>{Number(profileData.price).toLocaleString('vi-VN')}</span>
+                                          <span style={{ fontSize: '16px', fontWeight: 700, color: '#0ea47a', marginLeft: '4px' }}>VNĐ</span>
+                                      </div>
+                                  )}
+                              </div>
+
+                              <div>
+                                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Tiểu sử & Giới thiệu</span>
+                                      {editMode && <span style={{ fontSize: '11px', color: '#0ea47a', fontWeight: 600 }}>Cho phép chỉnh sửa</span>}
+                                  </label>
+                                  {editMode ? (
+                                      <textarea name="bio" value={editForm.bio} onChange={handleEditChange} style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '2px solid #0ea47a', fontSize: '14px', lineHeight: 1.6, color: '#334155', minHeight: '200px', outline: 'none', background: '#fff', fontFamily: 'inherit' }} />
+                                  ) : (
+                                      <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #f1f5f9', fontSize: '15px', lineHeight: 1.7, color: '#475569', minHeight: '160px', whiteSpace: 'pre-line' }}>
+                                          {profileData.bio || "Bác sĩ chưa có thông tin giới thiệu."}
+                                      </div>
+                                  )}
+                              </div>
+                          </div>
+                      </div>
+
+                  </div>
+              </div>
+          </div>
+      )
   }
 
   // ===== SUCCESS SCREEN =====
@@ -272,29 +511,6 @@ function DoctorProfile() {
     )
   }
 
-  // ===== APPROVED SCREEN =====
-  if (user?.verificationStatus === "APPROVED") {
-    return (
-      <div style={pageWrapStyle}>
-        <div style={{ width: '100%', maxWidth: '440px', background: '#fff', borderRadius: '24px', border: '1px solid #f0f0f0', boxShadow: '0 4px 24px rgba(0,0,0,0.07)', padding: '3rem 2.5rem', textAlign: 'center' }}>
-          <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', boxShadow: '0 8px 24px rgba(59,130,246,0.3)' }}>
-            <span style={{ fontSize: '36px' }}>👨‍⚕️</span>
-          </div>
-          <h2 style={{ margin: '0 0 10px', fontSize: '22px', fontWeight: 700, color: '#0f172a' }}>Hồ sơ đã được duyệt!</h2>
-          <p style={{ margin: '0 0 2rem', fontSize: '14px', color: '#6b7280', lineHeight: 1.7 }}>
-            Tài khoản bác sĩ của bạn đã được xác thực và đang hoạt động bình thường.
-          </p>
-          <button
-            onClick={() => navigate("/doctor/appointments")}
-            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', fontSize: '14px', fontWeight: 600, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 14px rgba(59,130,246,0.35)' }}
-          >
-            Đến bảng điều khiển →
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   // ===== MAIN FORM =====
   const selectStyle = {
     width: '100%', padding: '12px 40px 12px 14px', borderRadius: '10px',
@@ -338,8 +554,8 @@ function DoctorProfile() {
               </SectionCard>
               <SectionCard icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea47a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>} title="Kinh nghiệm & Chi phí">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
-                  <FloatingInput label="Số năm kinh nghiệm" type="number" name="experienceYears" placeholder="VD: 10" value={form.experienceYears} onChange={handleChange} required />
-                  <FloatingInput label="Giá tư vấn (VNĐ)" type="number" name="price" placeholder="VD: 200000" value={form.price} onChange={handleChange} required />
+                  <FloatingInput label="Số năm kinh nghiệm" type="number" min="0" name="experienceYears" placeholder="VD: 10" value={form.experienceYears} onChange={handleChange} required />
+                  <FloatingInput label="Giá tư vấn (VNĐ)" type="number" min="0" name="price" placeholder="VD: 200000" value={form.price} onChange={handleChange} required />
                 </div>
               </SectionCard>
             </>

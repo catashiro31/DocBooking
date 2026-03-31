@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { adminService } from "../services/adminService"
+import Header from "../components/Header"
+import Footer from "../components/Footer"
 
 function Facilities() {
     const [facilities, setFacilities] = useState([])
@@ -19,51 +21,76 @@ function Facilities() {
     }, [])
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '60px 20px', fontFamily: "'Inter', sans-serif" }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                    <h1 style={{ fontSize: '36px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
-                        Cơ sở y tế liên kết
-                    </h1>
-                    <p style={{ fontSize: '16px', color: '#64748b', maxWidth: '600px', margin: '0 auto' }}>
-                        Khám phá mạng lưới các bệnh viện và phòng khám uy tín đối tác của DocBooking, mang đến cho bạn dịch vụ chăm sóc sức khỏe tốt nhất.
-                    </p>
-                </div>
+        <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', sans-serif" }}>
+            <Header />
+            <div style={{ paddingTop: '120px', paddingBottom: '80px', paddingLeft: '20px', paddingRight: '20px' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+                        <h1 style={{ fontSize: '36px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px' }}>
+                            Cơ sở y tế liên kết
+                        </h1>
+                        <p style={{ fontSize: '16px', color: '#64748b', maxWidth: '600px', margin: '0 auto' }}>
+                            Khám phá mạng lưới các bệnh viện và phòng khám uy tín đối tác của DocBooking, mang đến cho bạn dịch vụ chăm sóc sức khỏe tốt nhất.
+                        </p>
+                    </div>
 
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Đang tải danh sách cơ sở y tế...</div>
-                ) : facilities.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', background: 'white', borderRadius: '16px' }}>
-                        Chưa có cơ sở y tế nào trong hệ thống.
-                    </div>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px' }}>
-                        {facilities.map(fac => (
-                            <div key={fac.facilityId} style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', transition: 'transform 0.2s', cursor: 'pointer' }}>
-                                <div style={{ height: '200px', background: '#e2e8f0', position: 'relative' }}>
-                                    {fac.imageUrl ? (
-                                        <img src={fac.imageUrl} alt={fac.facilityName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    ) : (
-                                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '48px' }}>
-                                            🏥
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Đang tải danh sách cơ sở y tế...</div>
+                    ) : facilities.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', background: 'white', borderRadius: '16px' }}>
+                            Chưa có cơ sở y tế nào trong hệ thống.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px' }}>
+                            {facilities.map(fac => (
+                                <div key={fac.facilityId} style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', transition: 'transform 0.2s', cursor: 'pointer' }}>
+                                    <div style={{ height: '200px', background: '#f1f5f9', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                        {fac.imageUrl ? (
+                                            <img 
+                                                src={fac.imageUrl} 
+                                                alt={fac.facilityName} 
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.nextSibling.style.display = 'flex';
+                                                }}
+                                            />
+                                        ) : null}
+                                        <div style={{ 
+                                            display: fac.imageUrl ? 'none' : 'flex', 
+                                            flexDirection: 'column', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center',
+                                            padding: '20px'
+                                        }}>
+                                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <rect x="4" y="2" width="16" height="20" rx="3" fill="#6366f1" fillOpacity="0.1"/>
+                                                <rect x="4" y="2" width="16" height="20" rx="3" stroke="#6366f1" strokeWidth="2" strokeDasharray="4 2"/>
+                                                <rect x="8" y="7" width="8" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                                                <rect x="8" y="11" width="8" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                                                <rect x="8" y="15" width="4" height="2" rx="1" fill="#6366f1" fillOpacity="0.2"/>
+                                                <circle cx="18" cy="18" r="5" fill="#6366f1"/>
+                                                <path d="M18 15.5V20.5M15.5 18H20.5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                                            </svg>
                                         </div>
-                                    )}
+                                    </div>
+                                    <div style={{ padding: '24px' }}>
+                                        <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>{fac.facilityName}</h3>
+                                        <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                            <span>📍</span>
+                                            <span>{fac.address}</span>
+                                        </p>
+                                        <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                            {fac.description}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div style={{ padding: '24px' }}>
-                                    <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>{fac.facilityName}</h3>
-                                    <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                                        <span>📍</span>
-                                        <span>{fac.address}</span>
-                                    </p>
-                                    <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                        {fac.description}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
+            <Footer />
         </div>
     )
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { adminService } from "../services/adminService"
 import { toast } from 'react-toastify'
 
@@ -6,12 +7,42 @@ const AdminDoctors = () => {
     const [doctors, setDoctors] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
+    const [viewMode, setViewMode] = useState("all") // Default to ALL to avoid confusion
+    const [page, setPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
     const [detailModal, setDetailModal] = useState({ show: false, data: null, loading: false })
     const [rejectModal, setRejectModal] = useState({ show: false, doctor: null, reason: "" })
 
     useEffect(() => {
-        fetchPendingDoctors()
-    }, [])
+        setPage(0)
+        fetchData(0)
+    }, [viewMode])
+
+    useEffect(() => {
+        if (viewMode === "all") {
+            fetchData(page)
+        }
+    }, [page])
+
+    const fetchData = async (pageNum) => {
+        try {
+            setLoading(true)
+            if (viewMode === "pending") {
+                const data = await adminService.getPendingDoctors()
+                setDoctors(Array.isArray(data) ? data : [])
+                setTotalPages(1)
+            } else {
+                const data = await adminService.getAllDoctors(pageNum, 10)
+                setDoctors(data?.content || [])
+                setTotalPages(data?.totalPages || 1)
+            }
+        } catch (err) {
+            setError("Không thể tải danh sách bác sĩ")
+            console.error(err)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleViewDetail = async (doctorId) => {
         try {
@@ -24,340 +55,201 @@ const AdminDoctors = () => {
         }
     }
 
-    const fetchPendingDoctors = async () => {
-        try {
-            setLoading(true)
-            const data = await adminService.getPendingDoctors()
-            setDoctors(Array.isArray(data) ? data : [])
-        } catch (err) {
-            setError("Không thể tải danh sách bác sĩ chờ duyệt")
-            console.error(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
     const handleApprove = async (doctorId) => {
         if (!window.confirm("Phê duyệt bác sĩ này?")) return
-
         try {
             await adminService.approveDoctor(doctorId)
-            setDoctors(prev => prev.filter(d => d.doctorId !== doctorId))
+            toast.success("Phê duyệt thành công")
+            fetchData(page)
             setDetailModal({ show: false, data: null, loading: false })
         } catch (err) {
-            toast.error(err.response?.data || "Không thể phê duyệt")
+            toast.error(err.response?.data || "Lỗi phê duyệt")
         }
     }
 
     const handleReject = async () => {
-        if (!rejectModal.doctor) return
-
+        if (!rejectModal.reason.trim()) return
         try {
             await adminService.rejectDoctor(rejectModal.doctor.doctorId, rejectModal.reason)
+            toast.success("Đã từ chối hồ sơ")
             setRejectModal({ show: false, doctor: null, reason: "" })
-            setDoctors(prev => prev.filter(d => d.doctorId !== rejectModal.doctor.doctorId))
+            fetchData(page)
             setDetailModal({ show: false, data: null, loading: false })
         } catch (err) {
-            toast.error(err.response?.data || "Không thể từ chối")
+            toast.error(err.response?.data || "Lỗi từ chối")
         }
     }
 
-    if (loading) {
-        return <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải...</div>
-    }
-
-    if (error) {
-        return <div style={{ color: '#dc2626', textAlign: 'center', padding: '40px' }}>{error}</div>
-    }
-
-    if (doctors.length === 0) {
-        return (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-                <p style={{ fontSize: '18px', marginBottom: '8px' }}>Không có bác sĩ nào chờ duyệt</p>
-                <p style={{ fontSize: '14px' }}>Tất cả hồ sơ đã được xử lý</p>
-            </div>
-        )
+    const getStatusBadge = (status) => {
+        const styles = {
+            APPROVED: { label: 'Đã duyệt', color: '#10b981', bg: '#ecfdf5' },
+            PENDING: { label: 'Chờ duyệt', color: '#f59e0b', bg: '#fffbeb' },
+            REJECTED: { label: 'Từ chối', color: '#ef4444', bg: '#fef2f2' }
+        }
+        return styles[status] || { label: status, color: '#64748b', bg: '#f8fafc' }
     }
 
     return (
-        <div>
-            <div style={{ marginBottom: '20px' }}>
-                <h3 style={{ margin: '0 0 8px', color: '#333' }}>Phê duyệt bác sĩ</h3>
-                <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>
-                    Có {doctors.length} bác sĩ đang chờ phê duyệt hồ sơ
-                </p>
+        <div className="reveal">
+            <style>{`
+                .view-toggle-container { display: flex; background: #f1f5f9; padding: 4px; border-radius: 14px; width: fit-content; margin-bottom: 32px; }
+                .view-toggle-btn { padding: 10px 20px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; color: #64748b; background: transparent; }
+                .view-toggle-btn.active { background: white; color: #6366f1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+                
+                .doc-card { background: white; border-radius: 24px; padding: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s; display: flex; gap: 24px; margin-bottom: 20px; }
+                .doc-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08); border-color: #e2e8f0; }
+                
+                .doc-avatar { width: 80px; height: 80px; border-radius: 50%; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; color: #64748b; flex-shrink: 0; border: 2px solid #f1f5f9; line-height: 1; }
+                
+                .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px; font-size: 12px; font-weight: 500; color: #64748b; margin-right: 8px; margin-top: 4px; }
+            `}</style>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div>
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>Danh sách bác sĩ</h2>
+                    <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#64748b' }}>Phê duyệt hồ sơ chuyên môn và quản lý đội ngũ bác sĩ hệ thống.</p>
+                </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {doctors.map(doctor => (
-                    <div
-                        key={doctor.doctorId}
-                        style={{
-                            background: 'white',
-                            borderRadius: '12px',
-                            padding: '20px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                            border: '1px solid #e5e7eb'
-                        }}
-                    >
-                        <div style={{ display: 'flex', gap: '20px' }}>
-                            {/* Avatar */}
-                            <div style={{
-                                width: '80px',
-                                height: '80px',
-                                borderRadius: '12px',
-                                background: doctor.avatarUrl 
-                                    ? `url(${doctor.avatarUrl}) center/cover`
-                                    : 'linear-gradient(135deg, #5f6dfc, #a78bfa)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white',
-                                fontSize: '28px',
-                                flexShrink: 0
-                            }}>
-                                {!doctor.avatarUrl && '👨‍⚕️'}
-                            </div>
+            <div className="view-toggle-container">
+                <button className={`view-toggle-btn ${viewMode === "all" ? "active" : ""}`} onClick={() => setViewMode("all")}>Tất cả bác sĩ</button>
+                <button className={`view-toggle-btn ${viewMode === "pending" ? "active" : ""}`} onClick={() => setViewMode("pending")}>Đang chờ duyệt</button>
+            </div>
 
-                            {/* Info */}
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '100px' }}><div className="skeleton-pulse" style={{ height: '300px', borderRadius: '24px' }} /></div>
+            ) : doctors.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '100px', background: 'white', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📂</div>
+                    <div style={{ color: '#64748b', fontWeight: 700 }}>Danh sách hiện đang trống</div>
+                </div>
+            ) : (
+                <div className="reveal">
+                    {doctors.map(doc => (
+                        <div key={doc.doctorId} className="doc-card">
+                            <div className="doc-avatar">
+                                {(doc.user?.avatarUrl || doc.avatarUrl) ? (
+                                    <img src={doc.user?.avatarUrl || doc.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerText = (doc.user?.fullName || doc.fullName || 'B')?.charAt(0) }} />
+                                ) : (doc.user?.fullName || doc.fullName || '👨‍⚕️')?.charAt(0)}
+                            </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <h4 style={{ margin: '0 0 8px', fontSize: '18px' }}>
-                                        BS. {doctor.fullName}
-                                    </h4>
-                                    <button
-                                        onClick={() => handleViewDetail(doctor.doctorId)}
-                                        style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '6px',
-                                            border: '1px solid #5f6dfc',
-                                            background: '#f5f6ff',
-                                            color: '#5f6dfc',
-                                            fontSize: '13px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        📄 Xem hồ sơ
-                                    </button>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>BS. {doc.user?.fullName || doc.fullName}</h3>
+                                        <div style={{ marginTop: '4px' }}>
+                                            <span className="chip">📧 {doc.user?.email}</span>
+                                            <span className="chip">🏥 {doc.specialty?.specialtyName || doc.specialtyName}</span>
+                                            <span style={{ 
+                                                padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800,
+                                                background: getStatusBadge(doc.verificationStatus).bg,
+                                                color: getStatusBadge(doc.verificationStatus).color
+                                            }}>
+                                                {getStatusBadge(doc.verificationStatus).label}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => handleViewDetail(doc.doctorId)} style={{ background: '#f1f5f9', color: '#1e293b', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Xem hồ sơ</button>
                                 </div>
-                                
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: '#6b7280', fontSize: '14px', marginBottom: '12px' }}>
-                                    <span>📧 {doctor.email}</span>
-                                    {doctor.phoneNumber && <span>📱 {doctor.phoneNumber}</span>}
-                                    {doctor.specialtyName && <span>🏥 {doctor.specialtyName}</span>}
-                                    {doctor.facilityName && <span>📍 {doctor.facilityName}</span>}
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button
-                                        onClick={() => handleApprove(doctor.doctorId)}
-                                        style={{
-                                            padding: '10px 24px',
-                                            borderRadius: '8px',
-                                            border: 'none',
-                                            background: '#10b981',
-                                            color: 'white',
-                                            cursor: 'pointer',
-                                            fontWeight: '500'
-                                        }}
-                                    >
-                                        ✓ Duyệt nhanh
-                                    </button>
-                                    <button
-                                        onClick={() => setRejectModal({ show: true, doctor, reason: "" })}
-                                        style={{
-                                            padding: '10px 24px',
-                                            borderRadius: '8px',
-                                            border: '1px solid #ef4444',
-                                            background: 'white',
-                                            color: '#ef4444',
-                                            cursor: 'pointer',
-                                            fontWeight: '500'
-                                        }}
-                                    >
-                                        ✗ Từ chối
-                                    </button>
-                                </div>
+                                {doc.verificationStatus === 'PENDING' && (
+                                    <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                                        <button onClick={() => handleApprove(doc.doctorId)} style={{ background: '#1063ff', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Phê duyệt ngay</button>
+                                        <button onClick={() => setRejectModal({ show: true, doctor: doc, reason: "" })} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>Từ chối</button>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Detail Modal */}
-            {detailModal.show && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1001, padding: '20px'
-                }} onClick={() => setDetailModal({ show: false, data: null, loading: false })}>
-                    <div style={{
-                        background: 'white', borderRadius: '16px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '30px'
-                    }} onClick={e => e.stopPropagation()}>
-                        {detailModal.loading ? (
-                            <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải chi tiết...</div>
-                        ) : detailModal.data && (
-                            <>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #eee', paddingBottom: '16px' }}>
-                                    <h2 style={{ margin: 0, fontSize: '22px' }}>Chi tiết Hồ sơ Bác sĩ</h2>
-                                    <button onClick={() => setDetailModal({ show: false, data: null, loading: false })} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer', color: '#6b7280' }}>×</button>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                                    {/* Left: Info */}
-                                    <div>
-                                        <div style={{ marginBottom: '20px' }}>
-                                            <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Thông tin cá nhân</h4>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Họ tên:</strong> {detailModal.data.user.fullName}</p>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Email:</strong> {detailModal.data.user.email}</p>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>SĐT:</strong> {detailModal.data.user.phoneNumber}</p>
-                                        </div>
-
-                                        <div style={{ marginBottom: '20px' }}>
-                                            <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Chuyên môn & Công tác</h4>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Bằng cấp:</strong> {detailModal.data.degree}</p>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Kinh nghiệm:</strong> {detailModal.data.experienceYears} năm</p>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Giá khám:</strong> {Number(detailModal.data.price).toLocaleString('vi-VN')} VNĐ</p>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Chuyên khoa:</strong> {detailModal.data.specialty?.specialtyName}</p>
-                                            <p style={{ margin: '4px 0', fontSize: '15px' }}><strong>Cơ sở:</strong> {detailModal.data.facility?.facilityName}</p>
-                                        </div>
-
-                                        <div style={{ marginBottom: '20px' }}>
-                                            <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Tiểu sử</h4>
-                                            <p style={{ margin: 0, fontSize: '14px', color: '#4b5563', lineHeight: 1.6, background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                                                {detailModal.data.bio}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Right: Documents */}
-                                    <div>
-                                        <h4 style={{ margin: '0 0 10px', color: '#374151', textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.05em' }}>Tài liệu xác minh</h4>
-                                        
-                                        <div style={{ marginBottom: '20px' }}>
-                                            <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600 }}>Ảnh CCCD / Hộ chiếu:</p>
-                                            <img 
-                                                src={detailModal.data.idCardUrl} 
-                                                alt="CCCD" 
-                                                style={{ width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }} 
-                                            />
-                                        </div>
-
-                                        <div style={{ marginBottom: '20px' }}>
-                                            <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600 }}>Chứng chỉ hành nghề:</p>
-                                            <img 
-                                                src={detailModal.data.certificateUrl} 
-                                                alt="Chứng chỉ" 
-                                                style={{ width: '100%', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'block' }} 
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                                    <button
-                                        onClick={() => handleApprove(detailModal.data.doctorId)}
-                                        style={{ padding: '12px 30px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: '600', cursor: 'pointer' }}
-                                    >
-                                        ✓ Phê duyệt hồ sơ
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            const doc = detailModal.data;
-                                            setRejectModal({ show: true, doctor: { doctorId: doc.doctorId, fullName: doc.user.fullName }, reason: "" });
-                                        }}
-                                        style={{ padding: '12px 30px', borderRadius: '8px', border: '1px solid #ef4444', background: 'white', color: '#ef4444', fontWeight: '600', cursor: 'pointer' }}
-                                    >
-                                        ✗ Từ chối
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
+                    ))}
+                    {viewMode === "all" && totalPages > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '32px' }}>
+                            <button disabled={page === 0} onClick={() => setPage(p => p - 1)} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Trước</button>
+                            <span style={{ fontWeight: 800, color: '#0f172a' }}>Trang {page + 1} / {totalPages}</span>
+                            <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>Sau →</button>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Reject Modal */}
-            {rejectModal.show && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1000
-                    }}
-                    onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })}
+            {detailModal.show && createPortal(
+                <div 
+                    className="modal-overlay"
+                    onClick={() => setDetailModal({ show: false, data: null, loading: false })}
                 >
-                    <div
-                        style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            maxWidth: '400px',
-                            width: '90%'
-                        }}
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '800px', padding: '40px' }} 
                         onClick={e => e.stopPropagation()}
                     >
-                        <h3 style={{ margin: '0 0 16px' }}>Từ chối hồ sơ</h3>
-                        <p style={{ color: '#6b7280', marginBottom: '16px' }}>
-                            Từ chối hồ sơ của: <strong>BS. {rejectModal.doctor?.fullName}</strong>
-                        </p>
+                        {detailModal.loading ? <div style={{ textAlign: 'center', padding: '60px' }}>Đang tải...</div> : (
+                            <>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
+                                    <h3 style={{ margin: 0, fontSize: '24px', fontWeight: 800 }}>Chi tiết hồ sơ bác sĩ</h3>
+                                    <button onClick={() => setDetailModal({ show: false, data: null, loading: false })} style={{ border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr', gap: '32px' }}>
+                                    <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: '#f1f5f9', overflow: 'hidden', border: '3px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', color: '#64748b' }}>
+                                        {(detailModal.data?.user?.avatarUrl || detailModal.data?.avatarUrl) ? (
+                                            <img src={detailModal.data.user?.avatarUrl || detailModal.data.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (detailModal.data?.user?.fullName || detailModal.data?.fullName || '👨‍⚕️')?.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Họ tên:</b> {detailModal.data?.user?.fullName || detailModal.data?.fullName}</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Học vị:</b> {detailModal.data?.degree}</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Kinh nghiệm:</b> {detailModal.data?.experienceYears} năm</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Chuyên khoa:</b> {detailModal.data?.specialty?.specialtyName}</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Giá khám:</b> {detailModal.data?.price?.toLocaleString()} VNĐ</p>
+                                        <div style={{ marginTop: '20px', padding: '20px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                                            <b style={{ display: 'block', marginBottom: '8px' }}>Giới thiệu chuyên môn:</b>
+                                            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6, color: '#475569' }}>{detailModal.data?.bio}</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        {detailModal.data?.certificateUrl && (
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <b>Chứng chỉ hành nghề:</b>
+                                                <img src={detailModal.data.certificateUrl} alt="" style={{ width: '100%', borderRadius: '16px', marginTop: '12px', border: '1px solid #f1f5f9' }} />
+                                            </div>
+                                        )}
+                                        {detailModal.data?.idCardUrl && (
+                                            <div>
+                                                <b>CCCD/Hộ chiếu:</b>
+                                                <img src={detailModal.data.idCardUrl} alt="" style={{ width: '100%', borderRadius: '16px', marginTop: '12px', border: '1px solid #f1f5f9' }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                {detailModal.data?.verificationStatus === 'PENDING' && (
+                                    <div style={{ display: 'flex', gap: '16px', marginTop: '40px', borderTop: '1px solid #f1f5f9', paddingTop: '32px', justifyContent: 'flex-end' }}>
+                                        <button onClick={() => handleApprove(detailModal.data.doctorId)} style={{ background: '#1063ff', color: 'white', border: 'none', padding: '12px 32px', borderRadius: '16px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}>Phê duyệt hồ sơ</button>
+                                        <button onClick={() => setRejectModal({ show: true, doctor: detailModal.data, reason: "" })} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '12px 32px', borderRadius: '16px', fontWeight: 700, fontSize: '15px', cursor: 'pointer' }}>Từ chối</button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>,
+                document.body
+            )}
 
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                Lý do từ chối
-                            </label>
-                            <textarea
-                                value={rejectModal.reason}
-                                onChange={e => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}
-                                placeholder="Nhập lý do từ chối (không bắt buộc)..."
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #d1d5db',
-                                    minHeight: '80px',
-                                    resize: 'vertical',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-
+            {rejectModal.show && createPortal(
+                <div 
+                    className="modal-overlay"
+                    onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })}
+                >
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '480px', padding: '32px' }} 
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <h3 style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 800 }}>Lý do từ chối</h3>
+                        <textarea value={rejectModal.reason} onChange={e => setRejectModal({ ...rejectModal, reason: e.target.value })} placeholder="Nhập lý do gửi bác sĩ..." style={{ width: '100%', minHeight: '120px', padding: '16px', borderRadius: '16px', border: '1.5px solid #e2e8f0', outline: 'none', marginBottom: '24px' }} />
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            <button
-                                onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #d1d5db',
-                                    background: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                onClick={handleReject}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    background: '#ef4444',
-                                    color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Từ chối
-                            </button>
+                            <button onClick={() => setRejectModal({ show: false, doctor: null, reason: "" })} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: 'white', fontWeight: 700, cursor: 'pointer' }}>Quay lại</button>
+                            <button onClick={handleReject} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Gửi từ chối</button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )

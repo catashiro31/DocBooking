@@ -1,317 +1,55 @@
 import React, { useEffect, useState } from "react"
+import { Heart, Activity, Brain, Baby, Stethoscope, Ear, Eye, Syringe, ClipboardCheck, Star, User, ChevronRight, ArrowUpRight, ShieldCheck, Clock, Zap } from "lucide-react"
 import { doctorService } from "../services/doctorService"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import doctorImg from "../images/home_booking-removebg-preview.png"
-import img1 from "../images/img1.png"
-import img2 from "../images/img2.png"
-import img3 from "../images/img3.png"
-import img4 from "../images/img4.png"
-import img5 from "../images/img5.png"
-import img6 from "../images/img6.png"
-import icon from "../images/iconHome.png"
 import bannerImg from "../images/banner-removebg-preview.png"
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 
-const defaultImages = [img1, img2, img3, img4, img5, img6]
-
-const css = `
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-.hp { font-family: 'Inter', -apple-system, sans-serif; background: #f8fafc; }
-
-/* ===== HERO ===== */
-.hp-hero {
-  display: flex;
-  align-items: center;
-  gap: 60px;
-  padding: 60px 80px;
-  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 50%, #8b5cf6 100%);
-  border-radius: 28px;
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(99,102,241,0.3);
-}
-.hp-hero::before {
-  content: '';
-  position: absolute;
-  width: 500px; height: 500px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 50%;
-  top: -160px; right: -100px;
-  pointer-events: none;
-}
-.hp-hero::after {
-  content: '';
-  position: absolute;
-  width: 280px; height: 280px;
-  background: rgba(255,255,255,0.04);
-  border-radius: 50%;
-  bottom: -80px; left: 40px;
-  pointer-events: none;
-}
-.hp-hero-left { flex: 1.3; position: relative; z-index: 1; }
-.hp-hero-title {
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 1.15;
-  margin: 0 0 16px;
-  letter-spacing: -0.03em;
-}
-.hp-hero-title span { color: #c4b5fd; }
-.hp-hero-desc { font-size: 16px; color: rgba(255,255,255,0.85); line-height: 1.7; max-width: 420px; margin: 0 0 28px; }
-.hp-hero-cta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.hp-hero-cta {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 14px 28px; border-radius: 14px; border: none;
-  background: #fff; color: #6366f1;
-  font-size: 15px; font-weight: 700; cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  transition: all 0.25s; font-family: inherit;
-}
-.hp-hero-cta:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.18); }
-.hp-hero-cta-ghost {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 14px 28px; border-radius: 14px;
-  border: 2px solid rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-  transition: all 0.25s; font-family: inherit;
-  backdrop-filter: blur(4px);
-}
-.hp-hero-cta-ghost:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.5); }
-.hp-hero-stats {
-  display: flex; gap: 24px; margin-top: 36px; flex-wrap: wrap;
-}
-.hp-stat-card {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  backdrop-filter: blur(10px);
-}
-.hp-stat-icon {
-  width: 44px; height: 44px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
-}
-.hp-stat-info { display: flex; flex-direction: column; }
-.hp-hero-stat-num { font-size: 24px; font-weight: 800; margin: 0; line-height: 1; }
-.hp-hero-stat-label { font-size: 13px; color: rgba(255,255,255,0.8); margin: 4px 0 0; font-weight: 500; }
-.hp-hero-right { flex: 1; display: flex; justify-content: flex-end; position: relative; z-index: 1; }
-.hp-hero-right img { 
-  width: 480px; max-width: 100%; 
-  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15));
-  animation: float 4s ease-in-out infinite;
+// Clinical Icon Mapping
+const SPEC_ICONS = {
+  "Tâm lý": Brain,
+  "Sản phụ khoa": Baby,
+  "Nha khoa": Stethoscope,
+  "Tim mạch": Heart,
+  "Tâm thần": Brain,
+  "Nhi khoa": Baby,
+  "Phục hồi chức năng": Activity,
+  "Da Liễu": Stethoscope,
+  "Tai Mũi Họng": Ear,
+  "Khoa xương khớp": Activity,
+  "default": Stethoscope
 }
 
-/* ===== SKELETONS ===== */
-.skeleton-spec { width: 120px; height: 140px; border-radius: 18px; }
-.skeleton-doc { width: 100%; height: 380px; border-radius: 20px; }
+// Improved Mirroring Image Logic (Cloudinary vs Local)
+const resolveImg = (url) => {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  // Fallback for local uploads if any
+  const baseUrl = "http://localhost:5020";
+  return `${baseUrl}/${url.startsWith("/") ? url.slice(1) : url}`;
+};
 
-/* ===== SECTION TITLES ===== */
-.hp-section { text-align: center; margin-top: 100px; }
-.hp-section-title {
-  font-size: 36px; font-weight: 800; color: #0f172a; margin: 0 0 12px; letter-spacing: -0.03em;
-}
-.hp-section-sub {
-  font-size: 16px; color: #64748b; max-width: 520px; margin: 0 auto 48px; line-height: 1.6;
-}
+const getInitials = (name) => {
+  if (!name) return "DR";
+  const parts = name.trim().split(" ");
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+};
 
-/* ===== SPECIALTIES ===== */
-.hp-specs {
-  display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
-}
-.hp-spec-card {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 24px 28px; min-width: 130px;
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 24px;
-  cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-}
-.hp-spec-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(99,102,241,0.15); border-color: #6366f1; }
-.hp-spec-img {
-  width: 68px; height: 68px; border-radius: 18px; object-fit: contain; padding: 12px;
-  background: #f5f3ff; transition: transform 0.3s ease;
-}
-.hp-spec-card:hover .hp-spec-img { transform: scale(1.1); }
-.hp-spec-name { font-size: 14px; font-weight: 700; color: #1e293b; margin: 0; text-align: center; }
-
-/* ===== DOCTORS GRID ===== */
-.hp-docs-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
-}
-.hp-doc-card {
-  background: #fff; border-radius: 24px; overflow: hidden;
-  border: 1px solid #e2e8f0; cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-  display: flex; flex-direction: column;
-}
-.hp-doc-card:hover { 
-  transform: translateY(-10px); 
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); 
-  border-color: #6366f1; 
-}
-.hp-doc-img-wrap {
-  width: 100%; height: 240px;
-  background: linear-gradient(180deg, #f8fafc 0%, #e0e7ff 100%);
-  display: flex; align-items: flex-end; justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-.hp-doc-img { 
-  width: 90%; height: 95%; 
-  object-fit: cover; object-position: top;
-  transition: transform 0.5s ease;
-}
-.hp-doc-card:hover .hp-doc-img { transform: scale(1.08); }
-
-.hp-doc-body { padding: 24px; border-top: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-.hp-doc-badges { display: flex; justify-content: space-between; align-items: center; }
-.hp-doc-avail {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 12px; font-weight: 700; padding: 6px 12px;
-  border-radius: 20px;
-}
-.hp-doc-avail.active { color: #059669; background: #d1fae5; }
-.hp-doc-rating { font-size: 14px; font-weight: 800; color: #475569; display: flex; align-items: center; gap: 4px; }
-
-.hp-doc-name { font-size: 18px; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.2; }
-.hp-doc-spec { font-size: 14px; color: #64748b; margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 500; }
-
-.hp-doc-btn {
-  margin-top: 8px; padding: 12px 0; width: 100%;
-  border-radius: 14px; border: none;
-  background: #f8fafc; color: #6366f1;
-  font-size: 14px; font-weight: 700;
-  transition: all 0.3s; cursor: pointer; font-family: inherit;
-}
-.hp-doc-card:hover .hp-doc-btn {
-  background: #6366f1; color: #fff;
-  box-shadow: 0 8px 20px rgba(99,102,241,0.3);
-}
-
-.hp-more-btn {
-  margin-top: 48px; padding: 14px 36px;
-  border-radius: 16px; border: 2px solid #eef2ff;
-  background: #fff; color: #6366f1;
-  font-size: 15px; font-weight: 700; cursor: pointer;
-  transition: all 0.3s; font-family: inherit;
-}
-.hp-more-btn:hover { background: #6366f1; color: #fff; border-color: #6366f1; box-shadow: 0 10px 25px rgba(99,102,241,0.3); transform: translateY(-3px); }
-
-/* ===== SERVICES ===== */
-.hp-services-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
-  max-width: 1000px; margin: 0 auto;
-}
-.hp-service-card {
-  background: #fff; border-radius: 24px; padding: 36px 32px;
-  border: 1px solid #e2e8f0; transition: all 0.3s ease;
-  cursor: pointer; position: relative; overflow: hidden;
-  text-align: left;
-}
-.hp-service-card::after {
-  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  opacity: 0; transition: opacity 0.3s ease;
-  z-index: 0;
-}
-.hp-service-card:hover::after { opacity: 1; }
-.hp-service-card:hover { border-color: transparent; transform: translateY(-5px); }
-.hp-service-card:hover * { color: #fff !important; position: relative; z-index: 1; }
-
-.hp-service-icon { font-size: 32px; margin-bottom: 20px; display: block; }
-.hp-service-title { font-size: 18px; font-weight: 800; color: #1e293b; margin: 0 0 10px; }
-.hp-service-desc { font-size: 14px; color: #64748b; line-height: 1.7; margin: 0; font-weight: 500; }
-
-/* ===== CTA BANNER ===== */
-.hp-cta {
-  display: flex; align-items: center;
-  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
-  border-radius: 32px; color: #fff; overflow: hidden;
-  margin-top: 100px; position: relative;
-  box-shadow: 0 30px 60px rgba(99,102,241,0.25);
-}
-.hp-cta-left { flex: 1; padding: 80px 0 80px 80px; position: relative; z-index: 1; }
-.hp-cta-tag { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.8); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; }
-.hp-cta-title { font-size: 42px; font-weight: 800; margin: 0 0 32px; line-height: 1.1; letter-spacing: -0.03em; }
-.hp-cta-btn {
-  display: inline-flex; align-items: center; gap: 10px;
-  padding: 16px 36px; border-radius: 16px; border: none;
-  background: #fff; color: #6366f1;
-  font-size: 16px; font-weight: 800; cursor: pointer;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-  transition: all 0.3s; font-family: inherit;
-}
-.hp-cta-btn:hover { transform: scale(1.05); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-.hp-cta-right { flex: 1; display: flex; justify-content: flex-end; align-items: flex-end; position: relative; z-index: 1; }
-.hp-cta-right img { width: 440px; transform: translateY(10px); }
-
-/* ===== MARQUEE (CƠ SỞ Y TẾ) ===== */
-.hp-marquee-wrapper { position: relative; overflow: hidden; margin-top: 48px; padding: 20px 0; }
-.hp-marquee-track {
-  display: flex; align-items: center; width: max-content;
-  animation: scrollMarquee 45s linear infinite;
-}
-.hp-marquee-track:hover { animation-play-state: paused; }
-.hp-facility-card {
-  display: flex; align-items: center; gap: 14px;
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 100px;
-  padding: 10px 28px 10px 10px; margin: 0 18px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-  transition: all 0.3s; cursor: pointer;
-}
-.hp-facility-card:hover { border-color: #6366f1; box-shadow: 0 10px 25px rgba(99,102,241,0.12); transform: translateY(-3px); }
-.hp-facility-img {
-  width: 48px; height: 48px; border-radius: 50%;
-  object-fit: cover; background: #f5f3ff;
-}
-.hp-facility-name { font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap; margin: 0; }
-
-
-@keyframes scrollMarquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-33.33%); }
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1024px) {
-  .hp-wrapper { padding: 24px 28px !important; }
-  .hp-docs-grid { grid-template-columns: repeat(3, 1fr) !important; }
-  .hp-services-grid { grid-template-columns: repeat(2, 1fr) !important; }
-}
-
-@media (max-width: 768px) {
-  .hp-wrapper { padding: 16px !important; }
-  .hp-hero {
-    flex-direction: column !important; padding: 36px 24px !important;
-    gap: 24px !important; text-align: center;
-  }
-  .hp-hero-title { font-size: 28px !important; }
-  .hp-hero-desc { font-size: 14px !important; margin: 0 auto 20px !important; }
-  .hp-hero-cta-row { justify-content: center; }
-  .hp-hero-stats { justify-content: center; gap: 24px; }
-  .hp-hero-right img { width: 260px !important; }
-  .hp-docs-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
-  .hp-doc-img { height: 140px !important; }
-  .hp-services-grid { grid-template-columns: 1fr !important; }
-  .hp-cta { flex-direction: column !important; }
-  .hp-cta-left { padding: 36px 24px !important; text-align: center; }
-  .hp-cta-title { font-size: 24px !important; }
-  .hp-cta-right img { width: 260px !important; }
-  .hp-spec-card { min-width: 100px !important; padding: 14px 16px !important; }
-  .hp-spec-img { width: 48px !important; height: 48px !important; }
-}
-`
+const InitialsAvatar = ({ name, size = "full" }) => (
+  <div style={{
+    width: '100%', height: '100%',
+    background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#6366f1', fontWeight: 900,
+    fontSize: size === "full" ? "32px" : "18px"
+  }}>
+    {getInitials(name)}
+  </div>
+);
 
 function HomePage() {
   const [topDoctors, setTopDoctors] = useState([])
@@ -320,7 +58,7 @@ function HomePage() {
   const [stats, setStats] = useState({ totalDoctors: 0, totalAppointments: 0, averageRating: 5.0 })
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     Promise.all([
@@ -330,248 +68,295 @@ function HomePage() {
       doctorService.getPortalStats()
     ])
       .then(([doctorsData, specialtiesData, facilitiesData, statsData]) => {
-        const doctors = doctorsData?.content || doctorsData || []
+        const doctors = (doctorsData?.content || doctorsData || []).map(doc => ({
+          ...doc,
+          photoUrl: resolveImg(doc.photo || doc.avatarUrl)
+        }));
         setTopDoctors(Array.isArray(doctors) ? doctors.slice(0, 8) : [])
 
-        const specs = Array.isArray(specialtiesData) ? specialtiesData : []
-        setSpecialties(specs.slice(0, 6).map((s, i) => ({
+        const specs = (Array.isArray(specialtiesData) ? specialtiesData : []).map(s => ({
           ...s,
-          image: s.imageUrl || defaultImages[i % defaultImages.length]
-        })))
-        
-        const facs = Array.isArray(facilitiesData) ? facilitiesData : []
-        setFacilities(facs.slice(0, 15))
+          id: s.specialtyId || s.id,
+          name: s.specialtyName || s.name,
+          icon: SPEC_ICONS[s.specialtyName || s.name] || SPEC_ICONS["default"],
+          imgUrl: resolveImg(s.imageUrl)
+        }));
+        setSpecialties(specs)
+
+        const facs = (Array.isArray(facilitiesData) ? facilitiesData : []).slice(0, 15).map(f => ({
+          ...f,
+          id: f.facilityId || f.id,
+          name: f.facilityName || f.name
+        }))
+        setFacilities(facs)
 
         if (statsData) setStats(statsData)
-
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch((err) => {
+        console.error("Home loading error:", err);
+        setLoading(false);
+      })
   }, [])
 
   const isLoggedIn = isAuthenticated()
-  const heroCtaText = isLoggedIn ? "Đặt lịch hẹn" : "Bắt đầu ngay"
-  const heroCtaPath = isLoggedIn ? "/doctors" : "/register"
+  const heroCtaText = isLoggedIn ? "Đặt lịch ngay" : "Đăng ký ngay"
+  const heroCtaPath = isLoggedIn ? "/profile" : "/register"
 
   return (
-    <>
-      <style>{css}</style>
-      <div className="hp">
-        <Header />
+    <div className="min-h-screen bg-white font-['Inter'] selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
 
-        <div className="hp-wrapper" style={{ padding: '32px 80px', maxWidth: '1280px', margin: '0 auto' }}>
+        .reveal { animation: reveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        @keyframes reveal { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .floating { animation: floating 6s ease-in-out infinite; }
+        @keyframes floating { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
-          {/* ===== HERO ===== */}
-          <div className="hp-hero reveal">
-            <div className="hp-hero-left">
-              <h1 className="hp-hero-title">
-                Đặt lịch khám bệnh
-                <br />
-                <span>dễ dàng</span> & nhanh chóng
-              </h1>
-              <p className="hp-hero-desc">
-                Kết nối với hàng trăm bác sĩ chuyên khoa hàng đầu. Đặt lịch trực tuyến 24/7,
-                tiết kiệm thời gian chờ đợi.
-              </p>
-              <div className="hp-hero-cta-row">
-                <button className="hp-hero-cta" onClick={() => navigate(heroCtaPath)}>
-                  {heroCtaText}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </button>
-                <button className="hp-hero-cta-ghost" onClick={() => navigate("/about")}>
-                  Tìm hiểu thêm
-                </button>
-              </div>
-              <div className="hp-hero-stats">
-                <div className="hp-stat-card reveal-delayed">
-                  <div className="hp-stat-icon">👨‍⚕️</div>
-                  <div className="hp-stat-info">
-                    <p className="hp-hero-stat-num">{stats.totalDoctors}+</p>
-                    <p className="hp-hero-stat-label">Bác sĩ chuyên khoa</p>
-                  </div>
-                </div>
-                <div className="hp-stat-card reveal-delayed" style={{ animationDelay: '0.3s' }}>
-                  <div className="hp-stat-icon">📅</div>
-                  <div className="hp-stat-info">
-                    <p className="hp-hero-stat-num">{stats.totalAppointments}</p>
-                    <p className="hp-hero-stat-label">Lượt đặt lịch</p>
-                  </div>
-                </div>
-                <div className="hp-stat-card reveal-delayed" style={{ animationDelay: '0.4s' }}>
-                  <div className="hp-stat-icon">⭐</div>
-                  <div className="hp-stat-info">
-                    <p className="hp-hero-stat-num">{stats.averageRating}/5</p>
-                    <p className="hp-hero-stat-label">Đánh giá trung bình</p>
-                  </div>
-                </div>
-              </div>
+        .gradient-text {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
+        }
+
+        .marquee-track { display: flex; width: max-content; animation: marquee 60s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        .service-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+        }
+        .service-card:hover {
+            transform: translateY(-8px);
+            background: #ffffff;
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.08);
+            border-color: #e2e8f0;
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.3);
+        }
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.4);
+            filter: brightness(1.1);
+        }
+      `}</style>
+
+      <Header />
+
+      {/* ===== HERO SECTION ===== */}
+      <section className="relative pt-32 pb-20 overflow-hidden">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-50/50 rounded-full blur-[150px] -z-10 translate-x-1/2 -translate-y-1/3" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-50/50 rounded-full blur-[150px] -z-10 -translate-x-1/3 translate-y-1/3" />
+
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-12 items-center">
+          <div className="reveal space-y-10" style={{ animationDelay: '0.1s' }}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+              </span>
+              <span className="text-indigo-600 font-bold text-[11px] uppercase tracking-wider">Hệ thống đặt lịch y tế #1 Việt Nam</span>
             </div>
-            <div className="hp-hero-right">
-              <img src={doctorImg} alt="doctor" />
-            </div>
-          </div>
 
-          {/* ===== SPECIALTIES ===== */}
-          <div className="hp-section reveal">
-            <h2 className="hp-section-title">Tìm theo chuyên khoa</h2>
-            <p className="hp-section-sub">
-              Duyệt qua các chuyên khoa y tế và tìm bác sĩ phù hợp với nhu cầu của bạn.
-            </p>
-            <div className="hp-specs">
-              {loading ? (
-                Array(6).fill(0).map((_, i) => (
-                  <div key={i} className="skeleton skeleton-spec" />
-                ))
-              ) : (
-                specialties.map((item, i) => (
-                  <div
-                    key={item.id || i}
-                    className="hp-spec-card reveal-delayed"
-                    style={{ animationDelay: `${0.1 * i}s` }}
-                    onClick={() => navigate(`/doctors?specId=${item.id}`)}
-                  >
-                    <img src={item.image} alt={item.name} className="hp-spec-img" />
-                    <p className="hp-spec-name">{item.name}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+            <h1 className="text-6xl md:text-7xl font-extrabold tracking-tighter leading-[1.05] gradient-text">
+              Kết nối sức khỏe <br />
+              <span className="text-indigo-600">toàn diện nhất</span>
+            </h1>
 
-          {/* ===== FACILITIES MARQUEE ===== */}
-          {facilities.length > 0 && (
-            <div className="hp-section reveal" style={{ marginTop: '100px' }}>
-              <h2 className="hp-section-title">Cơ sở y tế đối tác</h2>
-              <p className="hp-section-sub">Chúng tôi đồng hành cùng các bệnh viện và phòng khám uy tín nhất.</p>
-              
-              <div className="hp-marquee-wrapper">
-                <div className="hp-marquee-track">
-                  {[...facilities, ...facilities, ...facilities].map((fac, i) => (
-                    <div key={i} className="hp-facility-card" onClick={() => navigate('/facilities')}>
-                      <img 
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(fac.name || 'HOS')}&background=f5f3ff&color=6366f1`} 
-                        alt={fac.name} 
-                        className="hp-facility-img" 
-                      />
-                      <p className="hp-facility-name">{fac.name}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ===== TOP DOCTORS ===== */}
-          <div className="hp-section reveal">
-            <h2 className="hp-section-title">Bác sĩ được tin cậy</h2>
-            <p className="hp-section-sub">
-              Những bác sĩ có đánh giá cao nhất, sẵn sàng hỗ trợ bạn.
+            <p className="text-xl text-slate-500 leading-relaxed max-w-xl font-medium">
+              DocBooking giúp bạn tìm đúng bác sĩ, đúng chuyên khoa và đặt lịch khám chỉ trong vài thao tác. Tiết kiệm thời gian, nâng tầm trải nghiệm y tế số.
             </p>
 
-            {loading ? (
-              <div className="hp-docs-grid">
-                {Array(4).fill(0).map((_, i) => <div key={i} className="skeleton skeleton-doc" />)}
-              </div>
-            ) : topDoctors.length === 0 ? (
-              <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>Chưa có bác sĩ nào.</p>
-            ) : (
-              <div className="hp-docs-grid">
-                {topDoctors.map((doc, i) => (
-                  <div
-                    key={doc.doctorId || doc.id || i}
-                    className="hp-doc-card reveal-delayed"
-                    style={{ animationDelay: `${0.2 * i}s` }}
-                    onClick={() => navigate(`/appointment/${doc.doctorId || doc.id}`)}
-                  >
-                    <div className="hp-doc-img-wrap">
-                      <img
-                        src={doc.photo || doc.avatarUrl || doc.image}
-                        alt={doc.doctorName || doc.name || doc.fullName}
-                        className="hp-doc-img"
-                        onError={e => {
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.doctorName || doc.name || doc.fullName || 'Doctor')}&background=eef2ff&color=6366f1&size=200`
-                        }}
-                      />
-                    </div>
-                    <div className="hp-doc-body">
-                      <div className="hp-doc-badges">
-                        <div className="hp-doc-avail active">
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
-                          Hoạt động
-                        </div>
-                        <div className="hp-doc-rating">
-                          ⭐ {doc.ratingAverage != null ? doc.ratingAverage.toFixed(1) : (doc.rating || '0.0')}
-                        </div>
-                      </div>
-                      <h3 className="hp-doc-name">{doc.doctorName || doc.name || doc.fullName}</h3>
-                      <p className="hp-doc-spec">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                        {doc.specialtyName || doc.specialty}
-                      </p>
-                      <button className="hp-doc-btn">Đặt lịch khám</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap gap-5 pt-2">
+              <button
+                onClick={() => navigate(isLoggedIn ? '/doctors' : '/register')}
+                className="btn-premium px-10 py-5 rounded-2xl font-bold text-lg flex items-center gap-3"
+              >
+                {heroCtaText} <ChevronRight size={20} />
+              </button>
+            </div>
 
-            <button className="hp-more-btn" onClick={() => navigate("/doctors")}>
-              Xem thêm bác sĩ
-            </button>
-          </div>
-
-          {/* ===== WHY US ===== */}
-          <div className="hp-section reveal" style={{ marginBottom: '40px' }}>
-            <h2 className="hp-section-title">Tại sao chọn DocBooking?</h2>
-            <p className="hp-section-sub">
-              Chúng tôi mang đến giải pháp chăm sóc sức khỏe toàn diện và tiện lợi nhất.
-            </p>
-            <div className="hp-services-grid">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-10 border-t border-slate-100">
               {[
-                { icon: '⚡', title: 'Đặt lịch tức thì', desc: 'Không cần chờ đợi, đặt lịch trong vài giây và nhận xác nhận ngay.' },
-                { icon: '🛡️', title: 'Bảo mật tuyệt đối', desc: 'Thông tin y tế của bạn được bảo vệ bằng tiêu chuẩn bảo mật cao nhất.' },
-                { icon: '💊', title: 'Kết quả trực tuyến', desc: 'Xem kết quả khám bệnh trực tiếp trên hệ thống mọi lúc mọi nơi.' },
-              ].map((s, i) => (
-                <div key={s.title} className="hp-service-card reveal-delayed" style={{ animationDelay: `${0.1 * i}s` }}>
-                  <span className="hp-service-icon">{s.icon}</span>
-                  <h3 className="hp-service-title">{s.title}</h3>
-                  <p className="hp-service-desc">{s.desc}</p>
+                { label: 'Bác sĩ chuyên khoa', value: stats.totalDoctors + '+', icon: <Stethoscope size={20} /> },
+                { label: 'Lượt khám', value: stats.totalAppointments, icon: <ShieldCheck size={20} /> },
+              ].map((s, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex items-center gap-2 text-indigo-600 mb-1">
+                    {s.icon} <span className="text-2xl font-extrabold text-slate-900 tracking-tighter">{s.value}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{s.label}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ===== CTA BANNER ===== */}
-          <div className="hp-cta reveal">
-            <div className="hp-cta-left">
-              <p className="hp-cta-tag">Bắt đầu ngay hôm nay</p>
-              <h2 className="hp-cta-title">
-                Sẵn sàng chăm sóc
-                <br />sức khỏe của bạn?
-              </h2>
-              <button
-                className="hp-cta-btn"
-                onClick={() => navigate(isLoggedIn ? "/doctors" : "/register")}
-              >
-                {isLoggedIn ? "Đặt lịch ngay" : "Tạo tài khoản"}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-            <div className="hp-cta-right">
-              <img src={bannerImg} alt="" />
+          <div className="relative reveal hidden lg:block" style={{ animationDelay: '0.3s' }}>
+            <div className="absolute inset-0 bg-indigo-200/20 blur-[100px] rounded-full scale-150" />
+            <div className="relative z-10 floating">
+              <img src={doctorImg} alt="Doctor" className="w-full max-w-[500px] mx-auto drop-shadow-[0_40px_80px_rgba(0,0,0,0.15)]" />
             </div>
           </div>
+        </div>
+      </section>
 
+      {/* ===== SPECIALTIES SECTION ===== */}
+      <section className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="flex flex-col items-center text-center mb-16 space-y-4 reveal">
+            <span className="text-indigo-600 font-extrabold text-[12px] uppercase tracking-[0.3em]">Danh mục dịch vụ</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tighter">Chuyên khoa nổi bật</h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {loading ? (
+              Array(8).fill(0).map((_, i) => <div key={i} className="h-48 rounded-[2rem] bg-white animate-pulse" />)
+            ) : (
+              specialties.slice(0, 8).map((s) => {
+                const Icon = s.icon;
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => navigate(`/doctors?specId=${s.id}`)}
+                    className="service-card group p-8 rounded-[2rem] cursor-pointer"
+                  >
+                    <div className="mb-6 w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
+                      {s.imgUrl ? (
+                        <img src={s.imgUrl} alt="" className="w-8 h-8 object-cover rounded-lg group-hover:brightness-0 group-hover:invert transition-all" />
+                      ) : (
+                        <Icon size={32} className="text-indigo-600 group-hover:text-white transition-colors" />
+                      )}
+                    </div>
+                    <h3 className="text-lg font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600">{s.name}</h3>
+                  </div>
+                )
+              })
+            )}
+          </div>
         </div>
-        <div style={{ marginTop: '100px' }}>
-          <Footer />
+      </section>
+
+      {/* ===== PARTNER FACILITIES ===== */}
+      <section className="py-16 bg-white border-y border-slate-100">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Đồng hành cùng các cơ sở y tế uy tín</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            {facilities.slice(0, 10).map((fac) => (
+              <div key={fac.id} onClick={() => navigate('/facilities')} className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-6 py-3 rounded-xl hover:border-indigo-200 cursor-pointer transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-xs">
+                  {fac.name?.charAt(0)}
+                </div>
+                <span className="font-bold text-slate-600 text-sm">{fac.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </>
+      </section>
+
+      {/* ===== TOP DOCTORS SECTION ===== */}
+      <section className="py-24 max-w-7xl mx-auto px-6 md:px-12">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-16 px-2 reveal">
+          <div className="space-y-4">
+            <span className="text-indigo-600 font-extrabold text-[12px] uppercase tracking-[0.3em]">Bác sĩ xuất sắc</span>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tighter">Đội ngũ chuyên gia</h2>
+          </div>
+          <button onClick={() => navigate("/doctors")} className="btn-premium px-8 py-3 rounded-xl font-bold text-sm">
+            Xem tất cả chuyên gia
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {loading ? (
+            Array(4).fill(0).map((_, i) => <div key={i} className="h-[450px] bg-slate-50 rounded-[2.5rem] animate-pulse" />)
+          ) : (
+            topDoctors.map(doc => (
+              <div key={doc.doctorId} onClick={() => navigate(`/appointment/${doc.doctorId}`)}
+                className="group relative bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:translate-y-[-8px] transition-all duration-500 cursor-pointer">
+                <div className="aspect-[3/4] bg-slate-50 overflow-hidden">
+                  {doc.photoUrl ? (
+                    <img src={doc.photoUrl} alt={doc.doctorName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }} />
+                  ) : null}
+                  <div style={{ display: doc.photoUrl ? 'none' : 'flex', width: '100%', height: '100%' }}>
+                    <InitialsAvatar name={doc.doctorName} />
+                  </div>
+
+                  <div className="absolute top-6 left-6">
+                    <span className="px-4 py-2 bg-white/90 backdrop-blur-md rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-600 shadow-sm border border-white/50">
+                      {doc.specialtyName}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-bold">
+                      <Star size={14} className="fill-amber-600" /> {doc.ratingAverage?.toFixed(1) || "5.0"}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">BS. {doc.doctorName}</h3>
+                  <button className="mt-6 w-full py-4 bg-slate-50 rounded-2xl text-slate-900 font-bold text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                    Đặt lịch khám ngay
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
+      {/* ===== FEATURES SECTION ===== */}
+      <section className="py-24 bg-slate-950 rounded-[4rem] mx-6 md:mx-12 mb-24 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.1),transparent)]" />
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-20 items-center relative z-10">
+          <div className="space-y-8">
+            <span className="text-indigo-400 font-extrabold text-[12px] uppercase tracking-[0.4em]">Trải nghiệm số</span>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-white tracking-tighter leading-tight">
+              Quản lý y tế <br />
+              <span className="text-indigo-400 underline decoration-indigo-400/30 underline-offset-8">Gia đình tập trung</span>
+            </h2>
+            <p className="text-indigo-100/60 text-lg font-medium leading-relaxed max-w-lg">
+              Không còn lo lắng việc lưu trữ hồ sơ giấy. Với DocBooking, bạn quản lý toàn bộ quá trình khám chữa bệnh cho con cái và người thân trên một tài khoản duy nhất.
+            </p>
+            <div className="space-y-4">
+              {[
+                { title: 'Bảo mật HIPAA', desc: 'Dữ liệu y tế được mã hóa an toàn tuyệt đối.', icon: <ShieldCheck className="text-emerald-400" /> },
+                { title: 'Thông báo nhắc lịch', desc: 'Tự động gửi SMS/Email nhắc lịch hẹn khám.', icon: <Zap className="text-amber-400" /> }
+              ].map((item, idx) => (
+                <div key={idx} className="flex gap-4 p-6 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-white/10 transition-colors">
+                  <div className="mt-1">{item.icon}</div>
+                  <div>
+                    <h4 className="text-white font-bold">{item.title}</h4>
+                    <p className="text-indigo-100/40 text-sm">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hidden lg:block relative">
+            <div className="absolute inset-0 bg-indigo-500/20 blur-[120px] rounded-full scale-110" />
+            <img src={bannerImg} alt="App Mockup" className="relative z-10 floating filter brightness-110" />
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
   )
 }
 

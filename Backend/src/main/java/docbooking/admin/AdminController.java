@@ -2,6 +2,7 @@ package docbooking.admin;
 
 import docbooking.admin.requests.Facility;
 import docbooking.admin.requests.Specialty;
+import docbooking.admin.responses.ReviewAdminResponse;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
 import jakarta.validation.Valid;
@@ -122,6 +123,11 @@ public class AdminController {
     @PatchMapping("/users/{id}/block")
     public ResponseEntity<?> setBlocked(@PathVariable Integer id, @RequestParam String reason) {
         return ResponseEntity.ok().body(adminService.setBlockedUser(id,reason));
+    }
+
+    @PatchMapping("/users/{id}/unblock")
+    public ResponseEntity<?> setUnblocked(@PathVariable Integer id) {
+        return ResponseEntity.ok().body(adminService.unblockUser(id));
     }
 
     @GetMapping("/appointments")

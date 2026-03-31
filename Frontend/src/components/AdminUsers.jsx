@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { adminService } from "../services/adminService"
 import { toast } from 'react-toastify'
 
@@ -11,17 +12,17 @@ const AdminUsers = () => {
     const [blockModal, setBlockModal] = useState({ show: false, user: null, reason: "" })
 
     useEffect(() => {
-        fetchUsers()
+        fetchUsers(page)
     }, [page])
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (pageNum) => {
         try {
             setLoading(true)
-            const data = await adminService.getAllUsers(page, 10)
-            setUsers(data.content || data || [])
-            setTotalPages(data.totalPages || 1)
+            const data = await adminService.getAllUsers(pageNum, 10)
+            setUsers(data?.content || [])
+            setTotalPages(data?.totalPages || 0)
         } catch (err) {
-            setError("Không thể tải danh sách người dùng")
+            setError("Không thể nạp danh sách người dùng")
             console.error(err)
         } finally {
             setLoading(false)
@@ -30,224 +31,181 @@ const AdminUsers = () => {
 
     const handleBlock = async () => {
         if (!blockModal.user || !blockModal.reason.trim()) {
-            toast.warning("Vui lòng nhập lý do khóa tài khoản")
+            toast.warning("Vui lòng nhập lý do khóa")
             return
         }
 
         try {
             await adminService.blockUser(blockModal.user.userId, blockModal.reason)
+            toast.success("Đã khóa tài khoản người dùng")
             setBlockModal({ show: false, user: null, reason: "" })
-            fetchUsers()
+            fetchUsers(page)
         } catch (err) {
             toast.error(err.response?.data || "Không thể khóa tài khoản")
         }
     }
 
-    const getRoleStyle = (role) => {
-        const styles = {
-            'ADMIN': { background: '#fef3c7', color: '#d97706' },
-            'DOCTOR': { background: '#dbeafe', color: '#2563eb' },
-            'PATIENT': { background: '#dcfce7', color: '#16a34a' }
+    const handleUnblock = async (userId) => {
+        if (!window.confirm("Mở khóa tài khoản này?")) return
+        try {
+            await adminService.unblockUser(userId)
+            toast.success("Đã mở khóa tài khoản")
+            fetchUsers(page)
+        } catch (err) {
+            toast.error(err.response?.data || "Không thể mở khóa")
         }
-        return styles[role] || { background: '#f3f4f6', color: '#6b7280' }
     }
 
-    if (loading && users.length === 0) {
-        return <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải...</div>
-    }
-
-    if (error) {
-        return <div style={{ color: '#dc2626', textAlign: 'center', padding: '40px' }}>{error}</div>
+    const getRoleBadge = (role) => {
+        const styles = {
+            ADMIN: { bg: '#fee2e2', color: '#dc2626', icon: '👑' },
+            DOCTOR: { bg: '#eef2ff', color: '#4f46e5', icon: '👨‍⚕️' },
+            PATIENT: { bg: '#f0fdf4', color: '#16a34a', icon: '👤' }
+        }
+        const s = styles[role] || { bg: '#f1f5f9', color: '#475569', icon: '❓' }
+        return (
+            <span style={{ 
+                background: s.bg, color: s.color, 
+                padding: '4px 10px', borderRadius: '8px', 
+                fontSize: '12px', fontWeight: 800,
+                display: 'inline-flex', alignItems: 'center', gap: '4px'
+            }}>
+                {s.icon} {role}
+            </span>
+        )
     }
 
     return (
-        <div>
-            <h3 style={{ margin: '0 0 20px', color: '#333' }}>Quản lý người dùng</h3>
+        <div className="reveal">
+            <style>{`
+                .premium-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
+                .premium-table th { padding: 16px; text-align: left; color: #64748b; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+                .premium-table tr td { padding: 16px; background: white; transition: all 0.2s; }
+                .premium-table tr td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid #f1f5f9; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+                .premium-table tr td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid #f1f5f9; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+                .premium-table tr:hover td { background: #f8fafc; transform: scaleY(1.02); border-color: #e2e8f0; }
+                .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: #f1f5f9; overflow: hidden; display: flex; alignItems: center; justifyContent: center; font-weight: 800; color: #64748b; border: 1.5px solid #f1f5f9; }
+                .pagination-dot { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; cursor: pointer; transition: all 0.2s; }
+                .pagination-dot.active { background: #6366f1; transform: scale(1.5); }
+            `}</style>
 
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: '#f9fafb' }}>
-                            <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', borderBottom: '1px solid #e5e7eb' }}>Người dùng</th>
-                            <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', borderBottom: '1px solid #e5e7eb' }}>Vai trò</th>
-                            <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '600', borderBottom: '1px solid #e5e7eb' }}>Trạng thái</th>
-                            <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600', borderBottom: '1px solid #e5e7eb' }}>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.map(user => (
-                            <tr key={user.userId} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                                <td style={{ padding: '12px 16px' }}>
-                                    <div style={{ fontWeight: '500' }}>{user.fullName}</div>
-                                    <div style={{ color: '#6b7280', fontSize: '13px' }}>{user.email}</div>
-                                </td>
-                                <td style={{ padding: '12px 16px' }}>
-                                    <span style={{
-                                        padding: '4px 12px',
-                                        borderRadius: '20px',
-                                        fontSize: '12px',
-                                        fontWeight: '500',
-                                        ...getRoleStyle(user.role)
-                                    }}>
-                                        {user.role}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '12px 16px' }}>
-                                    {user.isActive ? (
-                                        <span style={{ color: '#16a34a' }}>✓ Hoạt động</span>
-                                    ) : (
-                                        <div>
-                                            <span style={{ color: '#dc2626' }}>✗ Đã khóa</span>
-                                            {user.reasonBanned && (
-                                                <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                                                    Lý do: {user.reasonBanned}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </td>
-                                <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                    {user.role !== 'ADMIN' && user.isActive && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setBlockModal({ show: true, user, reason: "" })}
-                                            style={{
-                                                padding: '6px 14px',
-                                                borderRadius: '6px',
-                                                border: '1px solid #ef4444',
-                                                background: 'white',
-                                                color: '#ef4444',
-                                                cursor: 'pointer',
-                                                fontSize: '13px'
-                                            }}
-                                        >
-                                            Khóa
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div>
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>Quản lý người dùng</h2>
+                    <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#64748b' }}>Phân quyền, kiểm soát trạng thái hoạt động toàn hệ thống.</p>
+                </div>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px' }}>
-                    <button
-                        onClick={() => setPage(p => Math.max(0, p - 1))}
-                        disabled={page === 0}
-                        style={{
-                            padding: '8px 16px',
-                            borderRadius: '6px',
-                            border: '1px solid #d1d5db',
-                            background: 'white',
-                            cursor: page === 0 ? 'not-allowed' : 'pointer',
-                            opacity: page === 0 ? 0.5 : 1
-                        }}
-                    >
-                        Trước
-                    </button>
-                    <span style={{ padding: '8px 16px' }}>
-                        Trang {page + 1} / {totalPages}
-                    </span>
-                    <button
-                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                        disabled={page >= totalPages - 1}
-                        style={{
-                            padding: '8px 16px',
-                            borderRadius: '6px',
-                            border: '1px solid #d1d5db',
-                            background: 'white',
-                            cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer',
-                            opacity: page >= totalPages - 1 ? 0.5 : 1
-                        }}
-                    >
-                        Sau
-                    </button>
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '100px' }}>
+                    <div className="skeleton-pulse" style={{ height: '400px', borderRadius: '24px' }} />
                 </div>
+            ) : (
+                <>
+                    <table className="premium-table">
+                        <thead>
+                            <tr>
+                                <th>Thành viên</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái</th>
+                                <th style={{ textAlign: 'right' }}>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map(u => (
+                                <tr key={u.userId}>
+                                    <td>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                            <div className="user-avatar">
+                                                {u.avatarUrl ? (
+                                                    <img src={u.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                         onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerText = u.fullName?.charAt(0) || 'U' }} />
+                                                ) : (
+                                                    u.fullName?.charAt(0) || 'U'
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '15px' }}>{u.fullName}</div>
+                                                <div style={{ color: '#94a3b8', fontSize: '12px' }}>{u.email}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{getRoleBadge(u.role)}</td>
+                                    <td>
+                                        {u.isActive ? (
+                                            <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700 }}>
+                                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} /> Hoạt động
+                                            </span>
+                                        ) : (
+                                            <div>
+                                                <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700 }}>
+                                                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} /> Bị khóa
+                                                </span>
+                                                {u.reasonBanned && <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px', maxWidth: '150px' }}>{u.reasonBanned}</div>}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                        {u.role !== 'ADMIN' && (
+                                            u.isActive ? (
+                                                <button 
+                                                    onClick={() => setBlockModal({ show: true, user: u, reason: "" })}
+                                                    style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                                                >
+                                                    Khóa
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => handleUnblock(u.userId)}
+                                                    style={{ background: '#dcfce7', color: '#16a34a', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                                                >
+                                                    Mở khóa
+                                                </button>
+                                            )
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginTop: '32px' }}>
+                        <button disabled={page === 0} onClick={() => setPage(p => p - 1)} style={{ background: 'none', border: 'none', color: page === 0 ? '#cbd5e1' : '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Trước</button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            {[...Array(totalPages)].map((_, i) => (
+                                <div key={i} className={`pagination-dot ${page === i ? 'active' : ''}`} onClick={() => setPage(i)} />
+                            ))}
+                        </div>
+                        <button disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)} style={{ background: 'none', border: 'none', color: page >= totalPages - 1 ? '#cbd5e1' : '#6366f1', fontWeight: 800, cursor: 'pointer' }}>Sau →</button>
+                    </div>
+                </>
             )}
 
-            {/* Block Modal */}
-            {blockModal.show && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 1000
-                    }}
+            {blockModal.show && createPortal(
+                <div 
+                    className="modal-overlay"
                     onClick={() => setBlockModal({ show: false, user: null, reason: "" })}
                 >
-                    <div
-                        style={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            maxWidth: '400px',
-                            width: '90%'
-                        }}
+                    <div 
+                        className="modal-content" 
+                        style={{ maxWidth: '480px', padding: '32px' }} 
                         onClick={e => e.stopPropagation()}
                     >
-                        <h3 style={{ margin: '0 0 16px' }}>Khóa tài khoản</h3>
-                        <p style={{ color: '#6b7280', marginBottom: '16px' }}>
-                            Khóa tài khoản: <strong>{blockModal.user?.fullName}</strong>
-                        </p>
-
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                Lý do khóa *
-                            </label>
-                            <textarea
-                                value={blockModal.reason}
-                                onChange={e => setBlockModal(prev => ({ ...prev, reason: e.target.value }))}
-                                placeholder="Nhập lý do khóa tài khoản..."
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #d1d5db',
-                                    minHeight: '80px',
-                                    resize: 'vertical',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-
+                        <h3 style={{ margin: '0 0 12px', fontSize: '20px', fontWeight: 800 }}>Khóa tài khoản</h3>
+                        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '20px' }}>Lý do khóa tài khoản của <b>{blockModal.user?.fullName}</b>:</p>
+                        <textarea 
+                            value={blockModal.reason}
+                            onChange={e => setBlockModal({ ...blockModal, reason: e.target.value })}
+                            placeholder="Nhập lý do chi tiết..."
+                            style={{ width: '100%', minHeight: '100px', padding: '16px', borderRadius: '16px', border: '1.5px solid #e2e8f0', outline: 'none', fontSize: '14px', marginBottom: '24px' }}
+                        />
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            <button
-                                onClick={() => setBlockModal({ show: false, user: null, reason: "" })}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #d1d5db',
-                                    background: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Hủy
-                            </button>
-                            <button
-                                onClick={handleBlock}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    background: '#ef4444',
-                                    color: 'white',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Khóa tài khoản
-                            </button>
+                            <button onClick={() => setBlockModal({ show: false, user: null, reason: "" })} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid #e2e8f0', background: 'white', fontWeight: 700, cursor: 'pointer' }}>Hủy</button>
+                            <button onClick={handleBlock} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Gửi lệnh khóa</button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     )
