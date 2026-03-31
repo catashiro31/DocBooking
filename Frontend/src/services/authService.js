@@ -59,6 +59,17 @@ export const forgotPassword = async (email) => {
 }
 
 /**
+ * Xác thực tài khoản qua email
+ * GET /auth/verify?email=xxx&code=yyy → String message
+ */
+export const verifyAccount = async (email, code) => {
+  const res = await api.get("/auth/verify", {
+    params: { email, code }
+  })
+  return res.data // "Xác thực tài khoản thành công!"
+}
+
+/**
  * Lấy thông tin profile user đang login
  * GET /user/profile → { email, fullName, phoneNumber, avatarUrl }
  */
