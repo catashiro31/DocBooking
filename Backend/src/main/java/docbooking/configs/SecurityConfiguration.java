@@ -63,8 +63,7 @@ public class SecurityConfiguration {
                     CorsConfiguration config = new CorsConfiguration();
                     // 1. Chỉ liệt kê các nguồn bạn tin tưởng (Local dev và Vercel thật)
                     config.setAllowedOrigins(java.util.List.of(
-                            "http://localhost:5173", // Cho bạn chạy npm run dev ở máy
-                            "https://doc-booking-liard.vercel.app/" // Link Vercel thật của bạn
+                            "http://localhost:5173"
                     ));
                     // 2. Cho phép đầy đủ các phương thức
                     config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));

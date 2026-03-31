@@ -23,7 +23,7 @@ public class ContextEmail {
             message.setSubject("[DocBooking] Xác thực tài khoản của bạn");
 
             // Thay URL Vercel thật của bạn vào đây
-            String frontendUrl = "https://doc-booking-liard.vercel.app/verify-account"; 
+            String frontendUrl = "http://103.69.97.14"; 
             String verifyLink = frontendUrl + "?email=" + toEmail + "&code=" + verificationCode;
 
             // Nội dung Email có chứa link
