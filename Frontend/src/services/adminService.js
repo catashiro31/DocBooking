@@ -112,6 +112,11 @@ export const adminService = {
         return res.data;
     },
 
+    verifyFacility: async (id) => {
+        const res = await api.patch(`/admin/facility/${id}/verify`);
+        return res.data;
+    },
+
     deleteFacility: async (id) => {
         const res = await api.delete(`/admin/facility/${id}`);
         return res.data;

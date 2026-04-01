@@ -41,6 +41,7 @@ public class UserService {
         }
 
         if (req.getFile() != null && !req.getFile().isEmpty()) {
+            convertUrl.validateFile(req.getFile(), "Ảnh đại diện", "image/jpeg", "image/png");
             user.setAvatarUrl(convertUrl.getUrlFile(req.getFile()));
         }
         User updatedUser = userRepository.save(user);

@@ -108,6 +108,15 @@ public class AdminController {
         return ResponseEntity.ok(adminService.updateFacility(id, req));
     }
 
+    @PatchMapping("/facility/{id}/verify")
+    public ResponseEntity<?> verifyFacility(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(adminService.verifyFacility(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/facility/{id}")
     public ResponseEntity<?> deleteFacility(@PathVariable Integer id) {
         return ResponseEntity.ok(adminService.deleteFacility(id));

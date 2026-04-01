@@ -19,6 +19,47 @@ public class ConvertUrl {
         this.cloudinary = cloudinary;
     }
 
+    public void validateFile(MultipartFile file, String fieldName, String... supportedTypes) {
+        if (file == null || file.isEmpty()) return;
+        String contentType = file.getContentType();
+        if (contentType == null || !isSupported(contentType, supportedTypes)) {
+            throw new RuntimeException(fieldName + " chỉ hỗ trợ định dạng " + getSupportedTypesString(supportedTypes) + "!");
+        }
+    }
+
+    private boolean isSupported(String contentType, String... supportedTypes) {
+        for (String type : supportedTypes) {
+            if (contentType.equals(type)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getSupportedTypesString(String... supportedTypes) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < supportedTypes.length; i++) {
+            sb.append(getTypeDescription(supportedTypes[i]));
+            if (i < supportedTypes.length - 1) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
+    }
+
+    private String getTypeDescription(String type) {
+        switch (type) {
+            case "image/jpeg":
+                return "JPG";
+            case "image/png":
+                return "PNG";
+            case "application/pdf":
+                return "PDF";
+            default:
+                return type;
+        }
+    }
+
     public String getUrlFile(MultipartFile file) { // Sửa thành MultipartFile
         if (file != null && !file.isEmpty()) {
             try {

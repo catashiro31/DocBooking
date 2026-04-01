@@ -57,6 +57,7 @@ public class PublicService {
                         .description(f.getDescription())
                         .imageUrl(f.getImageUrl())
                         .mapUrl(f.getMapUrl())
+                        .verified(Boolean.TRUE.equals(f.getIsVerified()))
                         .build())
                 .toList();
     }

@@ -58,6 +58,12 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.updateDoctorProfile(currentUser, req));
     }
 
+    @PutMapping("/facility/verify/{id}")
+    public ResponseEntity<?> verifyFacility(@PathVariable Integer id) {
+        User currentUser = Security.getCurrentUser();
+        return ResponseEntity.ok(doctorService.verifyFacility(currentUser, id));
+    }
+
     @GetMapping("/reviews")
     public ResponseEntity<?> getReviews(
             @RequestParam(defaultValue = "0") int page,

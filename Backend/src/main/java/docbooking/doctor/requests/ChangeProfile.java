@@ -11,4 +11,11 @@ public class ChangeProfile {
 
     @Min(value = 0, message = "Giá khám không được là số âm")
     private Double price;
+
+    /** Cập nhật cơ sở y tế gắn với bác sĩ (và tự đặt trạng thái xác minh nếu cần) */
+    private String facilityName;
+    private String facilityAddress;
+    private String facilityDescription;
+    private String facilityMapUrl;
+    private Boolean facilityVerified;
 }

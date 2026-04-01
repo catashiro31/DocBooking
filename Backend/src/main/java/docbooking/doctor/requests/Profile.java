@@ -35,6 +35,12 @@ public class Profile {
     @NotNull(message = "Vui lòng chọn chuyên khoa")
     private Integer specialtyId;
 
-    @NotNull(message = "Vui lòng chọn cơ sở y tế")
+    // Optional nếu bác sĩ chọn tạo cơ sở mới
     private Integer facilityId;
+
+    // Các trường dùng khi tạo cơ sở y tế mới
+    private String newFacilityName;
+    private String facilityAddress;
+    private String facilityDescription;
+    private String facilityMapUrl;
 }

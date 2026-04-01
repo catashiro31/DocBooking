@@ -256,6 +256,7 @@ public class AdminService {
                 .imageUrl(convertUrl.getUrlFile(req.getFile()))
                 .mapUrl(req.getMapUrl())
                 .isActive(true)
+                .isVerified(true) // Admin tạo mặc định là đã xác minh
                 .build();
         facilityRepository.save(facility);
         return "Đã thêm thành công cơ sở y tế";
@@ -290,6 +291,19 @@ public class AdminService {
         }
         facilityRepository.save(facility);
         return "Đã cập nhật thông tin cơ sở y tế";
+    }
+
+    @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
+    public String verifyFacility(Integer facilityId) {
+        docbooking.models.Facility facility = facilityRepository.findById(facilityId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế!"));
+        if (!Boolean.TRUE.equals(facility.getIsActive())) {
+            throw new RuntimeException("Cơ sở y tế đã ngừng hoạt động, không thể xác minh!");
+        }
+        facility.setIsVerified(true);
+        facilityRepository.save(facility);
+        return "Đã xác minh cơ sở y tế";
     }
 
     @CacheEvict(value = "facilities", allEntries = true)
