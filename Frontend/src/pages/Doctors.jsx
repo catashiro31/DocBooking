@@ -234,7 +234,7 @@ export default function Doctors() {
               <input
                 type="text"
                 className="search-input"
-                placeholder="Tìm kiếm bác sĩ, chuyên khoa..."
+                placeholder="Tìm kiếm tên bác sĩ ..."
                 value={search}
                 onChange={handleSearch}
               />

@@ -9,7 +9,7 @@ const AdminFacilities = () => {
     const [error, setError] = useState("")
     const [showModal, setShowModal] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [formData, setFormData] = useState({ name: "", address: "", description: "" })
+    const [formData, setFormData] = useState({ name: "", address: "", description: "", mapUrl: "" })
     const [imageFile, setImageFile] = useState(null)
     const [submitting, setSubmitting] = useState(false)
 
@@ -41,11 +41,12 @@ const AdminFacilities = () => {
             setFormData({ 
                 name: item.name || "", 
                 address: item.address || "",
-                description: item.description || ""
+                description: item.description || "",
+                mapUrl: item.mapUrl || ""
             })
         } else {
             setEditingItem(null)
-            setFormData({ name: "", address: "", description: "" })
+            setFormData({ name: "", address: "", description: "", mapUrl: "" })
         }
         setImageFile(null)
         setShowModal(true)
@@ -392,6 +393,16 @@ const AdminFacilities = () => {
                                     placeholder="Số nhà, tên đường, quận/huyện..."
                                     value={formData.address}
                                     onChange={e => setFormData(p => ({ ...p, address: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Link Google Maps (Tùy chọn)</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="https://maps.google.com/..."
+                                    value={formData.mapUrl}
+                                    onChange={e => setFormData(p => ({ ...p, mapUrl: e.target.value }))}
                                 />
                             </div>
 

@@ -13,4 +13,5 @@ public class Facilities {
     private String address;
     private String description;
     private String imageUrl;
+    private String mapUrl;
 }

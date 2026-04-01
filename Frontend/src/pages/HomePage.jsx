@@ -253,16 +253,20 @@ function HomePage() {
       </section>
 
       {/* ===== PARTNER FACILITIES ===== */}
-      <section className="py-16 bg-white border-y border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Đồng hành cùng các cơ sở y tế uy tín</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            {facilities.slice(0, 10).map((fac) => (
-              <div key={fac.id} onClick={() => navigate('/facilities')} className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-6 py-3 rounded-xl hover:border-indigo-200 cursor-pointer transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-xs">
+      <section className="py-12 bg-white border-y border-slate-100 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 mb-8">
+          <p className="text-center text-sm font-bold text-slate-400 uppercase tracking-widest">Đồng hành cùng các cơ sở y tế uy tín</p>
+        </div>
+        <div className="relative w-full flex">
+          <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+          <div className="marquee-track gap-6 px-4 hover:[animation-play-state:paused]">
+            {[...facilities, ...facilities, ...facilities].map((fac, idx) => (
+              <div key={`${fac.id}-${idx}`} onClick={() => navigate('/facilities')} className="flex items-center gap-4 bg-slate-50 border border-slate-100 px-8 py-4 rounded-2xl hover:border-indigo-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center font-black text-indigo-700 text-sm">
                   {fac.name?.charAt(0)}
                 </div>
-                <span className="font-bold text-slate-600 text-sm">{fac.name}</span>
+                <span className="font-bold text-slate-700 text-base">{fac.name}</span>
               </div>
             ))}
           </div>
@@ -287,8 +291,8 @@ function HomePage() {
           ) : (
             topDoctors.map(doc => (
               <div key={doc.doctorId} onClick={() => navigate(`/appointment/${doc.doctorId}`)}
-                className="group relative bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:translate-y-[-8px] transition-all duration-500 cursor-pointer">
-                <div className="aspect-[3/4] bg-slate-50 overflow-hidden">
+                className="group relative bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 hover:shadow-2xl hover:translate-y-[-8px] transition-all duration-500 cursor-pointer flex flex-col h-full">
+                <div className="aspect-[3/4] bg-slate-50 overflow-hidden shrink-0">
                   {doc.photoUrl ? (
                     <img src={doc.photoUrl} alt={doc.doctorName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }} />
@@ -303,14 +307,14 @@ function HomePage() {
                     </span>
                   </div>
                 </div>
-                <div className="p-8">
+                <div className="p-8 flex flex-col flex-1">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-bold">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-bold shrink-0">
                       <Star size={14} className="fill-amber-600" /> {doc.ratingAverage?.toFixed(1) || "5.0"}
                     </div>
                   </div>
-                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors">BS. {doc.doctorName}</h3>
-                  <button className="mt-6 w-full py-4 bg-slate-50 rounded-2xl text-slate-900 font-bold text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors mb-4 line-clamp-2">BS. {doc.doctorName}</h3>
+                  <button className="mt-auto w-full py-4 bg-slate-50 rounded-2xl text-slate-900 font-bold text-sm group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
                     Đặt lịch khám ngay
                   </button>
                 </div>

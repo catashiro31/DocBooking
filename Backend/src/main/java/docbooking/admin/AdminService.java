@@ -13,6 +13,7 @@ import docbooking.utils.ConvertUrl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
@@ -79,7 +80,9 @@ public class AdminService {
     }
 
     public Page<DoctorDetail> getAllDoctors(Pageable pageable) {
-        return doctorDetail.findAll(pageable);
+        Specification<DoctorDetail> spec = (root, query, cb) ->
+            cb.equal(root.get("verificationStatus"), DoctorDetail.VerificationStatus.APPROVED);
+        return doctorDetail.findAll(spec, pageable);
     }
 
     public List<DoctorDetail> getPendingDoctors() {
@@ -251,6 +254,7 @@ public class AdminService {
                 .description(req.getDescription())
                 .facilityName(name)
                 .imageUrl(convertUrl.getUrlFile(req.getFile()))
+                .mapUrl(req.getMapUrl())
                 .isActive(true)
                 .build();
         facilityRepository.save(facility);
@@ -278,6 +282,7 @@ public class AdminService {
         facility.setAddress(req.getAddress());
         facility.setFacilityName(newName);
         facility.setDescription(req.getDescription());
+        facility.setMapUrl(req.getMapUrl());
 
         // Chỉ cập nhật ảnh nếu người dùng có gửi file mới
         if (req.getFile() != null && !req.getFile().isEmpty()) {
@@ -403,7 +408,6 @@ public class AdminService {
     
     private final Map<String, double[]> wordLogProbs = new ConcurrentHashMap<>();
     private final double[] classPriors = new double[4];
-    private boolean isAITrained = false;
 
     @PostConstruct
     public void trainAIEngine() {
@@ -426,10 +430,14 @@ public class AdminService {
             totalDocs += texts.size();
 
             for (String txt : texts) {
-                String normalized = (txt == null) ? "" : txt.toLowerCase().replaceAll("[^a-z0-9\\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\-]++", " ").replaceAll("\\s++", " ").trim();
-                String[] tokens = normalized.split(" ");
+                if (txt == null || txt.isBlank()) continue;
+                String normalized = txt.toLowerCase().replaceAll("[^a-z0-9\\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\-]++", " ").replaceAll("\\s++", " ").trim();
+                if (normalized.isEmpty()) continue;
+
+                String[] tokens = normalized.split("\\s+");
                 classTotalWords[i] += tokens.length;
                 for (String t : tokens) {
+                    if (t.isEmpty()) continue;
                     vocab.put(t, vocab.getOrDefault(t, 0) + 1);
                     int[] c = wordCounts.computeIfAbsent(t, k -> new int[4]);
                     c[i]++;
@@ -445,14 +453,15 @@ public class AdminService {
             for (int i = 0; i < 4; i++) probs[i] = Math.log((double) (e.getValue()[i] + 1) / (classTotalWords[i] + vocab.size()));
             wordLogProbs.put(e.getKey(), probs);
         }
-        isAITrained = true;
     }
 
     public Map<String, Double> analyzeComment(String text) {
-        if (!isAITrained || text == null || text.isBlank()) return Collections.emptyMap();
+        if (text == null || text.isBlank()) return Collections.emptyMap();
         
         String norm = text.toLowerCase().replaceAll("[^a-z0-9\\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\-]++", " ").replaceAll("\\s++", " ").trim();
-        String[] tokens = norm.split(" ");
+        if (norm.isEmpty()) return Collections.emptyMap();
+
+        String[] tokens = norm.split("\\s+");
         double[] scores = classPriors.clone();
 
         for (String t : tokens) {
@@ -479,13 +488,33 @@ public class AdminService {
     }
 
     private List<String> loadSeedsFromFile(String fileName) {
-        try (InputStream is = getClass().getResourceAsStream("/docbooking/utils/ai/" + fileName)) {
-            if (is == null) return Collections.emptyList();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                return reader.lines()
-                        .filter(line -> line != null && !line.isBlank())
-                        .collect(Collectors.toList());
-            }
+        InputStream is = getClass().getResourceAsStream("/docbooking/utils/ai/" + fileName);
+
+        // Fallback: Thử đọc trực tiếp từ file system nếu không tìm thấy trong classpath (hữu ích khi dev)
+        if (is == null) {
+            try {
+                // Thử các đường dẫn tương đối phổ biến
+                String[] paths = {
+                    "src/main/java/docbooking/utils/ai/" + fileName,
+                    "Backend/src/main/java/docbooking/utils/ai/" + fileName
+                };
+                for (String p : paths) {
+                    java.io.File file = new java.io.File(p);
+                    if (file.exists()) {
+                        is = new java.io.FileInputStream(file);
+                        break;
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (is == null) return Collections.emptyList();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            return reader.lines()
+                    .filter(line -> line != null && !line.isBlank())
+                    .map(String::trim)
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             return Collections.emptyList();
         }
