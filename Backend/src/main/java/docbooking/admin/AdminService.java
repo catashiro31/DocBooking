@@ -19,7 +19,14 @@ import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import jakarta.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -151,8 +158,7 @@ public class AdminService {
             }
         }
 
-        // Nếu user là bác sĩ, hủy tất cả lịch hẹn của bệnh nhân với bác sĩ này và đóng
-        // các slot
+        // Nếu user là bác sĩ, hủy tất cả lịch hẹn của bệnh nhân với bác sĩ này và đóng các slot
         if (savedUser.getRole() == User.RoleStatus.DOCTOR) {
             // Hủy tất cả appointment đang active của bác sĩ
             List<Appointment> doctorAppointments = appointmentRepository
@@ -386,4 +392,102 @@ public class AdminService {
         doctorDetail.save(doctor);
     }
 
+    // ==========================================
+    // MODULE: AI NAIVE BAYES CHO PHÂN LOẠI REVIEW
+    // ==========================================
+    public static final String POSITIVE = "Tích cực";
+    public static final String NEGATIVE = "Tiêu cực";
+    public static final String ADVERTISING = "Quảng cáo";
+    public static final String PROFANITY = "Thô tục";
+    private static final List<String> LABELS = Arrays.asList(POSITIVE, NEGATIVE, ADVERTISING, PROFANITY);
+    
+    private final Map<String, double[]> wordLogProbs = new ConcurrentHashMap<>();
+    private final double[] classPriors = new double[4];
+    private boolean isAITrained = false;
+
+    @PostConstruct
+    public void trainAIEngine() {
+        Map<String, List<String>> seeds = new HashMap<>();
+        seeds.put(POSITIVE, loadSeedsFromFile("positive.txt"));
+        seeds.put(NEGATIVE, loadSeedsFromFile("negative.txt"));
+        seeds.put(ADVERTISING, loadSeedsFromFile("advertising.txt"));
+        seeds.put(PROFANITY, loadSeedsFromFile("profanity.txt"));
+
+        Map<String, Integer> vocab = new HashMap<>();
+        int[] classTotalWords = new int[4];
+        Map<String, int[]> wordCounts = new HashMap<>();
+        int[] classDocCount = new int[4];
+        long totalDocs = 0;
+
+        for (int i = 0; i < 4; i++) {
+            List<String> texts = seeds.get(LABELS.get(i));
+            if (texts == null) continue;
+            classDocCount[i] = texts.size();
+            totalDocs += texts.size();
+
+            for (String txt : texts) {
+                String normalized = (txt == null) ? "" : txt.toLowerCase().replaceAll("[^a-z0-9\\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\-]++", " ").replaceAll("\\s++", " ").trim();
+                String[] tokens = normalized.split(" ");
+                classTotalWords[i] += tokens.length;
+                for (String t : tokens) {
+                    vocab.put(t, vocab.getOrDefault(t, 0) + 1);
+                    int[] c = wordCounts.computeIfAbsent(t, k -> new int[4]);
+                    c[i]++;
+                }
+            }
+        }
+
+        for (int i = 0; i < 4; i++) classPriors[i] = Math.log((double) (classDocCount[i] + 1) / (totalDocs + 4));
+
+        wordLogProbs.clear();
+        for (Map.Entry<String, int[]> e : wordCounts.entrySet()) {
+            double[] probs = new double[4];
+            for (int i = 0; i < 4; i++) probs[i] = Math.log((double) (e.getValue()[i] + 1) / (classTotalWords[i] + vocab.size()));
+            wordLogProbs.put(e.getKey(), probs);
+        }
+        isAITrained = true;
+    }
+
+    public Map<String, Double> analyzeComment(String text) {
+        if (!isAITrained || text == null || text.isBlank()) return Collections.emptyMap();
+        
+        String norm = text.toLowerCase().replaceAll("[^a-z0-9\\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\-]++", " ").replaceAll("\\s++", " ").trim();
+        String[] tokens = norm.split(" ");
+        double[] scores = classPriors.clone();
+
+        for (String t : tokens) {
+            double[] probs = wordLogProbs.get(t);
+            if (probs != null) {
+                for (int i = 0; i < 4; i++) scores[i] += probs[i];
+            }
+        }
+
+        double max = scores[0];
+        for (double s : scores) if (s > max) max = s;
+        double sum = 0;
+        double[] exps = new double[4];
+        for (int i = 0; i < 4; i++) {
+            exps[i] = Math.exp(scores[i] - max);
+            sum += exps[i];
+        }
+
+        Map<String, Double> results = new LinkedHashMap<>();
+        for (int i = 0; i < 4; i++) {
+            results.put(LABELS.get(i), Math.round((exps[i] / sum) * 1000.0) / 10.0);
+        }
+        return results;
+    }
+
+    private List<String> loadSeedsFromFile(String fileName) {
+        try (InputStream is = getClass().getResourceAsStream("/docbooking/utils/ai/" + fileName)) {
+            if (is == null) return Collections.emptyList();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                return reader.lines()
+                        .filter(line -> line != null && !line.isBlank())
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
 }

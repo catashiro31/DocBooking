@@ -134,6 +134,11 @@ export const adminService = {
     hideReview: async (reviewId) => {
         const res = await api.patch(`/admin/reviews/${reviewId}/hide`);
         return res.data;
+    },
+
+    analyzeReview: async (comment) => {
+        const res = await api.post('/admin/moderation/analyze', { comment });
+        return res.data;
     }
 };
 

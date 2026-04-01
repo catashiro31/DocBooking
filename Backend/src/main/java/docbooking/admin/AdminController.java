@@ -15,6 +15,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestController
@@ -157,5 +159,21 @@ public class AdminController {
     @PatchMapping("/reviews/{id}/hide")
     public ResponseEntity<?> rejectReview(@PathVariable Integer id) {
         return ResponseEntity.ok().body(adminService.rejectReview(id));
+    }
+
+    @PostMapping("/moderation/analyze")
+    public ResponseEntity<Map<String, Object>> analyzeComment(@RequestBody Map<String, String> request) {
+        String commentText = request.get("comment");
+        if (commentText == null || commentText.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Bình luận không hợp lệ"));
+        }
+
+        Map<String, Double> results = adminService.analyzeComment(commentText);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("comment", commentText);
+        response.put("labels", results);
+
+        return ResponseEntity.ok(response);
     }
 }
