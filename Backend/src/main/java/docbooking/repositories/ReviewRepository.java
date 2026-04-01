@@ -23,4 +23,6 @@ public interface ReviewRepository extends JpaRepository<Review,Integer> {
     Optional<Review> findByAppointment_Id(Integer id);
     List<Review> findByAppointment_Schedule_Doctor_DoctorId(Integer doctorId);
     Page<Review> findByAppointment_Schedule_Doctor_UserAndIsVisibleTrueOrderByCreatedAtDesc(User user, Pageable pageable);
+
+    long countByIsVisibleTrue();
 }

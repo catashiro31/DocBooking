@@ -26,4 +26,5 @@ public class Appointment {
     // Phục vụ chức năng xem/sửa kết quả
     private String diagnosis;
     private String doctorNotes;
+    private String prescriptionUrl;
 }

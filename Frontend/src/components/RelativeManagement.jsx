@@ -67,6 +67,7 @@ const RelativeManagement = () => {
             return "Số điện thoại không đúng định dạng Việt Nam"
         }
         if (!formData.dateOfBirth) return "Vui lòng chọn ngày sinh"
+        if (new Date(formData.dateOfBirth) > new Date()) return "Ngày sinh không thể ở tương lai"
         if (!formData.relationship.trim()) return "Vui lòng nhập mối quan hệ"
         if (!formData.address.trim()) return "Địa chỉ không được để trống"
         return null
@@ -319,7 +320,7 @@ const RelativeManagement = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                 <div className="floating-label-input">
                                     <label>Ngày sinh *</label>
-                                    <input type="date" value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} required />
+                                    <input type="date" max={new Date().toISOString().split('T')[0]} value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} required />
                                 </div>
                                 <div className="floating-label-input">
                                     <label>Giới tính *</label>

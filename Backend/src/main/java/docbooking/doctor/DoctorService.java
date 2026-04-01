@@ -116,6 +116,9 @@ public class DoctorService {
             throw new RuntimeException("Hồ sơ bác sĩ chưa được duyệt, không thể tạo lịch làm việc!");
         }
 
+        int newSlotsCreated = 0;
+        int existingSlots = 0;
+
         for(String slotName: schedule.getSlotIds()){
             DoctorSchedule.TimeSlot timeSlot = DoctorSchedule.TimeSlot.valueOf(slotName);
 
@@ -130,6 +133,9 @@ public class DoctorService {
                 if (existingSlot.getSlotStatus() == DoctorSchedule.SlotStatus.CLOSED) {
                     existingSlot.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
                     doctorScheduleRepository.save(existingSlot);
+                    newSlotsCreated++;
+                } else {
+                    existingSlots++;
                 }
                 continue;
             }
@@ -140,6 +146,11 @@ public class DoctorService {
 
             doctorSchedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
             doctorScheduleRepository.save(doctorSchedule);
+            newSlotsCreated++;
+        }
+
+        if (newSlotsCreated == 0 && existingSlots > 0) {
+            throw new RuntimeException("Tất cả ca khám bạn chọn đã được tạo từ trước!");
         }
     }
     public List<docbooking.doctor.responses.Schedule> getDoctorSchedules(Integer userId) {
@@ -235,6 +246,7 @@ public class DoctorService {
                     .createdAt(app.getCreatedAt())
                     .diagnosis(medResult.map(docbooking.models.MedicalResult::getDiagnosis).orElse(null))
                     .doctorNotes(medResult.map(docbooking.models.MedicalResult::getDoctorNotes).orElse(null))
+                    .prescriptionUrl(medResult.map(docbooking.models.MedicalResult::getPrescriptionUrl).orElse(null))
                     .build();
         });
     }

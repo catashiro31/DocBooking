@@ -75,7 +75,7 @@ function Facilities() {
                                         </div>
                                     </div>
                                     <div style={{ padding: '24px' }}>
-                                        <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>{fac.facilityName}</h3>
+                                        <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>{fac.facilityName || fac.name}</h3>
                                         <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                                             <span>📍</span>
                                             <span>{fac.address}</span>

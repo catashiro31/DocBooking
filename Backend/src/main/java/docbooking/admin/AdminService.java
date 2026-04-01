@@ -58,19 +58,19 @@ public class AdminService {
 
         // 3. Đóng gói vào kết quả trả về
         return Stat.builder()
-                .numberOfDoctors(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.DOCTOR, startDT, endDT))
+                .numberOfDoctors(userRepository.countByRoleAndIsActiveTrueAndCreatedAtBetween(User.RoleStatus.DOCTOR, startDT, endDT))
                 .numberOfPatients(
-                        userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.PATIENT, startDT, endDT))
+                        userRepository.countByRoleAndIsActiveTrueAndCreatedAtBetween(User.RoleStatus.PATIENT, startDT, endDT))
                 .numberOfSuccessAppointments(appStats.getCompleted())
                 .numberOfPendingAppointments(appStats.getPending())
                 .numberOfFailingAppointments(appStats.getCancelled())
 
                 // Bổ sung các thông số tuyệt đối
                 .totalUsers(userRepository.count())
-                .totalDoctors(userRepository.countByRole(User.RoleStatus.DOCTOR))
-                .totalPatients(userRepository.countByRole(User.RoleStatus.PATIENT))
+                .totalDoctors(doctorDetail.countByVerificationStatusAndUser_IsActiveTrue(DoctorDetail.VerificationStatus.APPROVED))
+                .totalPatients(userRepository.countByRoleAndIsActiveTrue(User.RoleStatus.PATIENT))
                 .totalAppointments(appointmentRepository.count())
-                .totalReviews(reviewRepository.count())
+                .totalReviews(reviewRepository.countByIsVisibleTrue())
                 .pendingDoctors(doctorDetail.countByVerificationStatus(DoctorDetail.VerificationStatus.PENDING))
                 .todayAppointments(todayStats != null
                         ? (todayStats.getCompleted() + todayStats.getPending() + todayStats.getCancelled())
