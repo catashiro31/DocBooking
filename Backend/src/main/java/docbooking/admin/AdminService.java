@@ -13,13 +13,21 @@ import docbooking.utils.ConvertUrl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.cache.annotation.CacheEvict;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import jakarta.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,19 +59,19 @@ public class AdminService {
 
         // 3. Đóng gói vào kết quả trả về
         return Stat.builder()
-                .numberOfDoctors(userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.DOCTOR, startDT, endDT))
+                .numberOfDoctors(userRepository.countByRoleAndIsActiveTrueAndCreatedAtBetween(User.RoleStatus.DOCTOR, startDT, endDT))
                 .numberOfPatients(
-                        userRepository.countByRoleAndCreatedAtBetween(User.RoleStatus.PATIENT, startDT, endDT))
+                        userRepository.countByRoleAndIsActiveTrueAndCreatedAtBetween(User.RoleStatus.PATIENT, startDT, endDT))
                 .numberOfSuccessAppointments(appStats.getCompleted())
                 .numberOfPendingAppointments(appStats.getPending())
                 .numberOfFailingAppointments(appStats.getCancelled())
 
                 // Bổ sung các thông số tuyệt đối
                 .totalUsers(userRepository.count())
-                .totalDoctors(userRepository.countByRole(User.RoleStatus.DOCTOR))
-                .totalPatients(userRepository.countByRole(User.RoleStatus.PATIENT))
+                .totalDoctors(doctorDetail.countByVerificationStatusAndUser_IsActiveTrue(DoctorDetail.VerificationStatus.APPROVED))
+                .totalPatients(userRepository.countByRoleAndIsActiveTrue(User.RoleStatus.PATIENT))
                 .totalAppointments(appointmentRepository.count())
-                .totalReviews(reviewRepository.count())
+                .totalReviews(reviewRepository.countByIsVisibleTrue())
                 .pendingDoctors(doctorDetail.countByVerificationStatus(DoctorDetail.VerificationStatus.PENDING))
                 .todayAppointments(todayStats != null
                         ? (todayStats.getCompleted() + todayStats.getPending() + todayStats.getCancelled())
@@ -72,7 +80,9 @@ public class AdminService {
     }
 
     public Page<DoctorDetail> getAllDoctors(Pageable pageable) {
-        return doctorDetail.findAll(pageable);
+        Specification<DoctorDetail> spec = (root, query, cb) ->
+            cb.equal(root.get("verificationStatus"), DoctorDetail.VerificationStatus.APPROVED);
+        return doctorDetail.findAll(spec, pageable);
     }
 
     public List<DoctorDetail> getPendingDoctors() {
@@ -151,8 +161,7 @@ public class AdminService {
             }
         }
 
-        // Nếu user là bác sĩ, hủy tất cả lịch hẹn của bệnh nhân với bác sĩ này và đóng
-        // các slot
+        // Nếu user là bác sĩ, hủy tất cả lịch hẹn của bệnh nhân với bác sĩ này và đóng các slot
         if (savedUser.getRole() == User.RoleStatus.DOCTOR) {
             // Hủy tất cả appointment đang active của bác sĩ
             List<Appointment> doctorAppointments = appointmentRepository
@@ -245,7 +254,9 @@ public class AdminService {
                 .description(req.getDescription())
                 .facilityName(name)
                 .imageUrl(convertUrl.getUrlFile(req.getFile()))
+                .mapUrl(req.getMapUrl())
                 .isActive(true)
+                .isVerified(true) // Admin tạo mặc định là đã xác minh
                 .build();
         facilityRepository.save(facility);
         return "Đã thêm thành công cơ sở y tế";
@@ -272,6 +283,7 @@ public class AdminService {
         facility.setAddress(req.getAddress());
         facility.setFacilityName(newName);
         facility.setDescription(req.getDescription());
+        facility.setMapUrl(req.getMapUrl());
 
         // Chỉ cập nhật ảnh nếu người dùng có gửi file mới
         if (req.getFile() != null && !req.getFile().isEmpty()) {
@@ -279,6 +291,19 @@ public class AdminService {
         }
         facilityRepository.save(facility);
         return "Đã cập nhật thông tin cơ sở y tế";
+    }
+
+    @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
+    public String verifyFacility(Integer facilityId) {
+        docbooking.models.Facility facility = facilityRepository.findById(facilityId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế!"));
+        if (!Boolean.TRUE.equals(facility.getIsActive())) {
+            throw new RuntimeException("Cơ sở y tế đã ngừng hoạt động, không thể xác minh!");
+        }
+        facility.setIsVerified(true);
+        facilityRepository.save(facility);
+        return "Đã xác minh cơ sở y tế";
     }
 
     @CacheEvict(value = "facilities", allEntries = true)
@@ -386,4 +411,126 @@ public class AdminService {
         doctorDetail.save(doctor);
     }
 
+    // ==========================================
+    // MODULE: AI NAIVE BAYES CHO PHÂN LOẠI REVIEW
+    // ==========================================
+    public static final String POSITIVE = "Tích cực";
+    public static final String NEGATIVE = "Tiêu cực";
+    public static final String ADVERTISING = "Quảng cáo";
+    public static final String PROFANITY = "Thô tục";
+    private static final List<String> LABELS = Arrays.asList(POSITIVE, NEGATIVE, ADVERTISING, PROFANITY);
+    
+    private final Map<String, double[]> wordLogProbs = new ConcurrentHashMap<>();
+    private final double[] classPriors = new double[4];
+
+    @PostConstruct
+    public void trainAIEngine() {
+        Map<String, List<String>> seeds = new HashMap<>();
+        seeds.put(POSITIVE, loadSeedsFromFile("positive.txt"));
+        seeds.put(NEGATIVE, loadSeedsFromFile("negative.txt"));
+        seeds.put(ADVERTISING, loadSeedsFromFile("advertising.txt"));
+        seeds.put(PROFANITY, loadSeedsFromFile("profanity.txt"));
+
+        Map<String, Integer> vocab = new HashMap<>();
+        int[] classTotalWords = new int[4];
+        Map<String, int[]> wordCounts = new HashMap<>();
+        int[] classDocCount = new int[4];
+        long totalDocs = 0;
+
+        for (int i = 0; i < 4; i++) {
+            List<String> texts = seeds.get(LABELS.get(i));
+            if (texts == null) continue;
+            classDocCount[i] = texts.size();
+            totalDocs += texts.size();
+
+            for (String txt : texts) {
+                if (txt == null || txt.isBlank()) continue;
+                String normalized = txt.toLowerCase().replaceAll("[^a-z0-9\\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\-]++", " ").replaceAll("\\s++", " ").trim();
+                if (normalized.isEmpty()) continue;
+
+                String[] tokens = normalized.split("\\s+");
+                classTotalWords[i] += tokens.length;
+                for (String t : tokens) {
+                    if (t.isEmpty()) continue;
+                    vocab.put(t, vocab.getOrDefault(t, 0) + 1);
+                    int[] c = wordCounts.computeIfAbsent(t, k -> new int[4]);
+                    c[i]++;
+                }
+            }
+        }
+
+        for (int i = 0; i < 4; i++) classPriors[i] = Math.log((double) (classDocCount[i] + 1) / (totalDocs + 4));
+
+        wordLogProbs.clear();
+        for (Map.Entry<String, int[]> e : wordCounts.entrySet()) {
+            double[] probs = new double[4];
+            for (int i = 0; i < 4; i++) probs[i] = Math.log((double) (e.getValue()[i] + 1) / (classTotalWords[i] + vocab.size()));
+            wordLogProbs.put(e.getKey(), probs);
+        }
+    }
+
+    public Map<String, Double> analyzeComment(String text) {
+        if (text == null || text.isBlank()) return Collections.emptyMap();
+        
+        String norm = text.toLowerCase().replaceAll("[^a-z0-9\\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\-]++", " ").replaceAll("\\s++", " ").trim();
+        if (norm.isEmpty()) return Collections.emptyMap();
+
+        String[] tokens = norm.split("\\s+");
+        double[] scores = classPriors.clone();
+
+        for (String t : tokens) {
+            double[] probs = wordLogProbs.get(t);
+            if (probs != null) {
+                for (int i = 0; i < 4; i++) scores[i] += probs[i];
+            }
+        }
+
+        double max = scores[0];
+        for (double s : scores) if (s > max) max = s;
+        double sum = 0;
+        double[] exps = new double[4];
+        for (int i = 0; i < 4; i++) {
+            exps[i] = Math.exp(scores[i] - max);
+            sum += exps[i];
+        }
+
+        Map<String, Double> results = new LinkedHashMap<>();
+        for (int i = 0; i < 4; i++) {
+            results.put(LABELS.get(i), Math.round((exps[i] / sum) * 1000.0) / 10.0);
+        }
+        return results;
+    }
+
+    private List<String> loadSeedsFromFile(String fileName) {
+        InputStream is = getClass().getResourceAsStream("/docbooking/utils/ai/" + fileName);
+
+        // Fallback: Thử đọc trực tiếp từ file system nếu không tìm thấy trong classpath (hữu ích khi dev)
+        if (is == null) {
+            try {
+                // Thử các đường dẫn tương đối phổ biến
+                String[] paths = {
+                    "src/main/java/docbooking/utils/ai/" + fileName,
+                    "Backend/src/main/java/docbooking/utils/ai/" + fileName
+                };
+                for (String p : paths) {
+                    java.io.File file = new java.io.File(p);
+                    if (file.exists()) {
+                        is = new java.io.FileInputStream(file);
+                        break;
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (is == null) return Collections.emptyList();
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            return reader.lines()
+                    .filter(line -> line != null && !line.isBlank())
+                    .map(String::trim)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
 }

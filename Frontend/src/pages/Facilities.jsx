@@ -42,8 +42,8 @@ function Facilities() {
                         </div>
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px' }}>
-                            {facilities.map(fac => (
-                                <div key={fac.facilityId} style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', transition: 'transform 0.2s', cursor: 'pointer' }}>
+                            {facilities.map((fac, index) => (
+                                <div key={fac.facilityId || index} style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', transition: 'transform 0.2s', cursor: 'pointer' }}>
                                     <div style={{ height: '200px', background: '#f1f5f9', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                         {fac.imageUrl ? (
                                             <img 
@@ -75,14 +75,45 @@ function Facilities() {
                                         </div>
                                     </div>
                                     <div style={{ padding: '24px' }}>
-                                        <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>{fac.facilityName}</h3>
+                                        <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>{fac.facilityName || fac.name}</h3>
                                         <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                                             <span>📍</span>
                                             <span>{fac.address}</span>
                                         </p>
-                                        <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                        <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#475569', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '67px' }}>
                                             {fac.description}
                                         </p>
+                                        {fac.mapUrl && (
+                                            <a 
+                                                href={fac.mapUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    padding: '8px 16px',
+                                                    background: '#eef2ff',
+                                                    color: '#4f46e5',
+                                                    borderRadius: '8px',
+                                                    fontSize: '13px',
+                                                    fontWeight: 600,
+                                                    textDecoration: 'none',
+                                                    transition: 'all 0.2s',
+                                                    marginTop: 'auto'
+                                                }}
+                                                onMouseOver={(e) => { e.currentTarget.style.background = '#e0e7ff'; e.currentTarget.style.color = '#4338ca'; }}
+                                                onMouseOut={(e) => { e.currentTarget.style.background = '#eef2ff'; e.currentTarget.style.color = '#4f46e5'; }}
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+                                                    <line x1="9" y1="3" x2="9" y2="18"></line>
+                                                    <line x1="15" y1="6" x2="15" y2="21"></line>
+                                                </svg>
+                                                Xem trên bản đồ
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             ))}

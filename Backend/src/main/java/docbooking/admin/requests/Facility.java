@@ -18,5 +18,7 @@ public class Facility {
     @NotBlank(message = "Không được để trống")
     private String facilityName;
 
+    private String mapUrl;
+
     private MultipartFile file;
 }

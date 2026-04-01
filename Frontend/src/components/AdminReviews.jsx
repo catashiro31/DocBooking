@@ -8,6 +8,9 @@ const AdminReviews = () => {
     const [error, setError] = useState("")
     const [page, setPage] = useState(0)
     const [totalPages, setTotalPages] = useState(0)
+    const [aiResults, setAiResults] = useState({})
+    const [analyzingId, setAnalyzingId] = useState(null)
+
 
     useEffect(() => {
         fetchReviews()
@@ -36,6 +39,23 @@ const AdminReviews = () => {
             fetchReviews()
         } catch (err) {
             toast.error(err.response?.data || "Không thể ẩn đánh giá")
+        }
+    }
+
+    const handleAnalyze = async (reviewId, comment) => {
+        if (!comment) {
+            toast.warn("Bài đánh giá không có nội dung để phân tích");
+            return;
+        }
+        try {
+            setAnalyzingId(reviewId);
+            const data = await adminService.analyzeReview(comment);
+            setAiResults(prev => ({ ...prev, [reviewId]: data.labels }));
+        } catch (err) {
+            toast.error("Lỗi phân tích AI");
+            console.error(err);
+        } finally {
+            setAnalyzingId(null);
         }
     }
 
@@ -208,6 +228,36 @@ const AdminReviews = () => {
                     opacity: 0.5;
                     cursor: not-allowed;
                 }
+
+                .ai-btn-review {
+                    padding: 8px 16px; border-radius: 10px; border: none;
+                    background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+                    color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
+                    transition: all 0.2s; display: flex; align-items: center; gap: 8px; justify-content: center;
+                }
+                .ai-btn-review:hover:not(:disabled) {
+                    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transform: translateY(-1px);
+                }
+                .ai-btn-review:disabled {
+                    opacity: 0.7; cursor: not-allowed;
+                }
+                .ai-result-box {
+                    margin-top: 16px; padding: 16px; background: #faf5ff; border: 1px dashed #d8b4fe;
+                    border-radius: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+                }
+                .ai-label-item {
+                    display: flex; flex-direction: column; gap: 6px;
+                }
+                .ai-label-header {
+                    display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #4c1d95;
+                }
+                .ai-progress-bg {
+                    height: 6px; background: #e9d5ff; border-radius: 4px; overflow: hidden;
+                }
+                .ai-progress-fill {
+                    height: 100%; background: #9333ea; border-radius: 4px; transition: width 0.5s ease-out;
+                }
+
             `}</style>
 
             <div style={{ marginBottom: '40px' }}>
@@ -259,6 +309,22 @@ const AdminReviews = () => {
                                     {review.comment ? `"${review.comment}"` : "Không kèm theo bình luận nội dung."}
                                 </div>
 
+                                {aiResults[review.reviewId] && (
+                                    <div className="ai-result-box">
+                                        {Object.entries(aiResults[review.reviewId]).map(([label, percentage]) => (
+                                            <div key={label} className="ai-label-item">
+                                                <div className="ai-label-header">
+                                                    <span>{label}</span>
+                                                    <span>{percentage}%</span>
+                                                </div>
+                                                <div className="ai-progress-bg">
+                                                    <div className="ai-progress-fill" style={{ width: `${percentage}%` }}></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <div className="review-date">
                                     {review.createdAt ? new Date(review.createdAt).toLocaleDateString('vi-VN', {
                                         year: 'numeric', month: 'long', day: 'numeric',
@@ -269,12 +335,32 @@ const AdminReviews = () => {
 
                             <div className="admin-actions-review">
                                 {review.isVisible !== false && (
-                                    <button className="hide-btn-review" onClick={() => handleHideReview(review.reviewId)}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
-                                        </svg>
-                                        Ẩn nội dung
-                                    </button>
+                                    <>
+                                        <button 
+                                            className="ai-btn-review" 
+                                            onClick={() => handleAnalyze(review.reviewId, review.comment)}
+                                            disabled={analyzingId === review.reviewId || !review.comment}
+                                            title={!review.comment ? "Không có nội dung để phân tích" : ""}
+                                        >
+                                            {analyzingId === review.reviewId ? (
+                                                <span>⏳ ...</span>
+                                            ) : (
+                                                <>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                                                    </svg>
+                                                    Phân tích
+                                                </>
+                                            )}
+                                        </button>
+
+                                        <button className="hide-btn-review" onClick={() => handleHideReview(review.reviewId)}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+                                            </svg>
+                                            Ẩn nội dung
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         </div>

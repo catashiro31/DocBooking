@@ -405,11 +405,25 @@ const DoctorAppointments = () => {
                                                 background: '#f8fafc', fontSize: '13px', cursor: 'pointer'
                                             }}
                                         />
-                                        {prescriptionFile && (
+                                        {prescriptionFile ? (
                                             <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#10b981', fontWeight: 600 }}>
-                                                ✓ Đã chọn: {prescriptionFile.name}
+                                                ✓ Đã chọn file mới: {prescriptionFile.name}
                                             </p>
-                                        )}
+                                        ) : selectedAppointment?.prescriptionUrl ? (
+                                            <div style={{ margin: '8px 0 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <p style={{ margin: 0, fontSize: '12px', color: '#3b82f6', fontWeight: 600 }}>
+                                                    ✓ Đã có file kết quả cũ
+                                                </p>
+                                                <a 
+                                                    href={selectedAppointment.prescriptionUrl} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    style={{ fontSize: '12px', color: '#5f6dfc', textDecoration: 'underline', fontWeight: 600 }}
+                                                >
+                                                    Xem file
+                                                </a>
+                                            </div>
+                                        ) : null}
                                     </div>
                                 </div>
                             </div>

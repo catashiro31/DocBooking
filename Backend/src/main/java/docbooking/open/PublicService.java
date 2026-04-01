@@ -56,6 +56,8 @@ public class PublicService {
                         .address(f.getAddress())
                         .description(f.getDescription())
                         .imageUrl(f.getImageUrl())
+                        .mapUrl(f.getMapUrl())
+                        .verified(Boolean.TRUE.equals(f.getIsVerified()))
                         .build())
                 .toList();
     }
@@ -129,6 +131,7 @@ public class PublicService {
                 .bio(doctor.getBio())
                 .facilityName(doctor.getFacility() != null ? doctor.getFacility().getFacilityName() : null)
                 .facilityAddress(doctor.getFacility() != null ? doctor.getFacility().getAddress() : null)
+                .facilityMapUrl(doctor.getFacility() != null ? doctor.getFacility().getMapUrl() : null)
                 .doctorEmail(doctor.getUser().getEmail())
                 .doctorPhone(doctor.getUser().getPhoneNumber())
                 .avatarUrl(doctor.getUser().getAvatarUrl())

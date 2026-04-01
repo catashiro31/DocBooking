@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @Table(name = "facilities", indexes = {
-    @Index(name = "idx_facility_is_active", columnList = "is_active")
+        @Index(name = "idx_facility_is_active", columnList = "is_active")
 })
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,8 +34,16 @@ public class Facility {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "map_url", columnDefinition = "TEXT")
+    private String mapUrl;
+
+    @Builder.Default
+    @Column(name = "is_verified")
+    private Boolean isVerified = false;
+
+    @Builder.Default
     @Column(name = "is_active")
-    private Boolean isActive;
+    private Boolean isActive = true;
 
     @JsonIgnore
     @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

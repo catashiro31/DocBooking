@@ -10,6 +10,7 @@ import docbooking.models.*;
 import docbooking.repositories.*;
 import docbooking.utils.ConvertUrl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,11 +52,7 @@ public class DoctorService {
             if (!Boolean.TRUE.equals(specialty.getIsActive())) {
                 throw new RuntimeException("Chuyên khoa này đã ngừng hoạt động!");
             }
-            Facility facility = facilityRepository.findById(req.getFacilityId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
-            if (!Boolean.TRUE.equals(facility.getIsActive())) {
-                throw new RuntimeException("Cơ sở y tế này đã ngừng hoạt động!");
-            }
+            Facility facility = getOrCreateFacility(req);
 
             existing.setSpecialty(specialty);
             existing.setFacility(facility);
@@ -63,8 +60,14 @@ public class DoctorService {
             existing.setDegree(req.getDegree());
             existing.setExperienceYears(req.getExperienceYears());
             existing.setPrice(req.getPrice());
-            existing.setIdCardUrl(convertUrl.getUrlFile(req.getIdCardImage()));
-            existing.setCertificateUrl(convertUrl.getUrlFile(req.getCertificatePdf()));
+            if (req.getIdCardImage() != null && !req.getIdCardImage().isEmpty()) {
+                convertUrl.validateFile(req.getIdCardImage(), "Ảnh CCCD", "image/jpeg", "image/png");
+                existing.setIdCardUrl(convertUrl.getUrlFile(req.getIdCardImage()));
+            }
+            if (req.getCertificatePdf() != null && !req.getCertificatePdf().isEmpty()) {
+                convertUrl.validateFile(req.getCertificatePdf(), "Chứng chỉ nghề", "application/pdf", "image/jpeg", "image/png");
+                existing.setCertificateUrl(convertUrl.getUrlFile(req.getCertificatePdf()));
+            }
             existing.setVerificationStatus(DoctorDetail.VerificationStatus.PENDING);
             existing.setReasonReject(null);
 
@@ -77,10 +80,13 @@ public class DoctorService {
         if (!Boolean.TRUE.equals(specialty.getIsActive())) {
             throw new RuntimeException("Chuyên khoa này đã ngừng hoạt động!");
         }
-        Facility facility = facilityRepository.findById(req.getFacilityId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
-        if (!Boolean.TRUE.equals(facility.getIsActive())) {
-            throw new RuntimeException("Cơ sở y tế này đã ngừng hoạt động!");
+        Facility facility = getOrCreateFacility(req);
+
+        if (req.getIdCardImage() != null && !req.getIdCardImage().isEmpty()) {
+            convertUrl.validateFile(req.getIdCardImage(), "Ảnh CCCD", "image/jpeg", "image/png");
+        }
+        if (req.getCertificatePdf() != null && !req.getCertificatePdf().isEmpty()) {
+            convertUrl.validateFile(req.getCertificatePdf(), "Chứng chỉ nghề", "application/pdf", "image/jpeg", "image/png");
         }
 
         DoctorDetail doctorDetail = DoctorDetail.builder()
@@ -102,6 +108,35 @@ public class DoctorService {
         return "Hồ sơ của bạn đã được gửi đi thành công!";
     }
 
+    private Facility getOrCreateFacility(Profile req) {
+        if (req.getFacilityId() != null) {
+            Facility facility = facilityRepository.findById(req.getFacilityId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế"));
+            if (!Boolean.TRUE.equals(facility.getIsActive())) {
+                throw new RuntimeException("Cơ sở y tế này đã ngừng hoạt động!");
+            }
+            return facility;
+        } else {
+            // Validate required fields for new facility
+            if (req.getNewFacilityName() == null || req.getNewFacilityName().isBlank()) {
+                throw new RuntimeException("Vui lòng nhập tên cơ sở y tế mới!");
+            }
+            if (req.getFacilityAddress() == null || req.getFacilityAddress().isBlank()) {
+                throw new RuntimeException("Vui lòng nhập địa chỉ cơ sở y tế mới!");
+            }
+
+            Facility newFacility = Facility.builder()
+                    .facilityName(req.getNewFacilityName())
+                    .address(req.getFacilityAddress())
+                    .description(req.getFacilityDescription())
+                    .mapUrl(req.getFacilityMapUrl())
+                    .isVerified(false) // Requires admin or self-verification later
+                    .isActive(true)
+                    .build();
+            return facilityRepository.save(newFacility);
+        }
+    }
+
     @Transactional
     public void createDoctorSchedule(Integer userId, Schedule schedule) {
         LocalDate today = LocalDate.now();
@@ -115,6 +150,9 @@ public class DoctorService {
         if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
             throw new RuntimeException("Hồ sơ bác sĩ chưa được duyệt, không thể tạo lịch làm việc!");
         }
+
+        int newSlotsCreated = 0;
+        int existingSlots = 0;
 
         for(String slotName: schedule.getSlotIds()){
             DoctorSchedule.TimeSlot timeSlot = DoctorSchedule.TimeSlot.valueOf(slotName);
@@ -130,6 +168,9 @@ public class DoctorService {
                 if (existingSlot.getSlotStatus() == DoctorSchedule.SlotStatus.CLOSED) {
                     existingSlot.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
                     doctorScheduleRepository.save(existingSlot);
+                    newSlotsCreated++;
+                } else {
+                    existingSlots++;
                 }
                 continue;
             }
@@ -140,6 +181,11 @@ public class DoctorService {
 
             doctorSchedule.setSlotStatus(DoctorSchedule.SlotStatus.AVAILABLE);
             doctorScheduleRepository.save(doctorSchedule);
+            newSlotsCreated++;
+        }
+
+        if (newSlotsCreated == 0 && existingSlots > 0) {
+            throw new RuntimeException("Tất cả ca khám bạn chọn đã được tạo từ trước!");
         }
     }
     public List<docbooking.doctor.responses.Schedule> getDoctorSchedules(Integer userId) {
@@ -174,9 +220,21 @@ public class DoctorService {
     }
     @Transactional(readOnly = true)
     public docbooking.doctor.responses.Profile getDoctorProfile(User user) {
-        DoctorDetail detail = doctorDetailRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Hồ sơ bác sĩ chưa được tạo!"));
+        Optional<DoctorDetail> detailOpt = doctorDetailRepository.findByUser(user);
+        if (detailOpt.isEmpty()) {
+            // Bác sĩ mới đăng ký chưa nộp hồ sơ — không phải lỗi 400; FE cần 200 để hiển thị form / dashboard
+            return docbooking.doctor.responses.Profile.builder()
+                    .fullName(user.getFullName())
+                    .email(user.getEmail())
+                    .phoneNumber(user.getPhoneNumber())
+                    .avatarUrl(user.getAvatarUrl())
+                    .verificationStatus(null)
+                    .build();
+        }
 
+        DoctorDetail detail = detailOpt.get();
+        Specialty specialty = detail.getSpecialty();
+        Facility fac = detail.getFacility();
         return docbooking.doctor.responses.Profile.builder()
                 .fullName(user.getFullName())
                 .email(user.getEmail())
@@ -186,21 +244,77 @@ public class DoctorService {
                 .degree(detail.getDegree())
                 .experienceYears(detail.getExperienceYears())
                 .price(detail.getPrice())
-                .specialtyName(detail.getSpecialty().getSpecialtyName())
-                .facilityName(detail.getFacility().getFacilityName())
-                .facilityAddress(detail.getFacility().getAddress())
+                .specialtyId(specialty != null ? specialty.getSpecialtyId() : null)
+                .specialtyName(specialty != null ? specialty.getSpecialtyName() : null)
+                .facilityId(fac != null ? fac.getFacilityId() : null)
+                .facilityName(fac != null ? fac.getFacilityName() : null)
+                .facilityAddress(fac != null ? fac.getAddress() : null)
+                .facilityDescription(fac != null ? fac.getDescription() : null)
+                .facilityMapUrl(fac != null ? fac.getMapUrl() : null)
+                .facilityVerified(fac != null && Boolean.TRUE.equals(fac.getIsVerified()))
                 .ratingAverage(detail.getRatingAverage())
                 .reviewCount(detail.getReviewCount())
                 .verificationStatus(detail.getVerificationStatus().name())
                 .build();
     }
     @Transactional
+    public String verifyFacility(User user, Integer facilityId) {
+        DoctorDetail doctor = doctorDetailRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ!"));
+
+        Facility facility = facilityRepository.findById(facilityId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế!"));
+
+        if (doctor.getFacility() == null || !facility.getFacilityId().equals(doctor.getFacility().getFacilityId())) {
+            throw new RuntimeException("Bạn chỉ có thể xác minh cơ sở y tế mà bạn đang công tác!");
+        }
+
+        facility.setIsVerified(true);
+        facilityRepository.save(facility);
+        return "Đã xác minh cơ sở y tế thành công!";
+    }
+
+    @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public docbooking.doctor.responses.Profile updateDoctorProfile(User currentUser, ChangeProfile req) {
         DoctorDetail detail = doctorDetailRepository.findByUser(currentUser)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ để cập nhật!"));
         if (req.getBio() != null) detail.setBio(req.getBio());
         if (req.getPrice() != null) detail.setPrice(req.getPrice());
-        DoctorDetail savedDetail = doctorDetailRepository.save(detail);
+
+        Facility facility = detail.getFacility();
+        if (facility != null) {
+            boolean changed = false;
+            if (req.getFacilityName() != null && !req.getFacilityName().isBlank()) {
+                String newName = req.getFacilityName().trim();
+                if (facilityRepository.existsByFacilityNameIgnoreCaseAndFacilityIdNot(newName, facility.getFacilityId())) {
+                    throw new RuntimeException("Tên cơ sở y tế đã được sử dụng bởi một cơ sở khác!");
+                }
+                facility.setFacilityName(newName);
+                changed = true;
+            }
+            if (req.getFacilityAddress() != null) {
+                facility.setAddress(req.getFacilityAddress().trim());
+                changed = true;
+            }
+            if (req.getFacilityDescription() != null) {
+                facility.setDescription(req.getFacilityDescription());
+                changed = true;
+            }
+            if (req.getFacilityMapUrl() != null) {
+                facility.setMapUrl(req.getFacilityMapUrl());
+                changed = true;
+            }
+            if (req.getFacilityVerified() != null) {
+                facility.setIsVerified(req.getFacilityVerified());
+                changed = true;
+            }
+            if (changed) {
+                facilityRepository.save(facility);
+            }
+        }
+
+        doctorDetailRepository.save(detail);
         return getDoctorProfile(currentUser);
     }
 
@@ -235,6 +349,7 @@ public class DoctorService {
                     .createdAt(app.getCreatedAt())
                     .diagnosis(medResult.map(docbooking.models.MedicalResult::getDiagnosis).orElse(null))
                     .doctorNotes(medResult.map(docbooking.models.MedicalResult::getDoctorNotes).orElse(null))
+                    .prescriptionUrl(medResult.map(docbooking.models.MedicalResult::getPrescriptionUrl).orElse(null))
                     .build();
         });
     }
@@ -311,6 +426,10 @@ public class DoctorService {
             throw new RuntimeException("Lịch hẹn này đã có kết quả khám!");
         }
 
+        if (req.getPrescriptionFile() != null && !req.getPrescriptionFile().isEmpty()) {
+            convertUrl.validateFile(req.getPrescriptionFile(), "Kết quả khám bệnh", "application/pdf", "image/jpeg", "image/png");
+        }
+
         docbooking.models.MedicalResult result = docbooking.models.MedicalResult.builder()
                 .appointment(app)
                 .diagnosis(req.getDiagnosis())
@@ -337,7 +456,10 @@ public class DoctorService {
             throw new RuntimeException("Bạn không có quyền chỉnh sửa kết quả này!");
         }
 
-        if (req.getDiagnosis() != null) result.setDiagnosis(req.getDiagnosis());
+        if (req.getDiagnosis() != null) {
+            convertUrl.validateFile(req.getPrescriptionFile(), "Kết quả khám bệnh", "application/pdf", "image/jpeg", "image/png");
+            result.setDiagnosis(req.getDiagnosis());
+        }
         if (req.getDoctorNotes() != null) result.setDoctorNotes(req.getDoctorNotes());
 
         if (req.getPrescriptionFile() != null && !req.getPrescriptionFile().isEmpty()) {

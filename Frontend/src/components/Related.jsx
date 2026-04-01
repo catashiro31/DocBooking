@@ -1,5 +1,24 @@
 import { useNavigate } from 'react-router-dom';
 
+const getInitials = (name) => {
+  if (!name) return "DR";
+  const parts = name.trim().split(" ");
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+};
+
+const InitialsAvatar = ({ name }) => (
+  <div style={{
+    width: '100%', height: '100%',
+    background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#6366f1', fontWeight: 900,
+    fontSize: "32px"
+  }}>
+    {getInitials(name)}
+  </div>
+);
+
 const css = `
 .related-section { text-align: center; padding-top: 16px; margin-bottom: 40px; }
 .related-title { font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 10px; letter-spacing: -0.02em; }
@@ -64,14 +83,19 @@ export default function RelatedDoctors({ doctors = [], title, sub }) {
                 onClick={() => navigate(`/appointment/${id}`)}
               >
                 <div className="related-img-wrap">
-                  <img
-                    src={avatar}
-                    alt={name}
-                    className="related-img"
-                    onError={e => {
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=dbeafe&color=1e40af&size=200`;
-                    }}
-                  />
+                  {!avatar || avatar.includes("null") || avatar.includes("placeholder") ? (
+                    <InitialsAvatar name={name} />
+                  ) : (
+                    <img
+                      src={avatar}
+                      alt={name}
+                      className="related-img"
+                      onError={e => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `<div style="width:100%;height:100%;background:linear-gradient(135deg, #f8fafc, #e2e8f0);display:flex;align-items:center;justify-content:center;color:#6366f1;font-weight:900;font-size:32px;">${getInitials(name)}</div>`;
+                      }}
+                    />
+                  )}
                 </div>
                 <div className="related-body">
                   <div className="avail-badge">

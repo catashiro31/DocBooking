@@ -91,6 +91,7 @@ export const adminService = {
         formData.append("facilityName", (data.facilityName ?? data.name ?? "").trim());
         formData.append("address", data.address ?? "");
         if (data.description) formData.append("description", data.description);
+        if (data.mapUrl) formData.append("mapUrl", data.mapUrl);
         if (data.file) formData.append("file", data.file);
         const res = await api.post("/admin/facility", formData, {
             headers: { "Content-Type": "multipart/form-data" }
@@ -103,10 +104,16 @@ export const adminService = {
         formData.append("facilityName", (data.facilityName ?? data.name ?? "").trim());
         formData.append("address", data.address ?? "");
         if (data.description) formData.append("description", data.description);
+        if (data.mapUrl) formData.append("mapUrl", data.mapUrl);
         if (data.file) formData.append("file", data.file);
         const res = await api.put(`/admin/facility/${id}`, formData, {
             headers: { "Content-Type": "multipart/form-data" }
         });
+        return res.data;
+    },
+
+    verifyFacility: async (id) => {
+        const res = await api.patch(`/admin/facility/${id}/verify`);
         return res.data;
     },
 
@@ -133,6 +140,11 @@ export const adminService = {
 
     hideReview: async (reviewId) => {
         const res = await api.patch(`/admin/reviews/${reviewId}/hide`);
+        return res.data;
+    },
+
+    analyzeReview: async (comment) => {
+        const res = await api.post('/admin/moderation/analyze', { comment });
         return res.data;
     }
 };

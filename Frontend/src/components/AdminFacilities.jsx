@@ -9,7 +9,7 @@ const AdminFacilities = () => {
     const [error, setError] = useState("")
     const [showModal, setShowModal] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [formData, setFormData] = useState({ name: "", address: "", description: "" })
+    const [formData, setFormData] = useState({ name: "", address: "", description: "", mapUrl: "" })
     const [imageFile, setImageFile] = useState(null)
     const [submitting, setSubmitting] = useState(false)
 
@@ -22,10 +22,11 @@ const AdminFacilities = () => {
             setLoading(true)
             const data = await adminService.getAllFacilities()
             const list = Array.isArray(data) ? data : []
-            setFacilities(list.map(f => ({ 
-                ...f, 
-                id: f.facilityId || f.id, 
-                name: f.facilityName || f.name 
+            setFacilities(list.map(f => ({
+                ...f,
+                id: f.facilityId || f.id,
+                name: f.facilityName || f.name,
+                verified: !!(f.verified ?? f.isVerified),
             })))
         } catch (err) {
             setError("Không thể tải danh sách cơ sở y tế")
@@ -41,11 +42,12 @@ const AdminFacilities = () => {
             setFormData({ 
                 name: item.name || "", 
                 address: item.address || "",
-                description: item.description || ""
+                description: item.description || "",
+                mapUrl: item.mapUrl || ""
             })
         } else {
             setEditingItem(null)
-            setFormData({ name: "", address: "", description: "" })
+            setFormData({ name: "", address: "", description: "", mapUrl: "" })
         }
         setImageFile(null)
         setShowModal(true)
@@ -90,6 +92,16 @@ const AdminFacilities = () => {
             setFacilities(prev => prev.filter(f => f.id !== id))
         } catch (err) {
             toast.error(err.response?.data || "Không thể xóa cơ sở y tế")
+        }
+    }
+
+    const handleVerify = async (id) => {
+        try {
+            await adminService.verifyFacility(id)
+            toast.success("Đã xác minh cơ sở y tế")
+            fetchFacilities()
+        } catch (err) {
+            toast.error(err.response?.data || "Không thể xác minh cơ sở")
         }
     }
 
@@ -176,9 +188,42 @@ const AdminFacilities = () => {
 
                 .card-actions {
                     display: flex;
+                    flex-wrap: wrap;
                     gap: 12px;
                     border-top: 1px solid #f1f5f9;
                     padding-top: 20px;
+                }
+                .facility-verify-badge {
+                    font-size: 11px;
+                    font-weight: 800;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    padding: 6px 12px;
+                    border-radius: 999px;
+                    border: 1px solid #e2e8f0;
+                    background: #f8fafc;
+                    color: #64748b;
+                }
+                .facility-verify-badge.verified {
+                    background: #ecfdf5;
+                    border-color: #a7f3d0;
+                    color: #047857;
+                }
+                .btn-verify-quick {
+                    flex: 1;
+                    min-width: 120px;
+                    padding: 10px;
+                    border-radius: 10px;
+                    font-size: 13px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: 1px solid #0ea47a;
+                    background: #ecfdf5;
+                    color: #047857;
+                }
+                .btn-verify-quick:hover {
+                    background: #d1fae5;
                 }
 
                 .btn-card-action {
@@ -343,7 +388,12 @@ const AdminFacilities = () => {
                             </div>
                             
                             <div className="facility-content">
-                                <h3 className="facility-name">{facility.name}</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                    <h3 className="facility-name" style={{ margin: 0 }}>{facility.name}</h3>
+                                    <span className={`facility-verify-badge ${facility.verified ? 'verified' : ''}`}>
+                                        {facility.verified ? 'Đã xác minh' : 'Chờ xác minh'}
+                                    </span>
+                                </div>
                                 <div className="facility-address">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
@@ -355,8 +405,13 @@ const AdminFacilities = () => {
                                 </p>
                                 
                                 <div className="card-actions">
-                                    <button className="btn-card-action" onClick={() => handleOpenModal(facility)}>Chỉnh sửa</button>
-                                    <button className="btn-card-action" style={{ color: '#ef4444' }} onClick={() => handleDelete(facility.id)}>Gỡ bỏ</button>
+                                    {!facility.verified && (
+                                        <button type="button" className="btn-verify-quick" onClick={() => handleVerify(facility.id)}>
+                                            Xác minh nhanh
+                                        </button>
+                                    )}
+                                    <button type="button" className="btn-card-action" onClick={() => handleOpenModal(facility)}>Chỉnh sửa</button>
+                                    <button type="button" className="btn-card-action" style={{ color: '#ef4444' }} onClick={() => handleDelete(facility.id)}>Gỡ bỏ</button>
                                 </div>
                             </div>
                         </div>
@@ -392,6 +447,16 @@ const AdminFacilities = () => {
                                     placeholder="Số nhà, tên đường, quận/huyện..."
                                     value={formData.address}
                                     onChange={e => setFormData(p => ({ ...p, address: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Link Google Maps (Tùy chọn)</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="https://maps.google.com/..."
+                                    value={formData.mapUrl}
+                                    onChange={e => setFormData(p => ({ ...p, mapUrl: e.target.value }))}
                                 />
                             </div>
 
