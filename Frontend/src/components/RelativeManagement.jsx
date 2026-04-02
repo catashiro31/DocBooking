@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { patientService } from "../services/patientService"
 import { toast } from 'react-toastify'
+import { formatLocalDate } from "../utils/dateUtils"
 
 const RelativeManagement = () => {
     const [relatives, setRelatives] = useState([])
@@ -320,7 +321,7 @@ const RelativeManagement = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                 <div className="floating-label-input">
                                     <label>Ngày sinh *</label>
-                                    <input type="date" max={new Date().toISOString().split('T')[0]} value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} required />
+                                    <input type="date" max={formatLocalDate(new Date())} value={formData.dateOfBirth} onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })} required />
                                 </div>
                                 <div className="floating-label-input">
                                     <label>Giới tính *</label>

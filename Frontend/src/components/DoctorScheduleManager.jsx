@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { doctorService } from "../services/doctorService"
 import { toast } from 'react-toastify'
+import { formatLocalDate } from "../utils/dateUtils"
 
 const TIME_SLOTS = [
     'SLOT_09_00', 'SLOT_10_00', 'SLOT_11_00', 
@@ -39,8 +40,8 @@ const DoctorScheduleManager = () => {
     }
 
     const handleOpenModal = () => {
-        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        setSelectedDate(tomorrow)
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000)
+        setSelectedDate(formatLocalDate(tomorrow))
         setSelectedSlots([])
         setShowModal(true)
     }
@@ -233,7 +234,7 @@ const DoctorScheduleManager = () => {
                                 type="date"
                                 value={selectedDate}
                                 onChange={e => setSelectedDate(e.target.value)}
-                                min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                                min={formatLocalDate(new Date(Date.now() + 24 * 60 * 60 * 1000))}
                                 style={{
                                     width: '100%',
                                     padding: '12px',

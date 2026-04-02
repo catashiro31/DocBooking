@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import { doctorService } from '../services/doctorService';
 import { patientService } from '../services/patientService';
 import { useAuth } from '../context/AuthContext';
+import { formatLocalDate } from '../utils/dateUtils';
 
 const css = `
 .booking-slots { margin-bottom: 52px; background: #fff; padding: 32px; border-radius: 24px; box-shadow: 0 10px 40px rgba(99,102,241,0.05); border: 1px solid #eef2ff; }
@@ -11,14 +12,14 @@ const css = `
 .day-row::-webkit-scrollbar { display: none; }
 .day-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 80px; height: 110px; border-radius: 24px; border: 1.5px solid #e2e8f0;
+  width: 90px; height: 110px; border-radius: 24px; border: 1.5px solid #e2e8f0;
   background: #f8fafc; cursor: pointer; gap: 6px; flex-shrink: 0; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none; color: #475569; font-family: inherit;
 }
-.day-btn:hover:not(.day-btn--active) { border-color: #a5b4fc; background: #eef2ff; transform: translateY(-4px); }
+.day-btn:hover:not(.day-btn--active) { border-color: #6366f1; background: #eef2ff; transform: translateY(-4px); }
 .day-btn--active { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-color: transparent; color: #fff; box-shadow: 0 12px 24px rgba(99,102,241,0.3); transform: translateY(-4px); }
 .day-name { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; }
-.day-num { font-size: 22px; font-weight: 800; line-height: 1; }
+.day-num { font-size: 18px; font-weight: 800; line-height: 1.2; text-align: center; }
 
 .slot-section-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px; }
 .slot-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 32px; }
@@ -54,9 +55,9 @@ const css = `
 
 @media (max-width: 768px) {
   .booking-slots { padding: 24px 20px; border-radius: 20px; }
-  .day-btn { width: 70px; height: 96px; border-radius: 20px; }
+  .day-btn { width: 80px; height: 96px; border-radius: 20px; }
   .day-name { font-size: 12px; }
-  .day-num { font-size: 18px; }
+  .day-num { font-size: 16px; }
   .slot-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .slot-btn { width: 100%; padding: 10px 0; text-align: center; font-size: 14px; }
 }
@@ -67,8 +68,8 @@ const css = `
 
 const DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-function getNext7Days() {
-  return Array.from({ length: 7 }, (_, i) => {
+function getNext14Days() {
+  return Array.from({ length: 14 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
     return d;
@@ -76,7 +77,7 @@ function getNext7Days() {
 }
 
 function toDateParam(date) {
-  return date.toISOString().split('T')[0];
+  return formatLocalDate(date);
 }
 
 function formatTimeSlot(slot) {
@@ -85,7 +86,7 @@ function formatTimeSlot(slot) {
 }
 
 export default function BookingSlots({ docId, onBook }) {
-  const days = getNext7Days();
+  const days = getNext14Days();
   const [selectedDay, setSelectedDay] = useState(0);
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -172,7 +173,7 @@ export default function BookingSlots({ docId, onBook }) {
               onClick={() => setSelectedDay(i)}
             >
               <span className="day-name">{DAYS[d.getDay()]}</span>
-              <span className="day-num">{d.getDate()}</span>
+              <span className="day-num">{d.getDate()}/{d.getMonth() + 1}</span>
             </button>
           ))}
         </div>
