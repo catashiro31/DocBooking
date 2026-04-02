@@ -27,6 +27,7 @@ public class PublicController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer specId,
             @RequestParam(required = false) Integer facilityId,
+            @RequestParam(required = false) String province,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) String sortBy,
@@ -45,7 +46,7 @@ public class PublicController {
         }
         
         Pageable pageable = PageRequest.of(page, size, sort);
-        return ResponseEntity.ok(portalService.getDoctors(keyword, specId, facilityId, minPrice, maxPrice, pageable));
+        return ResponseEntity.ok(portalService.getDoctors(keyword, specId, facilityId, province, minPrice, maxPrice, pageable));
     }
 
     @GetMapping("/doctors/{id}")

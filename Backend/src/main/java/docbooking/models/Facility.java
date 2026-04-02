@@ -40,6 +40,9 @@ public class Facility {
     @Column(name = "map_url", columnDefinition = "TEXT")
     private String mapUrl;
 
+    @Column(name = "province")
+    private String province;
+
     @Builder.Default
     @Column(name = "is_verified")
     private Boolean isVerified = false;

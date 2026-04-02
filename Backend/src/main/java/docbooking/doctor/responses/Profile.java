@@ -24,6 +24,7 @@ public class Profile {
     private String facilityAddress;
     private String facilityDescription;
     private String facilityMapUrl;
+    private String facilityProvince;
     private Boolean facilityVerified;
     private Double ratingAverage;
     private Integer reviewCount;

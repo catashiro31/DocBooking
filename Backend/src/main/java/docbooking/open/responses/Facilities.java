@@ -15,6 +15,7 @@ public class Facilities {
     private String imageUrl;
     private String licenseUrl;
     private String mapUrl;
+    private String province;
     /** true = đã xác minh (admin hoặc bác sĩ tự xác nhận theo chính sách hệ thống) */
     private Boolean verified;
 }

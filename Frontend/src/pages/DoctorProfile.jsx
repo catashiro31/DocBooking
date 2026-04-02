@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { toast } from 'react-toastify'
 import api from "../services/api"
+import { PROVINCES } from "../utils/provinceUtils"
 
 const STEPS = ["Thông tin cơ bản", "Tài liệu xác minh", "Chuyên môn & Cơ sở"]
 
@@ -157,7 +158,7 @@ function DoctorProfile() {
   const [form, setForm] = useState({
     bio: "", degree: "", experienceYears: "", price: "",
     idCardUrl: "", certificateUrl: "", specialtyId: "", facilityId: "",
-    newFacilityName: "", newFacilityAddress: "", newFacilityDescription: "", newFacilityMapUrl: "",
+    newFacilityName: "", newFacilityAddress: "", newFacilityProvince: "", newFacilityDescription: "", newFacilityMapUrl: "",
     facilityLicenseUrl: ""
   })
   const [files, setFiles] = useState({ 
@@ -278,8 +279,8 @@ function DoctorProfile() {
       return
     }
     if (createNewFacility) {
-      if (!form.newFacilityName?.trim() || !form.newFacilityAddress?.trim()) {
-        toast.error("Vui lòng nhập tên và địa chỉ cho cơ sở y tế mới")
+      if (!form.newFacilityName?.trim() || !form.newFacilityAddress?.trim() || !form.newFacilityProvince) {
+        toast.error("Vui lòng nhập đầy đủ thông tin Tên, Địa chỉ và Tỉnh/Thành phố cho cơ sở y tế mới")
         return
       }
       if (!files.facilityLicense) {
@@ -301,6 +302,7 @@ function DoctorProfile() {
       if (createNewFacility) {
         formData.append("newFacilityName", form.newFacilityName.trim())
         formData.append("facilityAddress", form.newFacilityAddress.trim())
+        formData.append("newFacilityProvince", form.newFacilityProvince)
         if (form.newFacilityDescription?.trim()) formData.append("facilityDescription", form.newFacilityDescription.trim())
         if (form.newFacilityMapUrl?.trim()) formData.append("facilityMapUrl", form.newFacilityMapUrl.trim())
       }
@@ -473,7 +475,10 @@ function DoctorProfile() {
                                         </span>
                                       </div>
                                       {(profileData.facilityAddress || profileData.facility?.address) && (
-                                        <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>{profileData.facilityAddress || profileData.facility?.address}</p>
+                                      <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+                                        {profileData.facilityAddress || profileData.facility?.address}
+                                        {profileData.facilityProvince ? `, ${profileData.facilityProvince}` : (profileData.facility?.province ? `, ${profileData.facility.province}` : '')}
+                                      </p>
                                       )}
                                   </div>
                                   <div>
@@ -713,7 +718,25 @@ function DoctorProfile() {
               ) : (
                 <>
                   <FloatingInput label="Tên cơ sở y tế mới" name="newFacilityName" placeholder="VD: Phòng khám Đa khoa ..." value={form.newFacilityName} onChange={handleChange} required />
-                  <FloatingInput label="Địa chỉ" name="newFacilityAddress" placeholder="Số nhà, đường, quận/huyện..." value={form.newFacilityAddress} onChange={handleChange} required />
+                  
+                  <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '6px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      Chọn Tỉnh/Thành phố <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <div style={{ content: '', position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '6px solid #9ca3af', pointerEvents: 'none' }} />
+                      <select className="dp-select" name="newFacilityProvince" value={form.newFacilityProvince} onChange={handleChange} style={selectStyle}
+                        onFocus={e => e.target.style.borderColor = '#0ea47a'}
+                        onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                        required
+                      >
+                        <option value="">-- Chọn tỉnh --</option>
+                        {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <FloatingInput label="Địa chỉ cụ thể" name="newFacilityAddress" placeholder="Số nhà, đường, quận/huyện..." value={form.newFacilityAddress} onChange={handleChange} required />
                   <FloatingInput label="Link bản đồ (Google Maps, tùy chọn)" name="newFacilityMapUrl" placeholder="https://maps.google.com/..." value={form.newFacilityMapUrl} onChange={handleChange} />
                   <FloatingInput label="Mô tả ngắn (tùy chọn)" type="textarea" name="newFacilityDescription" placeholder="Giới thiệu về cơ sở..." value={form.newFacilityDescription} onChange={handleChange} />
                   

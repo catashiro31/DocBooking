@@ -78,7 +78,7 @@ function Facilities() {
                                         <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>{fac.facilityName || fac.name}</h3>
                                         <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                                             <span>📍</span>
-                                            <span>{fac.address}</span>
+                                            <span>{fac.address}{fac.province ? `, ${fac.province}` : ''}</span>
                                         </p>
                                         <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#475569', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '67px' }}>
                                             {fac.description}

@@ -271,6 +271,7 @@ public class AdminService {
                 .address(req.getAddress())
                 .description(req.getDescription())
                 .facilityName(name)
+                .province(req.getProvince())
                 .imageUrl(convertUrl.getUrlFile(req.getFile()))
                 .licenseUrl(convertUrl.getUrlFile(req.getLicenseFile()))
                 .mapUrl(req.getMapUrl())
@@ -303,6 +304,7 @@ public class AdminService {
         facility.setFacilityName(newName);
         facility.setDescription(req.getDescription());
         facility.setMapUrl(req.getMapUrl());
+        facility.setProvince(req.getProvince());
 
         // Chỉ cập nhật ảnh nếu người dùng có gửi file mới
         if (req.getFile() != null && !req.getFile().isEmpty()) {

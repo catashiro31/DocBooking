@@ -197,17 +197,29 @@ const AdminDoctors = () => {
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Học vị:</b> {detailModal.data?.degree}</p>
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Kinh nghiệm:</b> {detailModal.data?.experienceYears} năm</p>
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Chuyên khoa:</b> {detailModal.data?.specialty?.specialtyName || detailModal.data?.specialtyName}</p>
-                                        <p style={{ margin: '8px 0', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <b>Cơ sở y tế:</b> {detailModal.data?.facility?.facilityName || detailModal.data?.facilityName}
-                                            <span style={{ 
-                                                fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px',
-                                                background: (detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#ecfdf5' : '#fffbeb',
-                                                color: (detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#059669' : '#b45309',
-                                                border: `1px solid ${(detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#a7f3d0' : '#fde68a'}`
-                                            }}>
-                                                {(detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? 'Đã xác minh' : 'Chờ xác minh'}
-                                            </span>
-                                        </p>
+                                        <div style={{ margin: '8px 0', fontSize: '15px' }}>
+                                            <b>Cơ sở y tế:</b>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                                <span style={{ fontWeight: 600 }}>{detailModal.data?.facility?.facilityName || detailModal.data?.facilityName}</span>
+                                                <span style={{ 
+                                                    fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px',
+                                                    background: (detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#ecfdf5' : '#fffbeb',
+                                                    color: (detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#059669' : '#b45309',
+                                                    border: `1px solid ${(detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#a7f3d0' : '#fde68a'}`
+                                                }}>
+                                                    {(detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? 'Đã xác minh' : 'Chờ xác minh'}
+                                                </span>
+                                            </div>
+                                            {(detailModal.data?.facility?.address || detailModal.data?.facilityAddress) && (
+                                                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 500, display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                                                    <span>📍</span>
+                                                    <span>
+                                                        {detailModal.data?.facility?.address || detailModal.data?.facilityAddress}
+                                                        {(detailModal.data?.facility?.province || detailModal.data?.facilityProvince) ? `, ${detailModal.data?.facility?.province || detailModal.data?.facilityProvince}` : ''}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                         {(detailModal.data?.facility?.licenseUrl || detailModal.data?.facilityLicenseUrl) && (
                                             <p style={{ margin: '8px 0', fontSize: '13px' }}>
                                                 <a href={detailModal.data?.facility?.licenseUrl || detailModal.data?.facilityLicenseUrl} target="_blank" rel="noreferrer" style={{ color: '#0ea47a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>

@@ -90,6 +90,7 @@ export const adminService = {
         const formData = new FormData();
         formData.append("facilityName", (data.facilityName ?? data.name ?? "").trim());
         formData.append("address", data.address ?? "");
+        formData.append("province", data.province || "");
         if (data.description) formData.append("description", data.description);
         if (data.mapUrl) formData.append("mapUrl", data.mapUrl);
         if (data.file) formData.append("file", data.file);
@@ -104,6 +105,7 @@ export const adminService = {
         const formData = new FormData();
         formData.append("facilityName", (data.facilityName ?? data.name ?? "").trim());
         formData.append("address", data.address ?? "");
+        formData.append("province", data.province || "");
         if (data.description) formData.append("description", data.description);
         if (data.mapUrl) formData.append("mapUrl", data.mapUrl);
         if (data.file) formData.append("file", data.file);

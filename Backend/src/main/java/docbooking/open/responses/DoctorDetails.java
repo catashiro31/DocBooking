@@ -20,6 +20,7 @@ public class DoctorDetails {
     private String bio;
     private String facilityName;
     private String facilityAddress;
+    private String facilityProvince;
     private String facilityMapUrl;
     private String doctorEmail;
     private String doctorPhone;

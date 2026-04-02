@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { adminService } from "../services/adminService"
 import { toast } from 'react-toastify'
+import { PROVINCES } from "../utils/provinceUtils"
 
 const AdminFacilities = () => {
     const [facilities, setFacilities] = useState([])
@@ -9,7 +10,7 @@ const AdminFacilities = () => {
     const [error, setError] = useState("")
     const [showModal, setShowModal] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [formData, setFormData] = useState({ name: "", address: "", description: "", mapUrl: "" })
+    const [formData, setFormData] = useState({ name: "", address: "", province: "", description: "", mapUrl: "" })
     const [imageFile, setImageFile] = useState(null)
     const [licenseFile, setLicenseFile] = useState(null)
     const [submitting, setSubmitting] = useState(false)
@@ -27,6 +28,7 @@ const AdminFacilities = () => {
                 ...f,
                 id: f.facilityId || f.id,
                 name: f.facilityName || f.name,
+                province: f.province || "",
                 verified: !!(f.verified ?? f.isVerified),
             })))
         } catch (err) {
@@ -43,12 +45,13 @@ const AdminFacilities = () => {
             setFormData({ 
                 name: item.name || "", 
                 address: item.address || "",
+                province: item.province?.trim() || "",
                 description: item.description || "",
                 mapUrl: item.mapUrl || ""
             })
         } else {
             setEditingItem(null)
-            setFormData({ name: "", address: "", description: "", mapUrl: "" })
+            setFormData({ name: "", address: "", province: "", description: "", mapUrl: "" })
         }
         setImageFile(null)
         setLicenseFile(null)
@@ -408,7 +411,7 @@ const AdminFacilities = () => {
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                                     </svg>
-                                    {facility.address || 'Đang cập nhật địa chỉ'}
+                                    {facility.address ? (facility.province ? `${facility.address}, ${facility.province}` : facility.address) : (facility.province || 'Đang cập nhật địa chỉ')}
                                 </div>
                                 <p className="facility-desc">
                                     {facility.description || 'Không có mô tả thông tin cho cơ sở y tế này.'}
@@ -460,6 +463,25 @@ const AdminFacilities = () => {
                                     value={formData.name}
                                     onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                                 />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Chọn tỉnh/thành phố *</label>
+                                <select
+                                    value={formData.province}
+                                    onChange={e => setFormData(p => ({ ...p, province: e.target.value }))}
+                                    style={{
+                                        width: '100%', padding: '12px 16px', borderRadius: '12px',
+                                        border: '1.5px solid #e2e8f0', fontSize: '15px', outline: 'none',
+                                        background: '#fff', color: '#1e293b'
+                                    }}
+                                    required
+                                >
+                                    <option value="">-- Chọn tỉnh --</option>
+                                    {PROVINCES.map(p => (
+                                        <option key={p} value={p}>{p}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className="form-group">

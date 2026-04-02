@@ -6,63 +6,62 @@ import { useAuth } from '../context/AuthContext';
 import { formatLocalDate } from '../utils/dateUtils';
 
 const css = `
-.booking-slots { margin-bottom: 52px; background: #fff; padding: 32px; border-radius: 24px; box-shadow: 0 10px 40px rgba(99,102,241,0.05); border: 1px solid #eef2ff; }
-.booking-title { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 24px; letter-spacing: -0.02em; }
-.day-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 28px; scrollbar-width: none; }
-.day-row::-webkit-scrollbar { display: none; }
+.booking-slots { margin-bottom: 52px; background: #fff; padding: 28px; border-radius: 24px; box-shadow: 0 10px 40px rgba(99,102,241,0.05); border: 1px solid #eef2ff; }
+.booking-title { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 20px; letter-spacing: -0.02em; }
+
+.week-tabs { display: flex; gap: 8px; margin-bottom: 24px; background: #f1f5f9; padding: 4px; border-radius: 14px; width: fit-content; }
+.week-tab-btn { 
+  padding: 8px 16px; border-radius: 10px; border: none; background: transparent; 
+  cursor: pointer; font-size: 13px; font-weight: 700; color: #64748b; transition: all 0.2s;
+}
+.week-tab-btn--active { background: #fff; color: #6366f1; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+.day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-bottom: 28px; }
 .day-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 90px; height: 110px; border-radius: 24px; border: 1.5px solid #e2e8f0;
-  background: #f8fafc; cursor: pointer; gap: 6px; flex-shrink: 0; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 12px 4px; border-radius: 16px; border: 1.5px solid #e2e8f0;
+  background: #f8fafc; cursor: pointer; gap: 4px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none; color: #475569; font-family: inherit;
 }
-.day-btn:hover:not(.day-btn--active) { border-color: #6366f1; background: #eef2ff; transform: translateY(-4px); }
-.day-btn--active { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-color: transparent; color: #fff; box-shadow: 0 12px 24px rgba(99,102,241,0.3); transform: translateY(-4px); }
-.day-name { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; }
-.day-num { font-size: 18px; font-weight: 800; line-height: 1.2; text-align: center; }
+.day-btn:hover:not(.day-btn--active) { border-color: #6366f1; background: #eef2ff; }
+.day-btn--active { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-color: transparent; color: #fff; box-shadow: 0 8px 16px rgba(99,102,241,0.2); transform: translateY(-2px); }
+.day-name { font-size: 11px; font-weight: 700; text-transform: uppercase; opacity: 0.8; }
+.day-num { font-size: 15px; font-weight: 800; }
 
-.slot-section-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 0 0 16px; }
-.slot-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 32px; }
-.slot-empty { font-size: 14px; color: #64748b; font-style: italic; background: #f8fafc; padding: 16px 24px; border-radius: 12px; width: 100%; text-align: center; }
+.slot-section-title { font-size: 14px; font-weight: 700; color: #1e293b; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
+.slot-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 28px; }
+.slot-empty { font-size: 13px; color: #64748b; font-style: italic; background: #f8fafc; padding: 20px; border-radius: 16px; grid-column: 1 / -1; text-align: center; border: 1px dashed #e2e8f0; }
 .slot-btn { 
-  padding: 12px 24px; border-radius: 12px; border: 1.5px solid #e2e8f0; 
-  background: #fff; font-size: 15px; font-weight: 600; color: #475569; 
+  padding: 10px; border-radius: 10px; border: 1.5px solid #e2e8f0; 
+  background: #fff; font-size: 14px; font-weight: 700; color: #475569; 
   cursor: pointer; transition: all 0.2s; outline: none; font-family: inherit;
 }
-.slot-btn:hover:not(.slot-btn--booked):not(.slot-btn--active) { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
-.slot-btn--active { background: #6366f1; border-color: #6366f1; color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.25); }
-.slot-btn--booked { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; opacity: 0.7; }
+.slot-btn:hover:not(.slot-btn--booked):not(.slot-btn--active) { border-color: #6366f1; color: #6366f1; }
+.slot-btn--active { background: #6366f1; border-color: #6366f1; color: #fff; }
+.slot-btn--booked { background: #f1f5f9; color: #cbd5e1; cursor: not-allowed; border-color: #e2e8f0; }
 
-.booking-form { background: #f8fafc; border-radius: 16px; padding: 24px; margin-bottom: 28px; border: 1px solid #eef2ff; }
-.booking-form label { display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 14px; }
+.booking-form { background: #f8fafc; border-radius: 20px; padding: 24px; margin-bottom: 24px; border: 1px solid #eef2ff; }
+.booking-form label { display: block; margin-bottom: 10px; font-weight: 700; color: #1e293b; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
 .booking-form select, .booking-form textarea { 
-  width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #cbd5e1; 
+  width: 100%; padding: 14px; border-radius: 14px; border: 1.5px solid #e2e8f0; 
   margin-bottom: 20px; font-size: 15px; box-sizing: border-box; font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s; background: #fff;
+  transition: all 0.2s; background: #fff; outline: none;
 }
-.booking-form select:focus, .booking-form textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); outline: none; }
-.booking-form textarea { min-height: 100px; resize: vertical; }
+.booking-form select:focus, .booking-form textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
+.booking-form textarea { min-height: 110px; resize: none; margin-bottom: 0; }
 
 .book-appt-btn {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; border-radius: 14px;
-  padding: 16px 40px; font-size: 16px; font-weight: 700; cursor: pointer;
-  transition: all 0.25s; width: 100%;
-  box-shadow: 0 8px 24px rgba(99,102,241,0.25); outline: none; font-family: inherit;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; border-radius: 16px;
+  padding: 18px; font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: all 0.3s; width: 100%;
+  box-shadow: 0 10px 20px rgba(99,102,241,0.2); outline: none; font-family: inherit;
 }
-.book-appt-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(99,102,241,0.35); }
-.book-appt-btn:active:not(:disabled) { transform: translateY(0); box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
-.book-appt-btn:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+.book-appt-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(99,102,241,0.3); }
+.book-appt-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
 
-@media (max-width: 768px) {
-  .booking-slots { padding: 24px 20px; border-radius: 20px; }
-  .day-btn { width: 80px; height: 96px; border-radius: 20px; }
-  .day-name { font-size: 12px; }
-  .day-num { font-size: 16px; }
-  .slot-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .slot-btn { width: 100%; padding: 10px 0; text-align: center; font-size: 14px; }
-}
-@media (max-width: 480px) {
-  .slot-row { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 640px) {
+  .day-grid { grid-template-columns: repeat(4, 1fr); }
+  .slot-grid { grid-template-columns: repeat(3, 1fr); }
 }
 `;
 
@@ -86,8 +85,12 @@ function formatTimeSlot(slot) {
 }
 
 export default function BookingSlots({ docId, onBook }) {
-  const days = getNext14Days();
-  const [selectedDay, setSelectedDay] = useState(0);
+  const allDays = getNext14Days();
+  const [week, setWeek] = useState(0); // 0 or 1
+  const [selectedDayIdx, setSelectedDayIdx] = useState(0); // 0 to 13
+  
+  const currentWeekDays = allDays.slice(week * 7, (week + 1) * 7);
+
   const [slots, setSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -97,7 +100,6 @@ export default function BookingSlots({ docId, onBook }) {
   const [booking, setBooking] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
-  // Load relatives
   useEffect(() => {
     if (isAuthenticated() && user?.role === 'PATIENT') {
       patientService.getRelatives()
@@ -111,13 +113,12 @@ export default function BookingSlots({ docId, onBook }) {
     }
   }, [user]);
 
-  // Load slots
   useEffect(() => {
     if (!docId) return;
     setLoadingSlots(true);
     setSelectedSlot(null);
     doctorService
-      .getAvailableSlots(docId, toDateParam(days[selectedDay]))
+      .getAvailableSlots(docId, toDateParam(allDays[selectedDayIdx]))
       .then(data => { 
         const availableSlots = (Array.isArray(data) ? data : []).filter(s => 
           s.status === 'AVAILABLE' || !s.isBooked
@@ -126,32 +127,26 @@ export default function BookingSlots({ docId, onBook }) {
         setLoadingSlots(false); 
       })
       .catch(() => { setSlots([]); setLoadingSlots(false); });
-  }, [docId, selectedDay]);
+  }, [docId, selectedDayIdx]);
 
     const handleBook = async () => {
     if (!selectedSlot) return;
     
-    // Redirect guests to login without reason validation
     if (!isAuthenticated()) {
-      await onBook({ 
-        scheduleId: selectedSlot.scheduleId || selectedSlot.id 
-      });
+      await onBook({ scheduleId: selectedSlot.scheduleId || selectedSlot.id });
       return;
     }
 
-    // Authenticated users must provide a reason
     if (!reason.trim()) {
       toast.warning('Vui lòng nhập lý do khám');
       return;
     }
     
     setBooking(true);
-    const patientId = selectedPatient;
-    
     try {
       await onBook({
         scheduleId: selectedSlot.scheduleId || selectedSlot.id,
-        patientId, 
+        patientId: selectedPatient, 
         reason: reason.trim()
       });
     } finally {
@@ -163,90 +158,83 @@ export default function BookingSlots({ docId, onBook }) {
     <>
       <style>{css}</style>
       <div className="booking-slots">
-        <h3 className="booking-title">Chọn ngày & giờ khám</h3>
+        <h3 className="booking-title">Lịch khám của bác sĩ</h3>
 
-        <div className="day-row">
-          {days.map((d, i) => (
-            <button
-              key={i}
-              className={`day-btn${selectedDay === i ? ' day-btn--active' : ''}`}
-              onClick={() => setSelectedDay(i)}
-            >
-              <span className="day-name">{DAYS[d.getDay()]}</span>
-              <span className="day-num">{d.getDate()}/{d.getMonth() + 1}</span>
-            </button>
-          ))}
+        <div className="week-tabs">
+          <button className={`week-tab-btn ${week === 0 ? 'week-tab-btn--active' : ''}`} onClick={() => { setWeek(0); setSelectedDayIdx(week * 7); }}>Tuần này</button>
+          <button className={`week-tab-btn ${week === 1 ? 'week-tab-btn--active' : ''}`} onClick={() => { setWeek(1); setSelectedDayIdx(week * 7); }}>Tuần sau</button>
         </div>
 
-        <div className="slot-row">
+        <div className="day-grid">
+          {currentWeekDays.map((d, i) => {
+            const absoluteIdx = week * 7 + i;
+            return (
+              <button
+                key={absoluteIdx}
+                className={`day-btn${selectedDayIdx === absoluteIdx ? ' day-btn--active' : ''}`}
+                onClick={() => setSelectedDayIdx(absoluteIdx)}
+              >
+                <span className="day-name">{DAYS[d.getDay()]}</span>
+                <span className="day-num">{d.getDate()}/{d.getMonth() + 1}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="slot-section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Giờ khám khả dụng
+        </div>
+
+        <div className="slot-grid">
           {loadingSlots ? (
-            <span className="slot-empty">Đang tải...</span>
+            <span className="slot-empty">Đang tìm các khung giờ trống...</span>
           ) : slots.length === 0 ? (
-            <span className="slot-empty">Không có khung giờ khả dụng cho ngày này.</span>
+            <span className="slot-empty">Hiện không có khung giờ nào khả dụng.</span>
           ) : (
-            slots.map(slot => {
-              const isActive = selectedSlot === slot;
-              const isBooked = slot.isBooked || slot.status === 'BOOKED';
-              return (
-                <button
-                  key={slot.scheduleId || slot.id}
-                  onClick={() => setSelectedSlot(slot)}
-                  disabled={isBooked}
-                  className={`slot-btn${isActive ? ' slot-btn--active' : ''}${isBooked ? ' slot-btn--booked' : ''}`}
-                >
-                  {formatTimeSlot(slot)}
-                </button>
-              );
-            })
+            slots.map(slot => (
+              <button
+                key={slot.scheduleId || slot.id}
+                onClick={() => setSelectedSlot(slot)}
+                disabled={slot.isBooked || slot.status === 'BOOKED'}
+                className={`slot-btn${selectedSlot === slot ? ' slot-btn--active' : ''}${(slot.isBooked || slot.status === 'BOOKED') ? ' slot-btn--booked' : ''}`}
+              >
+                {formatTimeSlot(slot)}
+              </button>
+            ))
           )}
         </div>
 
         {selectedSlot && (
           <div className="booking-form">
             {!isAuthenticated() ? (
-              <div style={{ textAlign: 'center', padding: '8px 0' }}>
-                <p style={{ color: '#6366f1', margin: 0, fontSize: '15px', fontWeight: 600 }}>
-                  👉 Vui lòng đăng nhập để chọn hồ sơ bệnh nhân và mô tả lý do khám.
-                </p>
-              </div>
+              <p style={{ color: '#6366f1', margin: 0, fontSize: '14px', fontWeight: 700, textAlign: 'center' }}>
+                👉 Đăng nhập để chọn hồ sơ và nhập lý do khám
+              </p>
             ) : (
               <>
-                {relatives.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <label>Đặt lịch cho (Bệnh nhân)</label>
-                    <select 
-                      value={selectedPatient} 
-                      onChange={e => setSelectedPatient(e.target.value)}
-                    >
-                      <option value="">-- Chọn hồ sơ khám --</option>
-                      {relatives.map(r => (
-                        <option key={r.patientId || r.id} value={r.patientId || r.id}>
-                          {r.fullName} ({r.relationship === 'SELF' ? 'Bản thân' : r.relationship || 'Người thân'})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
+                <div style={{ marginBottom: '20px' }}>
+                  <label>Bệnh nhân</label>
+                  <select value={selectedPatient} onChange={e => setSelectedPatient(e.target.value)}>
+                    <option value="">-- Chọn hồ sơ --</option>
+                    {relatives.map(r => (
+                      <option key={r.patientId || r.id} value={r.patientId || r.id}>
+                        {r.fullName} ({r.relationship === 'SELF' ? 'Bản thân' : r.relationship})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div>
-                  <label>Lý do khám <span style={{color:'#ef4444'}}>*</span></label>
-                  <textarea
-                    value={reason}
-                    onChange={e => setReason(e.target.value)}
-                    placeholder="Mô tả triệu chứng hoặc lý do khám..."
-                  />
+                  <label>Lý do khám *</label>
+                  <textarea value={reason} onChange={e => setReason(e.target.value)} placeholder="Nhập triệu chứng của bạn..." />
                 </div>
               </>
             )}
           </div>
         )}
 
-        <button 
-          className="book-appt-btn" 
-          onClick={handleBook}
-          disabled={!selectedSlot || booking}
-        >
-          {booking ? 'Đang đặt lịch...' : (!isAuthenticated() ? 'Tiếp tục đăng nhập' : 'Đặt lịch hẹn')}
+        <button className="book-appt-btn" onClick={handleBook} disabled={!selectedSlot || booking}>
+          {booking ? 'Đang xử lý...' : (!isAuthenticated() ? 'Tiếp tục đăng nhập' : 'Xác nhận đặt lịch')}
         </button>
       </div>
     </>

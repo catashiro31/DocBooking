@@ -19,6 +19,7 @@ public class Facility {
     private String facilityName;
 
     private String mapUrl;
+    private String province;
 
     private MultipartFile file;
     private MultipartFile licenseFile;

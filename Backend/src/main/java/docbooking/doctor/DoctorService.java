@@ -132,6 +132,7 @@ public class DoctorService {
                     .imageUrl(null)
                     .licenseUrl(convertUrl.getUrlFile(req.getFacilityLicensePdf()))
                     .mapUrl(req.getFacilityMapUrl())
+                    .province(req.getNewFacilityProvince())
                     .isVerified(false) // Requires admin or self-verification later
                     .isActive(true)
                     .build();
@@ -255,6 +256,7 @@ public class DoctorService {
                 .facilityId(fac != null ? fac.getFacilityId() : null)
                 .facilityName(fac != null ? fac.getFacilityName() : null)
                 .facilityAddress(fac != null ? fac.getAddress() : null)
+                .facilityProvince(fac != null ? fac.getProvince() : null)
                 .facilityDescription(fac != null ? fac.getDescription() : null)
                 .facilityMapUrl(fac != null ? fac.getMapUrl() : null)
                 .facilityVerified(fac != null && Boolean.TRUE.equals(fac.getIsVerified()))
