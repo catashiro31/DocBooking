@@ -194,7 +194,12 @@ const PatientHistory = () => {
                                     </div>
                                     <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span style={{ opacity: 0.7 }}>📍</span>
-                                        <span style={{ color: '#64748b' }}>{apt.facilityName || 'N/A'}</span>
+                                        <span style={{ color: '#64748b' }}>
+                                            {apt.facilityName}
+                                            {apt.facilityAddress && <span style={{ display: 'block', fontSize: '12px', marginTop: '2px', opacity: 0.8 }}>
+                                                {apt.facilityAddress}{apt.facilityProvince ? `, ${apt.facilityProvince}` : ''}
+                                            </span>}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

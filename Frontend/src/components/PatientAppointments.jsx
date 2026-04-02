@@ -183,7 +183,12 @@ const PatientAppointments = () => {
                                     </div>
                                     <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span style={{ opacity: 0.7 }}>📍</span>
-                                        <span style={{ color: '#64748b' }}>{apt.facilityName || 'Cơ sở chưa xác định'}</span>
+                                        <span style={{ color: '#64748b' }}>
+                                            {apt.facilityName}
+                                            {apt.facilityAddress && <span style={{ display: 'block', fontSize: '12px', marginTop: '2px', opacity: 0.8 }}>
+                                                {apt.facilityAddress}{apt.facilityProvince ? `, ${apt.facilityProvince}` : ''}
+                                            </span>}
+                                        </span>
                                     </div>
                                     {apt.reason && (
                                         <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'flex-start', gap: '8px', background: '#f8fafc', padding: '10px 14px', borderRadius: '10px', marginTop: '4px' }}>
