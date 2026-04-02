@@ -34,6 +34,9 @@ public class Facility {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "license_url")
+    private String licenseUrl;
+
     @Column(name = "map_url", columnDefinition = "TEXT")
     private String mapUrl;
 

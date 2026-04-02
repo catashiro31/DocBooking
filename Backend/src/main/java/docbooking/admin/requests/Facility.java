@@ -21,4 +21,5 @@ public class Facility {
     private String mapUrl;
 
     private MultipartFile file;
+    private MultipartFile licenseFile;
 }

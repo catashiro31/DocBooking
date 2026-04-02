@@ -93,6 +93,7 @@ export const adminService = {
         if (data.description) formData.append("description", data.description);
         if (data.mapUrl) formData.append("mapUrl", data.mapUrl);
         if (data.file) formData.append("file", data.file);
+        if (data.licenseFile) formData.append("licenseFile", data.licenseFile);
         const res = await api.post("/admin/facility", formData, {
             headers: { "Content-Type": "multipart/form-data" }
         });
@@ -106,6 +107,7 @@ export const adminService = {
         if (data.description) formData.append("description", data.description);
         if (data.mapUrl) formData.append("mapUrl", data.mapUrl);
         if (data.file) formData.append("file", data.file);
+        if (data.licenseFile) formData.append("licenseFile", data.licenseFile);
         const res = await api.put(`/admin/facility/${id}`, formData, {
             headers: { "Content-Type": "multipart/form-data" }
         });

@@ -158,8 +158,13 @@ function DoctorProfile() {
     bio: "", degree: "", experienceYears: "", price: "",
     idCardUrl: "", certificateUrl: "", specialtyId: "", facilityId: "",
     newFacilityName: "", newFacilityAddress: "", newFacilityDescription: "", newFacilityMapUrl: "",
+    facilityLicenseUrl: ""
   })
-  const [files, setFiles] = useState({ idCard: null, certificate: null })
+  const [files, setFiles] = useState({ 
+    idCard: null, 
+    certificate: null,
+    facilityLicense: null
+  })
   const [specialties, setSpecialties] = useState([])
   const [facilities, setFacilities] = useState([])
   const [loadingOptions, setLoadingOptions] = useState(true)
@@ -250,9 +255,12 @@ function DoctorProfile() {
     if (type === "idCard") {
       setFiles(prev => ({ ...prev, idCard: file }))
       setForm(prev => ({ ...prev, idCardUrl: localUrl }))
-    } else {
+    } else if (type === "certificate") {
       setFiles(prev => ({ ...prev, certificate: file }))
       setForm(prev => ({ ...prev, certificateUrl: localUrl }))
+    } else if (type === "facilityLicense") {
+      setFiles(prev => ({ ...prev, facilityLicense: file }))
+      setForm(prev => ({ ...prev, facilityLicenseUrl: localUrl }))
     }
   }
 
@@ -272,6 +280,10 @@ function DoctorProfile() {
     if (createNewFacility) {
       if (!form.newFacilityName?.trim() || !form.newFacilityAddress?.trim()) {
         toast.error("Vui lòng nhập tên và địa chỉ cho cơ sở y tế mới")
+        return
+      }
+      if (!files.facilityLicense) {
+        toast.error("Vui lòng tải lên Giấy phép hoạt động của cơ sở mới")
         return
       }
     }
@@ -294,6 +306,9 @@ function DoctorProfile() {
       }
       if (files.idCard) formData.append("idCardImage", files.idCard)
       if (files.certificate) formData.append("certificatePdf", files.certificate)
+    if (createNewFacility && files.facilityLicense) {
+        formData.append("facilityLicensePdf", files.facilityLicense)
+    }
 
       await api.post("/doctor/profile", formData, {
         transformRequest: (data) => data,
@@ -701,7 +716,17 @@ function DoctorProfile() {
                   <FloatingInput label="Địa chỉ" name="newFacilityAddress" placeholder="Số nhà, đường, quận/huyện..." value={form.newFacilityAddress} onChange={handleChange} required />
                   <FloatingInput label="Link bản đồ (Google Maps, tùy chọn)" name="newFacilityMapUrl" placeholder="https://maps.google.com/..." value={form.newFacilityMapUrl} onChange={handleChange} />
                   <FloatingInput label="Mô tả ngắn (tùy chọn)" type="textarea" name="newFacilityDescription" placeholder="Giới thiệu về cơ sở..." value={form.newFacilityDescription} onChange={handleChange} />
-                  <p style={{ margin: '0 0 1rem', fontSize: '12px', color: '#64748b', lineHeight: 1.55 }}>
+                  
+                  <div style={{ marginTop: '1rem' }}>
+                    <UploadZone 
+                      label="Giấy phép hoạt động cơ sở (Bắt buộc) *" 
+                      hint="PNG, JPG, PDF tối đa 5MB" 
+                      previewUrl={form.facilityLicenseUrl} 
+                      onUpload={(e) => handleUpload(e, "facilityLicense")} 
+                    />
+                  </div>
+
+                  <p style={{ margin: '1rem 0 1rem', fontSize: '12px', color: '#64748b', lineHeight: 1.55 }}>
                     Cơ sở mới được tạo với trạng thái <strong>chờ xác minh</strong>. Bạn hoặc admin có thể xác minh sau trong hệ thống.
                   </p>
                 </>
@@ -716,6 +741,7 @@ function DoctorProfile() {
                   ["Giá tư vấn", form.price ? `${Number(form.price).toLocaleString("vi-VN")}đ` : "—"],
                   ["Chuyên khoa", specialties.find(s => String(s.id) === String(form.specialtyId))?.name || "—"],
                   ["Cơ sở y tế", createNewFacility ? (form.newFacilityName?.trim() || "—") : (facilities.find(f => String(f.id) === String(form.facilityId))?.name || "—")],
+                  ["Giấy phép cơ sở", createNewFacility ? (files.facilityLicense ? "✓ Đã chọn" : "Chưa có") : "N/A"],
                   ["CCCD", files.idCard ? "✓ Đã chọn" : "Chưa có"],
                   ["Chứng chỉ", files.certificate ? "✓ Đã chọn" : "Chưa có"],
                 ].map(([k, v]) => (

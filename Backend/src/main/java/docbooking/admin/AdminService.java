@@ -97,6 +97,8 @@ public class AdminService {
         return doctor;
     }
 
+    @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public DoctorDetail approveDoctor(Integer doctorId) {
         DoctorDetail doctor = doctorDetail.findByDoctorId(doctorId);
         if (doctor == null) {
@@ -106,6 +108,13 @@ public class AdminService {
             throw new RuntimeException("Chỉ có thể duyệt bác sĩ đang ở trạng thái chờ duyệt!");
         }
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.APPROVED);
+        
+        // Tự động xác minh luôn cơ sở y tế nếu nó đang ở trạng thái chờ duyệt
+        if (doctor.getFacility() != null && !Boolean.TRUE.equals(doctor.getFacility().getIsVerified())) {
+            doctor.getFacility().setIsVerified(true);
+            facilityRepository.save(doctor.getFacility());
+        }
+
         String email = doctor.getUser().getEmail();
         String fullName = doctor.getUser().getFullName();
         contextEmail.sendDoctorApprovedEmail(email, fullName);
@@ -259,6 +268,7 @@ public class AdminService {
                 .description(req.getDescription())
                 .facilityName(name)
                 .imageUrl(convertUrl.getUrlFile(req.getFile()))
+                .licenseUrl(convertUrl.getUrlFile(req.getLicenseFile()))
                 .mapUrl(req.getMapUrl())
                 .isActive(true)
                 .isVerified(true) // Admin tạo mặc định là đã xác minh
@@ -293,6 +303,10 @@ public class AdminService {
         // Chỉ cập nhật ảnh nếu người dùng có gửi file mới
         if (req.getFile() != null && !req.getFile().isEmpty()) {
             facility.setImageUrl(convertUrl.getUrlFile(req.getFile()));
+        }
+
+        if (req.getLicenseFile() != null && !req.getLicenseFile().isEmpty()) {
+            facility.setLicenseUrl(convertUrl.getUrlFile(req.getLicenseFile()));
         }
         facilityRepository.save(facility);
         return "Đã cập nhật thông tin cơ sở y tế";

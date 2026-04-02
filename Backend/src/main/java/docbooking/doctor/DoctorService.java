@@ -128,6 +128,8 @@ public class DoctorService {
                     .facilityName(req.getNewFacilityName())
                     .address(req.getFacilityAddress())
                     .description(req.getFacilityDescription())
+                    .imageUrl(null)
+                    .licenseUrl(convertUrl.getUrlFile(req.getFacilityLicensePdf()))
                     .mapUrl(req.getFacilityMapUrl())
                     .isVerified(false) // Requires admin or self-verification later
                     .isActive(true)
@@ -148,6 +150,10 @@ public class DoctorService {
 
         if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
             throw new RuntimeException("Hồ sơ bác sĩ chưa được duyệt, không thể tạo lịch làm việc!");
+        }
+
+        if (doctor.getFacility() != null && !Boolean.TRUE.equals(doctor.getFacility().getIsVerified())) {
+            throw new RuntimeException("Cơ sở y tế của bạn chưa được xác minh, không thể tạo lịch làm việc!");
         }
 
         int newSlotsCreated = 0;

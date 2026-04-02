@@ -43,4 +43,5 @@ public class Profile {
     private String facilityAddress;
     private String facilityDescription;
     private String facilityMapUrl;
+    private MultipartFile facilityLicensePdf;
 }
