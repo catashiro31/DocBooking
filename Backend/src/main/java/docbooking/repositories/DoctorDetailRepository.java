@@ -37,7 +37,6 @@ public interface DoctorDetailRepository  extends JpaRepository<DoctorDetail, Int
     @EntityGraph(attributePaths = {"user", "specialty", "facility"})
     DoctorDetail findByDoctorId(Integer doctorId);
 
-    boolean existsByUser(User user);
     Optional<DoctorDetail> findByUser_UserId(Integer userId);
 
     Optional<DoctorDetail> findByUser(User user);

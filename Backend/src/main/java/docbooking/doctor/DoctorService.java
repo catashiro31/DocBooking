@@ -10,7 +10,6 @@ import docbooking.models.*;
 import docbooking.repositories.*;
 import docbooking.utils.ConvertUrl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
