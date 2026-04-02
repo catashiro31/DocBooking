@@ -132,6 +132,7 @@ public class PublicService {
                 .facilityName(doctor.getFacility() != null ? doctor.getFacility().getFacilityName() : null)
                 .facilityAddress(doctor.getFacility() != null ? doctor.getFacility().getAddress() : null)
                 .facilityMapUrl(doctor.getFacility() != null ? doctor.getFacility().getMapUrl() : null)
+                .facilityVerified(doctor.getFacility() != null && Boolean.TRUE.equals(doctor.getFacility().getIsVerified()))
                 .doctorEmail(doctor.getUser().getEmail())
                 .doctorPhone(doctor.getUser().getPhoneNumber())
                 .avatarUrl(doctor.getUser().getAvatarUrl())
