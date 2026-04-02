@@ -233,6 +233,11 @@ public class AdminService {
     public String deleteSpecialty(Integer specialtyId) {
         docbooking.models.Specialty specialty = specialtyRepository.findById(specialtyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa với ID: " + specialtyId));
+        
+        if (doctorDetail.existsBySpecialty_SpecialtyId(specialtyId)) {
+            throw new RuntimeException("Không thể xóa chuyên khoa này vì đang có bác sĩ thuộc chuyên khoa!");
+        }
+
         specialty.setIsActive(false);
         specialtyRepository.save(specialty);
         return "Đã xóa chuyên ngành!";
@@ -310,6 +315,11 @@ public class AdminService {
     public String deleteFacility(Integer facilityId) {
         docbooking.models.Facility facility = facilityRepository.findById(facilityId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế với ID: " + facilityId));
+        
+        if (doctorDetail.existsByFacility_FacilityId(facilityId)) {
+            throw new RuntimeException("Không thể xóa cơ sở y tế này vì đang có bác sĩ đang công tác!");
+        }
+
         facility.setIsActive(false);
         facilityRepository.save(facility);
         return "Đã xóa thành công cơ sở!";

@@ -275,44 +275,11 @@ public class DoctorService {
     }
 
     @Transactional
-    @CacheEvict(value = "facilities", allEntries = true)
     public docbooking.doctor.responses.Profile updateDoctorProfile(User currentUser, ChangeProfile req) {
         DoctorDetail detail = doctorDetailRepository.findByUser(currentUser)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ để cập nhật!"));
         if (req.getBio() != null) detail.setBio(req.getBio());
         if (req.getPrice() != null) detail.setPrice(req.getPrice());
-
-        Facility facility = detail.getFacility();
-        if (facility != null) {
-            boolean changed = false;
-            if (req.getFacilityName() != null && !req.getFacilityName().isBlank()) {
-                String newName = req.getFacilityName().trim();
-                if (facilityRepository.existsByFacilityNameIgnoreCaseAndFacilityIdNot(newName, facility.getFacilityId())) {
-                    throw new RuntimeException("Tên cơ sở y tế đã được sử dụng bởi một cơ sở khác!");
-                }
-                facility.setFacilityName(newName);
-                changed = true;
-            }
-            if (req.getFacilityAddress() != null) {
-                facility.setAddress(req.getFacilityAddress().trim());
-                changed = true;
-            }
-            if (req.getFacilityDescription() != null) {
-                facility.setDescription(req.getFacilityDescription());
-                changed = true;
-            }
-            if (req.getFacilityMapUrl() != null) {
-                facility.setMapUrl(req.getFacilityMapUrl());
-                changed = true;
-            }
-            if (req.getFacilityVerified() != null) {
-                facility.setIsVerified(req.getFacilityVerified());
-                changed = true;
-            }
-            if (changed) {
-                facilityRepository.save(facility);
-            }
-        }
 
         doctorDetailRepository.save(detail);
         return getDoctorProfile(currentUser);

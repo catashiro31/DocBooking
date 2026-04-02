@@ -149,8 +149,7 @@ function DoctorProfile() {
   // Form sua gia, tieu su (Khi da duoc duyet)
   const [editMode, setEditMode] = useState(false)
   const [editForm, setEditForm] = useState({
-    bio: "", price: "",
-    facilityName: "", facilityAddress: "", facilityDescription: "", facilityMapUrl: "", facilityVerified: false,
+    bio: "", price: ""
   })
   const [savingEdit, setSavingEdit] = useState(false)
 
@@ -176,11 +175,6 @@ function DoctorProfile() {
           setEditForm({
             bio: res.data.bio || "",
             price: res.data.price ?? "",
-            facilityName: res.data.facilityName || "",
-            facilityAddress: res.data.facilityAddress || "",
-            facilityDescription: res.data.facilityDescription || "",
-            facilityMapUrl: res.data.facilityMapUrl || "",
-            facilityVerified: !!res.data.facilityVerified,
           })
         }
         else if (status === "PENDING") {
@@ -233,23 +227,13 @@ function DoctorProfile() {
     try {
         await api.put("/doctor/profile", {
             bio: editForm.bio,
-            price: Number(editForm.price),
-            facilityName: editForm.facilityName,
-            facilityAddress: editForm.facilityAddress,
-            facilityDescription: editForm.facilityDescription,
-            facilityMapUrl: editForm.facilityMapUrl,
-            facilityVerified: editForm.facilityVerified,
+            price: Number(editForm.price)
         })
         toast.success("Cập nhật hồ sơ thành công")
         setProfileData((prev) => ({
           ...prev,
           bio: editForm.bio,
-          price: Number(editForm.price),
-          facilityName: editForm.facilityName,
-          facilityAddress: editForm.facilityAddress,
-          facilityDescription: editForm.facilityDescription,
-          facilityMapUrl: editForm.facilityMapUrl,
-          facilityVerified: editForm.facilityVerified,
+          price: Number(editForm.price)
         }))
         setEditMode(false)
     } catch (err) {
@@ -394,11 +378,6 @@ function DoctorProfile() {
                                   setEditForm({
                                     bio: profileData.bio || "",
                                     price: profileData.price ?? "",
-                                    facilityName: profileData.facilityName || "",
-                                    facilityAddress: profileData.facilityAddress || "",
-                                    facilityDescription: profileData.facilityDescription || "",
-                                    facilityMapUrl: profileData.facilityMapUrl || "",
-                                    facilityVerified: !!profileData.facilityVerified,
                                   })
                                   setEditMode(true)
                                 }} 
@@ -536,22 +515,7 @@ function DoctorProfile() {
                                   )}
                               </div>
 
-                              {editMode && (
-                                  <div style={{ marginTop: '28px', paddingTop: '28px', borderTop: '1px solid #f1f5f9' }}>
-                                      <h4 style={{ margin: '0 0 16px', fontSize: '13px', fontWeight: 800, color: '#0ea47a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Cơ sở y tế</h4>
-                                      <FloatingInput label="Tên cơ sở" name="facilityName" value={editForm.facilityName} onChange={handleEditChange} />
-                                      <FloatingInput label="Địa chỉ" name="facilityAddress" value={editForm.facilityAddress} onChange={handleEditChange} />
-                                      <FloatingInput label="Link bản đồ" name="facilityMapUrl" placeholder="https://..." value={editForm.facilityMapUrl} onChange={handleEditChange} />
-                                      <FloatingInput label="Mô tả" type="textarea" name="facilityDescription" value={editForm.facilityDescription} onChange={handleEditChange} />
-                                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '13px', color: '#334155', marginTop: '4px' }}>
-                                          <input type="checkbox" name="facilityVerified" checked={editForm.facilityVerified} onChange={handleEditChange} style={{ marginTop: '3px', width: '16px', height: '16px', accentColor: '#0ea47a' }} />
-                                          <span>Đánh dấu cơ sở là <strong>đã xác thực</strong> (hiển thị công khai cho bệnh nhân)</span>
-                                      </label>
-                                      <p style={{ margin: '10px 0 0', fontSize: '11px', color: '#94a3b8', lineHeight: 1.5 }}>
-                                          Admin vẫn có thể xác minh hoặc chỉnh sửa cơ sở từ trang quản trị.
-                                      </p>
-                                  </div>
-                              )}
+                              {/* Cơ sở y tế section removed as doctors cannot edit it directly */}
                           </div>
                       </div>
 

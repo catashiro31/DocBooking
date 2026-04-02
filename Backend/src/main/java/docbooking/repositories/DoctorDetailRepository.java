@@ -45,4 +45,8 @@ public interface DoctorDetailRepository  extends JpaRepository<DoctorDetail, Int
     long countByVerificationStatus(DoctorDetail.VerificationStatus status);
 
     long countByVerificationStatusAndUser_IsActiveTrue(DoctorDetail.VerificationStatus status);
+
+    boolean existsBySpecialty_SpecialtyId(Integer specialtyId);
+
+    boolean existsByFacility_FacilityId(Integer facilityId);
 }
