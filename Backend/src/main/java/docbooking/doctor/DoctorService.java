@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -396,6 +397,13 @@ public class DoctorService {
 
         if (medicalResultRepository.findByAppointmentId(appointmentId).isPresent()) {
             throw new RuntimeException("Lịch hẹn này đã có kết quả khám!");
+        }
+
+        // Chặn trả kết quả trước giờ khám
+        docbooking.models.DoctorSchedule schedule = app.getSchedule();
+        LocalDateTime appointmentStartTime = schedule.getDateWorking().atTime(docbooking.utils.Time.parseTimeSlot(schedule.getTimeSlot()));
+        if (LocalDateTime.now().isBefore(appointmentStartTime)) {
+            throw new RuntimeException("Chưa đến thời gian khám, bạn không thể trả kết quả lúc này!");
         }
 
         if (req.getPrescriptionFile() != null && !req.getPrescriptionFile().isEmpty()) {

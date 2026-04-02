@@ -263,6 +263,10 @@ public class AdminService {
             throw new RuntimeException("Cơ sở y tế '" + name + "' đã tồn tại!");
         }
 
+        if (req.getLicenseFile() == null || req.getLicenseFile().isEmpty()) {
+            throw new RuntimeException("Vui lòng tải lên Giấy phép hoạt động cho cơ sở mới!");
+        }
+
         docbooking.models.Facility facility = docbooking.models.Facility.builder()
                 .address(req.getAddress())
                 .description(req.getDescription())

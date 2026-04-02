@@ -65,6 +65,10 @@ const AdminFacilities = () => {
             toast.warning("Vui lòng nhập địa chỉ")
             return
         }
+        if (!editingItem && !licenseFile) {
+            toast.warning("Vui lòng tải lên Giấy phép hoạt động cho cơ sở mới!")
+            return
+        }
 
         setSubmitting(true)
         try {

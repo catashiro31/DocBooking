@@ -273,12 +273,16 @@ public class PatientService {
         docbooking.patient.responses.Appointment basicInfo = mapToResponseDTO(app);
         AppointmentDetail detailDTO = new AppointmentDetail();
         copyBasicData(basicInfo, detailDTO);
-        medicalResultRepository.findByAppointmentId(id).ifPresent(res->{
-            detailDTO.setDiagnosis(res.getDiagnosis());
-            detailDTO.setPrescriptionUrl(res.getPrescriptionUrl());
-            detailDTO.setDoctorNotes(res.getDoctorNotes());
-            detailDTO.setHasResult(true);
-        });
+        
+        // Chỉ trả về kết quả nếu lịch hẹn đã hoàn thành (COMPLETED)
+        if (app.getBookingStatus() == docbooking.models.Appointment.BookingStatus.COMPLETED) {
+            medicalResultRepository.findByAppointmentId(id).ifPresent(res->{
+                detailDTO.setDiagnosis(res.getDiagnosis());
+                detailDTO.setPrescriptionUrl(res.getPrescriptionUrl());
+                detailDTO.setDoctorNotes(res.getDoctorNotes());
+                detailDTO.setHasResult(true);
+            });
+        }
         reviewRepository.findByAppointment_Id(id).ifPresent(res->{
             detailDTO.setRating(res.getRating());
             detailDTO.setComment(res.getComment());
