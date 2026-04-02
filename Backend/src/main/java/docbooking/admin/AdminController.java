@@ -2,7 +2,6 @@ package docbooking.admin;
 
 import docbooking.admin.requests.Facility;
 import docbooking.admin.requests.Specialty;
-import docbooking.admin.responses.ReviewAdminResponse;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
 import jakarta.validation.Valid;
