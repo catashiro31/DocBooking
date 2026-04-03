@@ -5,6 +5,7 @@ import docbooking.patient.requests.Relative;
 import docbooking.patient.requests.Review;
 import docbooking.patient.responses.AppointmentDetail;
 import docbooking.repositories.*;
+import docbooking.utils.ContextEmail;
 import docbooking.utils.Time;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class PatientService {
     private final MedicalResultRepository medicalResultRepository;
     private final ReviewRepository reviewRepository;
     private final DoctorDetailRepository doctorDetailRepository;
+    private final ContextEmail contextEmail;
 
     @Caching(evict = {
         @CacheEvict(value = "myRelatives", key = "#user.userId")
@@ -189,6 +191,28 @@ public class PatientService {
                 .bookingStatus(docbooking.models.Appointment.BookingStatus.PENDING)
                 .build();
         docbooking.models.Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        // Gửi email thông báo cho bệnh nhân và bác sĩ
+        try {
+            String appointmentTime = String.format("%s (%s)", 
+                savedAppointment.getSchedule().getDateWorking(), 
+                savedAppointment.getSchedule().getTimeSlot().name());
+            String location = String.format("%s - %s", 
+                savedAppointment.getSchedule().getDoctor().getFacility().getFacilityName(),
+                savedAppointment.getSchedule().getDoctor().getFacility().getAddress());
+            
+            contextEmail.sendBookingSuccessNotification(
+                user.getEmail(),
+                profile.getFullName(), // Tên bệnh nhân khám (có thể là người thân)
+                savedAppointment.getSchedule().getDoctor().getUser().getEmail(),
+                savedAppointment.getSchedule().getDoctor().getUser().getFullName(),
+                appointmentTime,
+                location
+            );
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi email thông báo đặt lịch: " + e.getMessage());
+        }
+
         return mapToResponseDTO(savedAppointment);
     }
     private docbooking.patient.responses.Appointment mapToResponseDTO(docbooking.models.Appointment app) {
@@ -259,7 +283,13 @@ public class PatientService {
         return mapToResponseDTO(appointment);
     }
 
-    public Page<docbooking.patient.responses.Appointment> getPatientHistory(User user, Pageable pageable) {
+    public Page<docbooking.patient.responses.Appointment> getPatientHistory(User user, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        if (startDate != null && endDate != null) {
+            return appointmentRepository
+                    .findByPatient_UserAndBookingStatusAndSchedule_DateWorkingBetweenOrderBySchedule_DateWorkingDesc(
+                            user, docbooking.models.Appointment.BookingStatus.COMPLETED, startDate, endDate, pageable)
+                    .map(this::mapToResponseDTO);
+        }
         return appointmentRepository
                 .findByPatient_UserAndBookingStatusOrderBySchedule_DateWorkingDesc(user, docbooking.models.Appointment.BookingStatus.COMPLETED, pageable)
                 .map(this::mapToResponseDTO);

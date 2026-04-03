@@ -52,6 +52,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             User user, Appointment.BookingStatus status, Pageable pageable
     );
 
+    @EntityGraph(attributePaths = {"schedule", "schedule.doctor", "schedule.doctor.specialty", "schedule.doctor.facility"})
+    Page<Appointment> findByPatient_UserAndBookingStatusAndSchedule_DateWorkingBetweenOrderBySchedule_DateWorkingDesc(
+            User user, Appointment.BookingStatus status, LocalDate startDate, LocalDate endDate, Pageable pageable
+    );
+
     @EntityGraph(attributePaths = {"schedule", "patient"})
     Page<Appointment> findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(User user, Pageable pageable);
 
