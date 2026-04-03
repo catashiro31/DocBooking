@@ -10,6 +10,7 @@ import AdminDoctors from "../components/AdminDoctors";
 import AdminSpecialties from "../components/AdminSpecialties";
 import AdminFacilities from "../components/AdminFacilities";
 import AdminReviews from "../components/AdminReviews";
+import AdminTransfers from "../components/AdminTransfers";
 
 const Admin = () => {
   return (
@@ -76,6 +77,7 @@ const Admin = () => {
                 <Route path="/specialties" element={<AdminSpecialties />} />
                 <Route path="/facilities" element={<AdminFacilities />} />
                 <Route path="/reviews" element={<AdminReviews />} />
+                <Route path="/transfers" element={<AdminTransfers />} />
               </Routes>
             </div>
           </main>

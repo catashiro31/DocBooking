@@ -105,36 +105,7 @@ public class ContextEmail {
         }
     }
 
-    public void sendAppointmentInformation(String toEmail, String fullName, String doctorName, String appointmentTime, String location) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(senderEmail);
-            message.setTo(toEmail);
-            message.setSubject("[DocBooking] Xác nhận: Lịch hẹn của bạn đã được phê duyệt");
 
-            // Nội dung Email trình bày sạch sẽ
-            String body = "Xin chào " + fullName + ",\n\n"
-                    + "Chúng tôi vui mừng thông báo rằng lịch hẹn khám bệnh của bạn đã được phê duyệt thành công.\n\n"
-                    + "--- THÔNG TIN CHI TIẾT LỊCH HẸN ---\n"
-                    + "👨‍⚕️ Bác sĩ phụ trách: " + doctorName + "\n"
-                    + "⏰ Thời gian: " + appointmentTime + "\n"
-                    + "📍 Địa điểm: " + location + "\n"
-                    + "-----------------------------------\n\n"
-                    + "Lưu ý:\n"
-                    + "- Vui lòng có mặt trước giờ hẹn 15 phút để làm thủ tục.\n"
-                    + "- Nếu bạn muốn thay đổi hoặc hủy lịch, vui lòng thực hiện trên ứng dụng trước 24 giờ.\n\n"
-                    + "Cảm ơn bạn đã tin tưởng sử dụng hệ thống DocBooking!\n\n"
-                    + "Trân trọng,\n"
-                    + "Đội ngũ hỗ trợ DocBooking.";
-
-            message.setText(body);
-            mailSender.send(message);
-            System.out.println("Đã gửi email thông báo phê duyệt tới: " + toEmail);
-
-        } catch (Exception e) {
-            System.err.println("Lỗi khi gửi email phê duyệt: " + e.getMessage());
-        }
-    }
 
     public void sendPermanentBanEmail(String toEmail, String fullName, String reason) {
         try {

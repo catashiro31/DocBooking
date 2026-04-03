@@ -33,6 +33,12 @@ public class DoctorService {
     private final AppointmentRepository appointmentRepository;
     private final MedicalResultRepository medicalResultRepository;
     private final UserRepository userRepository;
+    private final DoctorTransferRequestRepository transferRequestRepository;
+
+    @Transactional
+    public void updateHistoricalSchedules() {
+        doctorScheduleRepository.updateMissingFacilities();
+    }
 
     @Transactional
     public String completeProfile(User user, Profile req) {
@@ -183,6 +189,7 @@ public class DoctorService {
             }
             DoctorSchedule doctorSchedule = new DoctorSchedule();
             doctorSchedule.setDoctor(doctor);
+            doctorSchedule.setFacility(doctor.getFacility()); // Chụp ảnh cơ sở hiện tại
             doctorSchedule.setDateWorking(schedule.getDate());
             doctorSchedule.setTimeSlot(timeSlot);
 
@@ -242,6 +249,20 @@ public class DoctorService {
         DoctorDetail detail = detailOpt.get();
         Specialty specialty = detail.getSpecialty();
         Facility fac = detail.getFacility();
+        Optional<DoctorTransferRequest> lastRequest = transferRequestRepository
+                .findFirstByDoctor_DoctorIdAndStatusOrderByCreatedAtDesc(detail.getDoctorId(), DoctorTransferRequest.Status.PENDING);
+        
+        Boolean hasPendingTransfer = lastRequest.isPresent();
+        String lastRejectionNote = null;
+
+        if (!hasPendingTransfer) {
+            Optional<DoctorTransferRequest> rejectedRequest = transferRequestRepository
+                    .findFirstByDoctor_DoctorIdAndStatusOrderByCreatedAtDesc(detail.getDoctorId(), DoctorTransferRequest.Status.REJECTED);
+            if (rejectedRequest.isPresent()) {
+                lastRejectionNote = rejectedRequest.get().getAdminNote();
+            }
+        }
+
         return docbooking.doctor.responses.Profile.builder()
                 .fullName(user.getFullName())
                 .email(user.getEmail())
@@ -263,6 +284,8 @@ public class DoctorService {
                 .ratingAverage(detail.getRatingAverage())
                 .reviewCount(detail.getReviewCount())
                 .verificationStatus(detail.getVerificationStatus().name())
+                .hasPendingTransfer(hasPendingTransfer)
+                .lastTransferRejectionNote(lastRejectionNote)
                 .build();
     }
     @Transactional
@@ -478,4 +501,80 @@ public class DoctorService {
         }).toList();
     }
 
+    @Transactional
+    public String requestTransfer(User doctorUser, docbooking.doctor.requests.TransferRequest req) {
+        DoctorDetail doctor = doctorDetailRepository.findByUser(doctorUser)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin bác sĩ!"));
+
+        if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
+            throw new RuntimeException("Hồ sơ của bạn chưa được duyệt, không thể yêu cầu chuyển công tác!");
+        }
+
+        Facility targetFacility = facilityRepository.findById(req.getTargetFacilityId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế đích!"));
+
+        if (doctor.getFacility().getFacilityId().equals(targetFacility.getFacilityId())) {
+            throw new RuntimeException("Bạn đang công tác tại cơ sở này rồi!");
+        }
+
+        // Kiểm tra xem đã có yêu cầu PENDING chưa
+        Optional<DoctorTransferRequest> pending = transferRequestRepository
+                .findFirstByDoctor_DoctorIdAndStatusOrderByCreatedAtDesc(doctor.getDoctorId(), DoctorTransferRequest.Status.PENDING);
+        if (pending.isPresent()) {
+            throw new RuntimeException("Bạn đang có một yêu cầu chuyển công tác đang chờ duyệt!");
+        }
+
+        DoctorTransferRequest request = DoctorTransferRequest.builder()
+                .doctor(doctor)
+                .targetFacility(targetFacility)
+                .reason(req.getReason())
+                .status(DoctorTransferRequest.Status.PENDING)
+                .build();
+
+        transferRequestRepository.save(request);
+        return "Yêu cầu chuyển công tác của bạn đã được gửi. Vui lòng chờ Admin phê duyệt!";
+    }
+
+    @Transactional
+    public void approveTransfer(Integer requestId, String adminNote) {
+        DoctorTransferRequest request = transferRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu chuyển công tác!"));
+
+        if (request.getStatus() != DoctorTransferRequest.Status.PENDING) {
+            throw new RuntimeException("Yêu cầu này đã được xử lý từ trước!");
+        }
+
+        DoctorDetail doctor = request.getDoctor();
+        Facility newFacility = request.getTargetFacility();
+
+        // 1. Cập nhật hồ sơ bác sĩ
+        doctor.setFacility(newFacility);
+        doctorDetailRepository.save(doctor);
+
+        // 2. Xóa/Đóng các ca khám AVAILABLE trong tương lai ở cơ sở cũ
+        doctorScheduleRepository.closeFutureAvailableSchedulesByDoctorId(doctor.getDoctorId(), LocalDate.now());
+
+        // 3. Cập nhật trạng thái yêu cầu
+        request.setStatus(DoctorTransferRequest.Status.APPROVED);
+        request.setAdminNote(adminNote);
+        transferRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void rejectTransfer(Integer requestId, String adminNote) {
+        DoctorTransferRequest request = transferRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu chuyển công tác!"));
+
+        if (request.getStatus() != DoctorTransferRequest.Status.PENDING) {
+            throw new RuntimeException("Yêu cầu này đã được xử lý từ trước!");
+        }
+
+        request.setStatus(DoctorTransferRequest.Status.REJECTED);
+        request.setAdminNote(adminNote);
+        transferRequestRepository.save(request);
+    }
+
+    public Page<DoctorTransferRequest> getTransferRequests(DoctorTransferRequest.Status status, Pageable pageable) {
+        return transferRequestRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
+    }
 }

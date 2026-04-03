@@ -5,6 +5,7 @@ import docbooking.admin.requests.Specialty;
 import docbooking.admin.responses.ReviewAdminResponse;
 import docbooking.models.Appointment;
 import docbooking.models.DoctorDetail;
+import docbooking.models.DoctorTransferRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,9 +25,11 @@ import java.util.Map;
 @PreAuthorize("hasAnyAuthority('ADMIN')")
 public class AdminController {
     private final AdminService adminService;
+    private final docbooking.doctor.DoctorService doctorService;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, docbooking.doctor.DoctorService doctorService) {
         this.adminService = adminService;
+        this.doctorService = doctorService;
     }
 
     @GetMapping("/stats")
@@ -184,5 +187,35 @@ public class AdminController {
         response.put("labels", results);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/transfers")
+    public ResponseEntity<?> getTransferRequests(
+            @RequestParam(defaultValue = "PENDING") String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        // Vá dữ liệu lịch sử cho các ca khám cũ chưa có facility_id
+        doctorService.updateHistoricalSchedules();
+        
+        Pageable pageable = PageRequest.of(page, size);
+        try {
+            DoctorTransferRequest.Status statusEnum = DoctorTransferRequest.Status.valueOf(status.toUpperCase());
+            return ResponseEntity.ok(doctorService.getTransferRequests(statusEnum, pageable));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Trạng thái không hợp lệ");
+        }
+    }
+
+    @PutMapping("/transfers/{id}/approve")
+    public ResponseEntity<?> approveTransfer(@PathVariable Integer id, @RequestBody docbooking.admin.requests.ProcessTransfer req) {
+        doctorService.approveTransfer(id, req.getAdminNote());
+        return ResponseEntity.ok("Đã duyệt chuyển công tác thành công!");
+    }
+
+    @PutMapping("/transfers/{id}/reject")
+    public ResponseEntity<?> rejectTransfer(@PathVariable Integer id, @RequestBody docbooking.admin.requests.ProcessTransfer req) {
+        doctorService.rejectTransfer(id, req.getAdminNote());
+        return ResponseEntity.ok("Đã từ chối chuyển công tác!");
     }
 }

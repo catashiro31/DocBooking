@@ -218,7 +218,8 @@ public class PatientService {
     private docbooking.patient.responses.Appointment mapToResponseDTO(docbooking.models.Appointment app) {
         var schedule = app.getSchedule();
         var doctor = schedule.getDoctor();
-        var facility = doctor.getFacility();
+        // Ưu tiên lấy cơ sở tại thời điểm khám (lịch sử)
+        var facility = schedule.getFacility() != null ? schedule.getFacility() : doctor.getFacility();
         var specialty = doctor.getSpecialty();
         boolean exists = medicalResultRepository.findByAppointmentId(app.getId()).isPresent();
         return docbooking.patient.responses.Appointment.builder()

@@ -8,6 +8,7 @@ const SIDEBAR_ITEMS = [
   { path: "/admin/appointment", icon: "📅", label: "Quản lý lịch hẹn", section: "Hệ thống" },
   { path: "/admin/specialties", icon: "⚕️", label: "Quản lý chuyên khoa", section: "Dữ liệu" },
   { path: "/admin/facilities", icon: "🏥", label: "Quản lý cơ sở y tế", section: "Dữ liệu" },
+  { path: "/admin/transfers", icon: "🔄", label: "Duyệt chuyển công tác", section: "Hệ thống" },
   { path: "/admin/reviews", icon: "⭐", label: "Quản lý đánh giá", section: "Dữ liệu" },
   { path: "/profile", icon: "👤", label: "Hồ sơ cá nhân", section: "Tài khoản" },
 ];
