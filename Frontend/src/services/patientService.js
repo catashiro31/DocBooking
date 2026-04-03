@@ -68,8 +68,11 @@ export const patientService = {
         return res.data;
     },
 
-    getHistory: async (page = 0, size = 50) => {
-        const res = await api.get("/patient/history", { params: { page, size } });
+    getHistory: async (page = 0, size = 50, startDate = null, endDate = null) => {
+        const params = { page, size };
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
+        const res = await api.get("/patient/history", { params });
         return res.data;
     },
 

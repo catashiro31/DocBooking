@@ -13,15 +13,17 @@ const PatientHistory = () => {
     const [reviewAppointmentId, setReviewAppointmentId] = useState(null)
     const [reviewData, setReviewData] = useState({ rating: 5, comment: "" })
     const [submittingReview, setSubmittingReview] = useState(false)
+    const [startDate, setStartDate] = useState("")
+    const [endDate, setEndDate] = useState("")
 
     useEffect(() => {
         fetchHistory()
-    }, [])
+    }, [startDate, endDate])
 
     const fetchHistory = async () => {
         try {
             setLoading(true)
-            const data = await patientService.getHistory(0, 100)
+            const data = await patientService.getHistory(0, 100, startDate || null, endDate || null)
             setHistory(unwrapPage(data))
         } catch (err) {
             setError("Không thể tải lịch sử khám")
@@ -145,8 +147,38 @@ const PatientHistory = () => {
 
     return (
         <div className="reveal">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
                 <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>Lịch sử khám bệnh</h2>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', padding: '6px 12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Từ:</span>
+                        <input 
+                            type="date" 
+                            value={startDate} 
+                            onChange={(e) => setStartDate(e.target.value)} 
+                            style={{ border: 'none', outline: 'none', fontSize: '13px', color: '#1e293b', fontWeight: 600, cursor: 'pointer' }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', padding: '6px 12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Đến:</span>
+                        <input 
+                            type="date" 
+                            value={endDate} 
+                            onChange={(e) => setEndDate(e.target.value)} 
+                            style={{ border: 'none', outline: 'none', fontSize: '13px', color: '#1e293b', fontWeight: 600, cursor: 'pointer' }}
+                        />
+                    </div>
+                    {(startDate || endDate) && (
+                        <button 
+                            onClick={() => { setStartDate(""); setEndDate(""); }}
+                            style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '12px', fontWeight: 800, cursor: 'pointer', padding: '4px 8px' }}
+                        >
+                            Xóa lọc
+                        </button>
+                    )}
+                </div>
+
                 <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Hoàn thành ({history.length})</span>
             </div>
 
