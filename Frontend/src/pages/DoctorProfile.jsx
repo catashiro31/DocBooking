@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { toast } from 'react-toastify'
 import api from "../services/api"
+import { PROVINCES } from "../utils/provinceUtils"
 
 const STEPS = ["Thông tin cơ bản", "Tài liệu xác minh", "Chuyên môn & Cơ sở"]
 
@@ -149,8 +150,7 @@ function DoctorProfile() {
   // Form sua gia, tieu su (Khi da duoc duyet)
   const [editMode, setEditMode] = useState(false)
   const [editForm, setEditForm] = useState({
-    bio: "", price: "",
-    facilityName: "", facilityAddress: "", facilityDescription: "", facilityMapUrl: "", facilityVerified: false,
+    bio: "", price: ""
   })
   const [savingEdit, setSavingEdit] = useState(false)
 
@@ -158,9 +158,14 @@ function DoctorProfile() {
   const [form, setForm] = useState({
     bio: "", degree: "", experienceYears: "", price: "",
     idCardUrl: "", certificateUrl: "", specialtyId: "", facilityId: "",
-    newFacilityName: "", newFacilityAddress: "", newFacilityDescription: "", newFacilityMapUrl: "",
+    newFacilityName: "", newFacilityAddress: "", newFacilityProvince: "", newFacilityDescription: "", newFacilityMapUrl: "",
+    facilityLicenseUrl: ""
   })
-  const [files, setFiles] = useState({ idCard: null, certificate: null })
+  const [files, setFiles] = useState({ 
+    idCard: null, 
+    certificate: null,
+    facilityLicense: null
+  })
   const [specialties, setSpecialties] = useState([])
   const [facilities, setFacilities] = useState([])
   const [loadingOptions, setLoadingOptions] = useState(true)
@@ -176,11 +181,6 @@ function DoctorProfile() {
           setEditForm({
             bio: res.data.bio || "",
             price: res.data.price ?? "",
-            facilityName: res.data.facilityName || "",
-            facilityAddress: res.data.facilityAddress || "",
-            facilityDescription: res.data.facilityDescription || "",
-            facilityMapUrl: res.data.facilityMapUrl || "",
-            facilityVerified: !!res.data.facilityVerified,
           })
         }
         else if (status === "PENDING") {
@@ -233,23 +233,13 @@ function DoctorProfile() {
     try {
         await api.put("/doctor/profile", {
             bio: editForm.bio,
-            price: Number(editForm.price),
-            facilityName: editForm.facilityName,
-            facilityAddress: editForm.facilityAddress,
-            facilityDescription: editForm.facilityDescription,
-            facilityMapUrl: editForm.facilityMapUrl,
-            facilityVerified: editForm.facilityVerified,
+            price: Number(editForm.price)
         })
         toast.success("Cập nhật hồ sơ thành công")
         setProfileData((prev) => ({
           ...prev,
           bio: editForm.bio,
-          price: Number(editForm.price),
-          facilityName: editForm.facilityName,
-          facilityAddress: editForm.facilityAddress,
-          facilityDescription: editForm.facilityDescription,
-          facilityMapUrl: editForm.facilityMapUrl,
-          facilityVerified: editForm.facilityVerified,
+          price: Number(editForm.price)
         }))
         setEditMode(false)
     } catch (err) {
@@ -266,9 +256,12 @@ function DoctorProfile() {
     if (type === "idCard") {
       setFiles(prev => ({ ...prev, idCard: file }))
       setForm(prev => ({ ...prev, idCardUrl: localUrl }))
-    } else {
+    } else if (type === "certificate") {
       setFiles(prev => ({ ...prev, certificate: file }))
       setForm(prev => ({ ...prev, certificateUrl: localUrl }))
+    } else if (type === "facilityLicense") {
+      setFiles(prev => ({ ...prev, facilityLicense: file }))
+      setForm(prev => ({ ...prev, facilityLicenseUrl: localUrl }))
     }
   }
 
@@ -286,8 +279,12 @@ function DoctorProfile() {
       return
     }
     if (createNewFacility) {
-      if (!form.newFacilityName?.trim() || !form.newFacilityAddress?.trim()) {
-        toast.error("Vui lòng nhập tên và địa chỉ cho cơ sở y tế mới")
+      if (!form.newFacilityName?.trim() || !form.newFacilityAddress?.trim() || !form.newFacilityProvince) {
+        toast.error("Vui lòng nhập đầy đủ thông tin Tên, Địa chỉ và Tỉnh/Thành phố cho cơ sở y tế mới")
+        return
+      }
+      if (!files.facilityLicense) {
+        toast.error("Vui lòng tải lên Giấy phép hoạt động của cơ sở mới")
         return
       }
     }
@@ -305,11 +302,15 @@ function DoctorProfile() {
       if (createNewFacility) {
         formData.append("newFacilityName", form.newFacilityName.trim())
         formData.append("facilityAddress", form.newFacilityAddress.trim())
+        formData.append("newFacilityProvince", form.newFacilityProvince)
         if (form.newFacilityDescription?.trim()) formData.append("facilityDescription", form.newFacilityDescription.trim())
         if (form.newFacilityMapUrl?.trim()) formData.append("facilityMapUrl", form.newFacilityMapUrl.trim())
       }
       if (files.idCard) formData.append("idCardImage", files.idCard)
       if (files.certificate) formData.append("certificatePdf", files.certificate)
+    if (createNewFacility && files.facilityLicense) {
+        formData.append("facilityLicensePdf", files.facilityLicense)
+    }
 
       await api.post("/doctor/profile", formData, {
         transformRequest: (data) => data,
@@ -394,11 +395,6 @@ function DoctorProfile() {
                                   setEditForm({
                                     bio: profileData.bio || "",
                                     price: profileData.price ?? "",
-                                    facilityName: profileData.facilityName || "",
-                                    facilityAddress: profileData.facilityAddress || "",
-                                    facilityDescription: profileData.facilityDescription || "",
-                                    facilityMapUrl: profileData.facilityMapUrl || "",
-                                    facilityVerified: !!profileData.facilityVerified,
                                   })
                                   setEditMode(true)
                                 }} 
@@ -479,7 +475,10 @@ function DoctorProfile() {
                                         </span>
                                       </div>
                                       {(profileData.facilityAddress || profileData.facility?.address) && (
-                                        <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>{profileData.facilityAddress || profileData.facility?.address}</p>
+                                      <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+                                        {profileData.facilityAddress || profileData.facility?.address}
+                                        {profileData.facilityProvince ? `, ${profileData.facilityProvince}` : (profileData.facility?.province ? `, ${profileData.facility.province}` : '')}
+                                      </p>
                                       )}
                                   </div>
                                   <div>
@@ -536,22 +535,7 @@ function DoctorProfile() {
                                   )}
                               </div>
 
-                              {editMode && (
-                                  <div style={{ marginTop: '28px', paddingTop: '28px', borderTop: '1px solid #f1f5f9' }}>
-                                      <h4 style={{ margin: '0 0 16px', fontSize: '13px', fontWeight: 800, color: '#0ea47a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Cơ sở y tế</h4>
-                                      <FloatingInput label="Tên cơ sở" name="facilityName" value={editForm.facilityName} onChange={handleEditChange} />
-                                      <FloatingInput label="Địa chỉ" name="facilityAddress" value={editForm.facilityAddress} onChange={handleEditChange} />
-                                      <FloatingInput label="Link bản đồ" name="facilityMapUrl" placeholder="https://..." value={editForm.facilityMapUrl} onChange={handleEditChange} />
-                                      <FloatingInput label="Mô tả" type="textarea" name="facilityDescription" value={editForm.facilityDescription} onChange={handleEditChange} />
-                                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', fontSize: '13px', color: '#334155', marginTop: '4px' }}>
-                                          <input type="checkbox" name="facilityVerified" checked={editForm.facilityVerified} onChange={handleEditChange} style={{ marginTop: '3px', width: '16px', height: '16px', accentColor: '#0ea47a' }} />
-                                          <span>Đánh dấu cơ sở là <strong>đã xác thực</strong> (hiển thị công khai cho bệnh nhân)</span>
-                                      </label>
-                                      <p style={{ margin: '10px 0 0', fontSize: '11px', color: '#94a3b8', lineHeight: 1.5 }}>
-                                          Admin vẫn có thể xác minh hoặc chỉnh sửa cơ sở từ trang quản trị.
-                                      </p>
-                                  </div>
-                              )}
+                              {/* Cơ sở y tế section removed as doctors cannot edit it directly */}
                           </div>
                       </div>
 
@@ -734,10 +718,38 @@ function DoctorProfile() {
               ) : (
                 <>
                   <FloatingInput label="Tên cơ sở y tế mới" name="newFacilityName" placeholder="VD: Phòng khám Đa khoa ..." value={form.newFacilityName} onChange={handleChange} required />
-                  <FloatingInput label="Địa chỉ" name="newFacilityAddress" placeholder="Số nhà, đường, quận/huyện..." value={form.newFacilityAddress} onChange={handleChange} required />
+                  
+                  <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '6px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      Chọn Tỉnh/Thành phố <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <div style={{ content: '', position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '6px solid #9ca3af', pointerEvents: 'none' }} />
+                      <select className="dp-select" name="newFacilityProvince" value={form.newFacilityProvince} onChange={handleChange} style={selectStyle}
+                        onFocus={e => e.target.style.borderColor = '#0ea47a'}
+                        onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+                        required
+                      >
+                        <option value="">-- Chọn tỉnh --</option>
+                        {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <FloatingInput label="Địa chỉ cụ thể" name="newFacilityAddress" placeholder="Số nhà, đường, quận/huyện..." value={form.newFacilityAddress} onChange={handleChange} required />
                   <FloatingInput label="Link bản đồ (Google Maps, tùy chọn)" name="newFacilityMapUrl" placeholder="https://maps.google.com/..." value={form.newFacilityMapUrl} onChange={handleChange} />
                   <FloatingInput label="Mô tả ngắn (tùy chọn)" type="textarea" name="newFacilityDescription" placeholder="Giới thiệu về cơ sở..." value={form.newFacilityDescription} onChange={handleChange} />
-                  <p style={{ margin: '0 0 1rem', fontSize: '12px', color: '#64748b', lineHeight: 1.55 }}>
+                  
+                  <div style={{ marginTop: '1rem' }}>
+                    <UploadZone 
+                      label="Giấy phép hoạt động cơ sở (Bắt buộc) *" 
+                      hint="PNG, JPG, PDF tối đa 5MB" 
+                      previewUrl={form.facilityLicenseUrl} 
+                      onUpload={(e) => handleUpload(e, "facilityLicense")} 
+                    />
+                  </div>
+
+                  <p style={{ margin: '1rem 0 1rem', fontSize: '12px', color: '#64748b', lineHeight: 1.55 }}>
                     Cơ sở mới được tạo với trạng thái <strong>chờ xác minh</strong>. Bạn hoặc admin có thể xác minh sau trong hệ thống.
                   </p>
                 </>
@@ -752,6 +764,7 @@ function DoctorProfile() {
                   ["Giá tư vấn", form.price ? `${Number(form.price).toLocaleString("vi-VN")}đ` : "—"],
                   ["Chuyên khoa", specialties.find(s => String(s.id) === String(form.specialtyId))?.name || "—"],
                   ["Cơ sở y tế", createNewFacility ? (form.newFacilityName?.trim() || "—") : (facilities.find(f => String(f.id) === String(form.facilityId))?.name || "—")],
+                  ["Giấy phép cơ sở", createNewFacility ? (files.facilityLicense ? "✓ Đã chọn" : "Chưa có") : "N/A"],
                   ["CCCD", files.idCard ? "✓ Đã chọn" : "Chưa có"],
                   ["Chứng chỉ", files.certificate ? "✓ Đã chọn" : "Chưa có"],
                 ].map(([k, v]) => (

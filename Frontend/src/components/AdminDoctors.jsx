@@ -196,7 +196,38 @@ const AdminDoctors = () => {
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Họ tên:</b> {detailModal.data?.user?.fullName || detailModal.data?.fullName}</p>
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Học vị:</b> {detailModal.data?.degree}</p>
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Kinh nghiệm:</b> {detailModal.data?.experienceYears} năm</p>
-                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Chuyên khoa:</b> {detailModal.data?.specialty?.specialtyName}</p>
+                                        <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Chuyên khoa:</b> {detailModal.data?.specialty?.specialtyName || detailModal.data?.specialtyName}</p>
+                                        <div style={{ margin: '8px 0', fontSize: '15px' }}>
+                                            <b>Cơ sở y tế:</b>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                                <span style={{ fontWeight: 600 }}>{detailModal.data?.facility?.facilityName || detailModal.data?.facilityName}</span>
+                                                <span style={{ 
+                                                    fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px',
+                                                    background: (detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#ecfdf5' : '#fffbeb',
+                                                    color: (detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#059669' : '#b45309',
+                                                    border: `1px solid ${(detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? '#a7f3d0' : '#fde68a'}`
+                                                }}>
+                                                    {(detailModal.data?.facility?.isVerified || detailModal.data?.facilityVerified) ? 'Đã xác minh' : 'Chờ xác minh'}
+                                                </span>
+                                            </div>
+                                            {(detailModal.data?.facility?.address || detailModal.data?.facilityAddress) && (
+                                                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 500, display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                                                    <span>📍</span>
+                                                    <span>
+                                                        {detailModal.data?.facility?.address || detailModal.data?.facilityAddress}
+                                                        {(detailModal.data?.facility?.province || detailModal.data?.facilityProvince) ? `, ${detailModal.data?.facility?.province || detailModal.data?.facilityProvince}` : ''}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {(detailModal.data?.facility?.licenseUrl || detailModal.data?.facilityLicenseUrl) && (
+                                            <p style={{ margin: '8px 0', fontSize: '13px' }}>
+                                                <a href={detailModal.data?.facility?.licenseUrl || detailModal.data?.facilityLicenseUrl} target="_blank" rel="noreferrer" style={{ color: '#0ea47a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                                    Xem Giấy phép hoạt động cơ sở
+                                                </a>
+                                            </p>
+                                        )}
                                         <p style={{ margin: '8px 0', fontSize: '15px' }}><b>Giá khám:</b> {detailModal.data?.price?.toLocaleString()} VNĐ</p>
                                         <div style={{ marginTop: '20px', padding: '20px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
                                             <b style={{ display: 'block', marginBottom: '8px' }}>Giới thiệu chuyên môn:</b>

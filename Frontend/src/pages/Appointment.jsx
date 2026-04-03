@@ -355,7 +355,11 @@ export default function Appointment() {
               <div className="contact-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path></svg></div>
               <div className="contact-info">
                 <h4>Địa chỉ</h4>
-                <p>{doctor.facilityAddress || 'Đang cập nhật'}</p>
+                <p>
+                  {doctor.facilityAddress || doctor.facilityProvince 
+                    ? `${doctor.facilityAddress || ''}${doctor.facilityProvince ? `, ${doctor.facilityProvince}` : ''}`
+                    : 'Đang cập nhật'}
+                </p>
               </div>
             </div>
             {doctor.facilityMapUrl && (

@@ -1,0 +1,22 @@
+export const PROVINCES = [
+    "Hà Nội",
+    "Hồ Chí Minh",
+    "Thanh Hóa",
+    "Đà Nẵng",
+    "Hải Phòng",
+    "Bình Dương",
+    "Đồng Nai",
+    "Khánh Hòa",
+    "Cần Thơ",
+    "Quảng Ninh",
+    "Nghệ An",
+    "Bắc Ninh",
+    "Thừa Thiên Huế",
+    "Lâm Đồng",
+    "Bà Rịa - Vũng Tàu",
+    "Quảng Nam",
+    "Thái Bình",
+    "Nam Định",
+    "Hải Dương",
+    "Long An"
+].sort();

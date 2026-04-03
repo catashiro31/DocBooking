@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { adminService } from "../services/adminService"
 import { toast } from 'react-toastify'
+import { PROVINCES } from "../utils/provinceUtils"
 
 const AdminFacilities = () => {
     const [facilities, setFacilities] = useState([])
@@ -9,8 +10,9 @@ const AdminFacilities = () => {
     const [error, setError] = useState("")
     const [showModal, setShowModal] = useState(false)
     const [editingItem, setEditingItem] = useState(null)
-    const [formData, setFormData] = useState({ name: "", address: "", description: "", mapUrl: "" })
+    const [formData, setFormData] = useState({ name: "", address: "", province: "", description: "", mapUrl: "" })
     const [imageFile, setImageFile] = useState(null)
+    const [licenseFile, setLicenseFile] = useState(null)
     const [submitting, setSubmitting] = useState(false)
 
     useEffect(() => {
@@ -26,6 +28,7 @@ const AdminFacilities = () => {
                 ...f,
                 id: f.facilityId || f.id,
                 name: f.facilityName || f.name,
+                province: f.province || "",
                 verified: !!(f.verified ?? f.isVerified),
             })))
         } catch (err) {
@@ -42,14 +45,16 @@ const AdminFacilities = () => {
             setFormData({ 
                 name: item.name || "", 
                 address: item.address || "",
+                province: item.province?.trim() || "",
                 description: item.description || "",
                 mapUrl: item.mapUrl || ""
             })
         } else {
             setEditingItem(null)
-            setFormData({ name: "", address: "", description: "", mapUrl: "" })
+            setFormData({ name: "", address: "", province: "", description: "", mapUrl: "" })
         }
         setImageFile(null)
+        setLicenseFile(null)
         setShowModal(true)
     }
 
@@ -63,10 +68,18 @@ const AdminFacilities = () => {
             toast.warning("Vui lòng nhập địa chỉ")
             return
         }
+        if (!editingItem && !licenseFile) {
+            toast.warning("Vui lòng tải lên Giấy phép hoạt động cho cơ sở mới!")
+            return
+        }
 
         setSubmitting(true)
         try {
-            const payload = { ...formData, file: imageFile || undefined }
+            const payload = { 
+                ...formData, 
+                file: imageFile || undefined,
+                licenseFile: licenseFile || undefined
+            }
             if (editingItem) {
                 await adminService.updateFacility(editingItem.id, payload)
                 toast.success("Cập nhật cơ sở y tế thành công")
@@ -398,11 +411,23 @@ const AdminFacilities = () => {
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                                     </svg>
-                                    {facility.address || 'Đang cập nhật địa chỉ'}
+                                    {facility.address ? (facility.province ? `${facility.address}, ${facility.province}` : facility.address) : (facility.province || 'Đang cập nhật địa chỉ')}
                                 </div>
                                 <p className="facility-desc">
                                     {facility.description || 'Không có mô tả thông tin cho cơ sở y tế này.'}
                                 </p>
+                                
+                                {facility.licenseUrl && (
+                                    <div style={{ marginBottom: '16px' }}>
+                                        <a href={facility.licenseUrl} target="_blank" rel="noreferrer" style={{ 
+                                            fontSize: '12px', color: '#6366f1', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                            padding: '6px 12px', background: '#eef2ff', borderRadius: '8px', border: '1px solid #e0e7ff'
+                                        }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                            Giấy phép hoạt động
+                                        </a>
+                                    </div>
+                                )}
                                 
                                 <div className="card-actions">
                                     {!facility.verified && (
@@ -438,6 +463,25 @@ const AdminFacilities = () => {
                                     value={formData.name}
                                     onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                                 />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Chọn tỉnh/thành phố *</label>
+                                <select
+                                    value={formData.province}
+                                    onChange={e => setFormData(p => ({ ...p, province: e.target.value }))}
+                                    style={{
+                                        width: '100%', padding: '12px 16px', borderRadius: '12px',
+                                        border: '1.5px solid #e2e8f0', fontSize: '15px', outline: 'none',
+                                        background: '#fff', color: '#1e293b'
+                                    }}
+                                    required
+                                >
+                                    <option value="">-- Chọn tỉnh --</option>
+                                    {PROVINCES.map(p => (
+                                        <option key={p} value={p}>{p}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className="form-group">
@@ -477,7 +521,7 @@ const AdminFacilities = () => {
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                                     </svg>
                                     <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
-                                        {imageFile ? <strong>{imageFile.name}</strong> : 'Nhấn để chọn ảnh hoặc kéo thả vào đây'}
+                                        {imageFile ? <strong>{imageFile.name}</strong> : (editingItem?.imageUrl ? 'Đã có ảnh đại diện (Nhấn để thay đổi)' : 'Nhấn để chọn ảnh hoặc kéo thả vào đây')}
                                     </p>
                                     <input 
                                         type="file" 
@@ -485,6 +529,31 @@ const AdminFacilities = () => {
                                         onChange={e => setImageFile(e.target.files?.[0] || null)}
                                     />
                                 </div>
+                                {editingItem?.imageUrl && (
+                                    <div style={{ marginTop: '8px' }}>
+                                        <img src={editingItem.imageUrl} alt="Current" style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e2e8f0' }} />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="form-group">
+                                <label>Giấy phép hoạt động (Bắt buộc) *</label>
+                                <div className="file-upload-box" style={{ borderColor: !licenseFile && !editingItem?.licenseUrl ? '#ef4444' : '#e2e8f0' }}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '8px' }}>
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                                    </svg>
+                                    <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+                                        {licenseFile ? <strong>{licenseFile.name}</strong> : (editingItem?.licenseUrl ? 'Đã có giấy phép (Nhấn để thay đổi)' : 'Tải lên Giấy phép hoạt động (Ảnh/PDF)')}
+                                    </p>
+                                    <input 
+                                        type="file" 
+                                        accept="image/*,application/pdf"
+                                        onChange={e => setLicenseFile(e.target.files?.[0] || null)}
+                                    />
+                                </div>
+                                {editingItem?.licenseUrl && (
+                                    <a href={editingItem.licenseUrl} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#6366f1', marginTop: '8px', display: 'inline-block', fontWeight: 600 }}>Xem giấy phép hiện tại</a>
+                                )}
                             </div>
 
                             <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>

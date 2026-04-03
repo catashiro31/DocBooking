@@ -96,6 +96,8 @@ public class AdminService {
         return doctor;
     }
 
+    @Transactional
+    @CacheEvict(value = "facilities", allEntries = true)
     public DoctorDetail approveDoctor(Integer doctorId) {
         DoctorDetail doctor = doctorDetail.findByDoctorId(doctorId);
         if (doctor == null) {
@@ -105,6 +107,13 @@ public class AdminService {
             throw new RuntimeException("Chỉ có thể duyệt bác sĩ đang ở trạng thái chờ duyệt!");
         }
         doctor.setVerificationStatus(DoctorDetail.VerificationStatus.APPROVED);
+        
+        // Tự động xác minh luôn cơ sở y tế nếu nó đang ở trạng thái chờ duyệt
+        if (doctor.getFacility() != null && !Boolean.TRUE.equals(doctor.getFacility().getIsVerified())) {
+            doctor.getFacility().setIsVerified(true);
+            facilityRepository.save(doctor.getFacility());
+        }
+
         String email = doctor.getUser().getEmail();
         String fullName = doctor.getUser().getFullName();
         contextEmail.sendDoctorApprovedEmail(email, fullName);
@@ -232,6 +241,11 @@ public class AdminService {
     public String deleteSpecialty(Integer specialtyId) {
         docbooking.models.Specialty specialty = specialtyRepository.findById(specialtyId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyên khoa với ID: " + specialtyId));
+        
+        if (doctorDetail.existsBySpecialty_SpecialtyId(specialtyId)) {
+            throw new RuntimeException("Không thể xóa chuyên khoa này vì đang có bác sĩ thuộc chuyên khoa!");
+        }
+
         specialty.setIsActive(false);
         specialtyRepository.save(specialty);
         return "Đã xóa chuyên ngành!";
@@ -248,11 +262,17 @@ public class AdminService {
             throw new RuntimeException("Cơ sở y tế '" + name + "' đã tồn tại!");
         }
 
+        if (req.getLicenseFile() == null || req.getLicenseFile().isEmpty()) {
+            throw new RuntimeException("Vui lòng tải lên Giấy phép hoạt động cho cơ sở mới!");
+        }
+
         docbooking.models.Facility facility = docbooking.models.Facility.builder()
                 .address(req.getAddress())
                 .description(req.getDescription())
                 .facilityName(name)
+                .province(req.getProvince())
                 .imageUrl(convertUrl.getUrlFile(req.getFile()))
+                .licenseUrl(convertUrl.getUrlFile(req.getLicenseFile()))
                 .mapUrl(req.getMapUrl())
                 .isActive(true)
                 .isVerified(true) // Admin tạo mặc định là đã xác minh
@@ -283,10 +303,15 @@ public class AdminService {
         facility.setFacilityName(newName);
         facility.setDescription(req.getDescription());
         facility.setMapUrl(req.getMapUrl());
+        facility.setProvince(req.getProvince());
 
         // Chỉ cập nhật ảnh nếu người dùng có gửi file mới
         if (req.getFile() != null && !req.getFile().isEmpty()) {
             facility.setImageUrl(convertUrl.getUrlFile(req.getFile()));
+        }
+
+        if (req.getLicenseFile() != null && !req.getLicenseFile().isEmpty()) {
+            facility.setLicenseUrl(convertUrl.getUrlFile(req.getLicenseFile()));
         }
         facilityRepository.save(facility);
         return "Đã cập nhật thông tin cơ sở y tế";
@@ -309,6 +334,11 @@ public class AdminService {
     public String deleteFacility(Integer facilityId) {
         docbooking.models.Facility facility = facilityRepository.findById(facilityId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cơ sở y tế với ID: " + facilityId));
+        
+        if (doctorDetail.existsByFacility_FacilityId(facilityId)) {
+            throw new RuntimeException("Không thể xóa cơ sở y tế này vì đang có bác sĩ đang công tác!");
+        }
+
         facility.setIsActive(false);
         facilityRepository.save(facility);
         return "Đã xóa thành công cơ sở!";

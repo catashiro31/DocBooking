@@ -214,7 +214,10 @@ const AdminAppointments = () => {
                                     <div style={{ fontSize: '12px', color: '#64748b' }}>{apt.timeSlot}</div>
                                 </td>
                                 <td style={{ color: '#475569', fontSize: '13px', fontWeight: 500 }}>
-                                    {apt.facilityName || '---'}
+                                    <div style={{ fontWeight: 700 }}>{apt.facilityName}</div>
+                                    {apt.facilityAddress && <div style={{ fontSize: '11px', opacity: 0.8, marginTop: '2px' }}>
+                                        {apt.facilityAddress}{apt.facilityProvince ? `, ${apt.facilityProvince}` : ''}
+                                    </div>}
                                 </td>
                                 <td>
                                     <span 

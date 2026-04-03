@@ -10,11 +10,11 @@ import docbooking.models.*;
 import docbooking.repositories.*;
 import docbooking.utils.ConvertUrl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,7 +129,10 @@ public class DoctorService {
                     .facilityName(req.getNewFacilityName())
                     .address(req.getFacilityAddress())
                     .description(req.getFacilityDescription())
+                    .imageUrl(null)
+                    .licenseUrl(convertUrl.getUrlFile(req.getFacilityLicensePdf()))
                     .mapUrl(req.getFacilityMapUrl())
+                    .province(req.getNewFacilityProvince())
                     .isVerified(false) // Requires admin or self-verification later
                     .isActive(true)
                     .build();
@@ -149,6 +152,10 @@ public class DoctorService {
 
         if (doctor.getVerificationStatus() != DoctorDetail.VerificationStatus.APPROVED) {
             throw new RuntimeException("Hồ sơ bác sĩ chưa được duyệt, không thể tạo lịch làm việc!");
+        }
+
+        if (doctor.getFacility() != null && !Boolean.TRUE.equals(doctor.getFacility().getIsVerified())) {
+            throw new RuntimeException("Cơ sở y tế của bạn chưa được xác minh, không thể tạo lịch làm việc!");
         }
 
         int newSlotsCreated = 0;
@@ -249,6 +256,7 @@ public class DoctorService {
                 .facilityId(fac != null ? fac.getFacilityId() : null)
                 .facilityName(fac != null ? fac.getFacilityName() : null)
                 .facilityAddress(fac != null ? fac.getAddress() : null)
+                .facilityProvince(fac != null ? fac.getProvince() : null)
                 .facilityDescription(fac != null ? fac.getDescription() : null)
                 .facilityMapUrl(fac != null ? fac.getMapUrl() : null)
                 .facilityVerified(fac != null && Boolean.TRUE.equals(fac.getIsVerified()))
@@ -275,44 +283,11 @@ public class DoctorService {
     }
 
     @Transactional
-    @CacheEvict(value = "facilities", allEntries = true)
     public docbooking.doctor.responses.Profile updateDoctorProfile(User currentUser, ChangeProfile req) {
         DoctorDetail detail = doctorDetailRepository.findByUser(currentUser)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ để cập nhật!"));
         if (req.getBio() != null) detail.setBio(req.getBio());
         if (req.getPrice() != null) detail.setPrice(req.getPrice());
-
-        Facility facility = detail.getFacility();
-        if (facility != null) {
-            boolean changed = false;
-            if (req.getFacilityName() != null && !req.getFacilityName().isBlank()) {
-                String newName = req.getFacilityName().trim();
-                if (facilityRepository.existsByFacilityNameIgnoreCaseAndFacilityIdNot(newName, facility.getFacilityId())) {
-                    throw new RuntimeException("Tên cơ sở y tế đã được sử dụng bởi một cơ sở khác!");
-                }
-                facility.setFacilityName(newName);
-                changed = true;
-            }
-            if (req.getFacilityAddress() != null) {
-                facility.setAddress(req.getFacilityAddress().trim());
-                changed = true;
-            }
-            if (req.getFacilityDescription() != null) {
-                facility.setDescription(req.getFacilityDescription());
-                changed = true;
-            }
-            if (req.getFacilityMapUrl() != null) {
-                facility.setMapUrl(req.getFacilityMapUrl());
-                changed = true;
-            }
-            if (req.getFacilityVerified() != null) {
-                facility.setIsVerified(req.getFacilityVerified());
-                changed = true;
-            }
-            if (changed) {
-                facilityRepository.save(facility);
-            }
-        }
 
         doctorDetailRepository.save(detail);
         return getDoctorProfile(currentUser);
@@ -424,6 +399,13 @@ public class DoctorService {
 
         if (medicalResultRepository.findByAppointmentId(appointmentId).isPresent()) {
             throw new RuntimeException("Lịch hẹn này đã có kết quả khám!");
+        }
+
+        // Chặn trả kết quả trước giờ khám
+        docbooking.models.DoctorSchedule schedule = app.getSchedule();
+        LocalDateTime appointmentStartTime = schedule.getDateWorking().atTime(docbooking.utils.Time.parseTimeSlot(schedule.getTimeSlot()));
+        if (LocalDateTime.now().isBefore(appointmentStartTime)) {
+            throw new RuntimeException("Chưa đến thời gian khám, bạn không thể trả kết quả lúc này!");
         }
 
         if (req.getPrescriptionFile() != null && !req.getPrescriptionFile().isEmpty()) {

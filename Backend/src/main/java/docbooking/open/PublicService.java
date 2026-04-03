@@ -56,7 +56,9 @@ public class PublicService {
                         .address(f.getAddress())
                         .description(f.getDescription())
                         .imageUrl(f.getImageUrl())
+                        .licenseUrl(f.getLicenseUrl())
                         .mapUrl(f.getMapUrl())
+                        .province(f.getProvince())
                         .verified(Boolean.TRUE.equals(f.getIsVerified()))
                         .build())
                 .toList();
@@ -72,7 +74,7 @@ public class PublicService {
                         .build())
                 .toList();
     }
-    public Page<DoctorCards> getDoctors(String name , Integer specialityId, Integer facilityId, Double minPrice, Double maxPrice, Pageable pageable) {
+    public Page<DoctorCards> getDoctors(String name , Integer specialityId, Integer facilityId, String province, Double minPrice, Double maxPrice, Pageable pageable) {
         Specification<docbooking.models.DoctorDetail> specification = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -87,6 +89,10 @@ public class PublicService {
 
             if (facilityId != null) {
                 predicates.add(cb.equal(root.get("facility").get("facilityId"), facilityId));
+            }
+
+            if (province != null && !province.isEmpty()) {
+                predicates.add(cb.equal(root.get("facility").get("province"), province));
             }
 
             if (minPrice != null) {
@@ -131,6 +137,7 @@ public class PublicService {
                 .bio(doctor.getBio())
                 .facilityName(doctor.getFacility() != null ? doctor.getFacility().getFacilityName() : null)
                 .facilityAddress(doctor.getFacility() != null ? doctor.getFacility().getAddress() : null)
+                .facilityProvince(doctor.getFacility() != null ? doctor.getFacility().getProvince() : null)
                 .facilityMapUrl(doctor.getFacility() != null ? doctor.getFacility().getMapUrl() : null)
                 .facilityVerified(doctor.getFacility() != null && Boolean.TRUE.equals(doctor.getFacility().getIsVerified()))
                 .doctorEmail(doctor.getUser().getEmail())
