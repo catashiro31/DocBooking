@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -19,4 +20,5 @@ public class ReviewAdminResponse {
     private String comment;
     private LocalDateTime createdAt;
     private Boolean isVisible;
+    private Map<String, Double> aiLabels;
 }

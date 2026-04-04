@@ -266,7 +266,15 @@ function HomePage() {
                 <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center font-black text-indigo-700 text-sm">
                   {fac.name?.charAt(0)}
                 </div>
-                <span className="font-bold text-slate-700 text-base">{fac.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-700 text-base">{fac.name}</span>
+                  {fac.verified && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700">
+                      <ShieldCheck size={12} />
+                      Đã xác minh
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

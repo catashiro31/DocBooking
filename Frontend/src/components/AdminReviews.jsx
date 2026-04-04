@@ -20,7 +20,8 @@ const AdminReviews = () => {
         try {
             setLoading(true)
             const data = await adminService.getAllReviews(page, 10)
-            setReviews(data?.content || data || [])
+            const list = Array.isArray(data?.content) ? data.content : (Array.isArray(data) ? data : [])
+            setReviews(list)
             setTotalPages(data?.totalPages || 1)
         } catch (err) {
             setError("Không thể tải danh sách đánh giá")
@@ -50,9 +51,9 @@ const AdminReviews = () => {
         try {
             setAnalyzingId(reviewId);
             const data = await adminService.analyzeReview(comment);
-            setAiResults(prev => ({ ...prev, [reviewId]: data.labels }));
+            setAiResults(prev => ({ ...prev, [reviewId]: data?.labels || {} }));
         } catch (err) {
-            toast.error("Lỗi phân tích AI");
+            toast.error(err?.response?.data?.error || err?.response?.data || "Lỗi phân tích AI");
             console.error(err);
         } finally {
             setAnalyzingId(null);
@@ -349,7 +350,7 @@ const AdminReviews = () => {
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
                                                     </svg>
-                                                    Phân tích
+                                                    {aiResults[review.reviewId] ? 'Phân tích lại' : 'Phân tích'}
                                                 </>
                                             )}
                                         </button>

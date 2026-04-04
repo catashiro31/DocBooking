@@ -63,6 +63,13 @@ const css = `
   display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: #e0e7ff; 
   color: #4361ee; border-radius: 50px; font-size: 13px; font-weight: 700; border: 1px solid #c7d2fe;
 }
+.facility-verified-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: #ecfdf5;
+  color: #047857; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid #a7f3d0;
+}
+.facility-name-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
 
 .doc-degree { font-size: 18px; color: #6366f1; font-weight: 700; margin-bottom: 8px; }
 .doc-spec-pill { 
@@ -272,7 +279,7 @@ export default function Appointment() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
-                Verified
+                Bác sĩ đã xác minh
               </div>
             </div>
 
@@ -290,7 +297,13 @@ export default function Appointment() {
               </div>
               <div className="stat-pill">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                {doctor.facilityName || 'Cơ sở y tế'}
+                <span>{doctor.facilityName || 'Cơ sở y tế'}</span>
+                {doctor.facilityVerified && (
+                  <span className="facility-verified-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Đã xác minh
+                  </span>
+                )}
               </div>
             </div>
 
@@ -327,7 +340,15 @@ export default function Appointment() {
               <div className="contact-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></div>
               <div className="contact-info">
                 <h4>Cơ sở</h4>
-                <p>{doctor.facilityName || 'Đang cập nhật'}</p>
+                <div className="facility-name-row">
+                  <p>{doctor.facilityName || 'Đang cập nhật'}</p>
+                  {doctor.facilityVerified && (
+                    <span className="facility-verified-badge">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      Đã xác minh
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="contact-item">

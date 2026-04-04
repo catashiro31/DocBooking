@@ -61,13 +61,15 @@ public class SecurityConfiguration {
                 // ĐÃ SỬA: Cấu hình CORS mở cửa cho Frontend Vite (và proxy)
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    // Cho phép mọi Origin trong môi trường dev bằng OriginPatterns
-                    config.setAllowedOriginPatterns(java.util.List.of("*"));
-                    // 2. Cho phép các method HTTP cơ bản
+                    // 1. Chỉ liệt kê các nguồn bạn tin tưởng (Local dev và Vercel thật)
+                    config.setAllowedOrigins(java.util.List.of(
+                            "http://localhost:5173"
+                    ));
+                    // 2. Cho phép đầy đủ các phương thức
                     config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-                    // 3. Cho phép Frontend gửi mọi Header (đặc biệt là cái thẻ Authorization: Bearer...)
+                    // 3. Cho phép tất cả Headers (quan trọng để gửi JWT Token)
                     config.setAllowedHeaders(java.util.List.of("*"));
-                    // 4. (Tùy chọn) Cho phép gửi Cookie nếu sau này cần
+                    // 4. Cho phép gửi Credentials (JWT, Cookie...)
                     config.setAllowCredentials(true);
                     return config;
                 }))

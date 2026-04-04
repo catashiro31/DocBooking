@@ -2,7 +2,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5020/api/v1', 
+  baseURL: 'http://103.69.97.14/api/v1', 
   timeout: 10000, // Thêm timeout 10s tránh treo app khi server chậm
   headers: {
     'Content-Type': 'application/json',

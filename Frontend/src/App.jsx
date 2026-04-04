@@ -27,6 +27,7 @@ const PatientAppointments = lazy(() => import("./components/PatientAppointments"
 const PatientHistory = lazy(() => import("./components/PatientHistory"))
 const RelativeManagement = lazy(() => import("./components/RelativeManagement"))
 const UserProfile = lazy(() => import("./pages/UserProfile"))
+const VerifyAccount = lazy(() => import("./pages/VerifyAccount"))
 
 // Loading fallback UI
 const PageLoader = () => (
@@ -63,6 +64,7 @@ function App() {
           <Route path="/signin" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-account" element={<VerifyAccount />} />
 
           {/* Backward compat: /signout cũ trỏ đến register */}
           <Route path="/signout" element={<Navigate to="/register" />} />

@@ -22,6 +22,7 @@ public class DoctorDetails {
     private String facilityAddress;
     private String facilityProvince;
     private String facilityMapUrl;
+    private Boolean facilityVerified;
     private String doctorEmail;
     private String doctorPhone;
     private String avatarUrl;

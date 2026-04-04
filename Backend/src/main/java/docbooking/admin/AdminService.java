@@ -21,7 +21,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import jakarta.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -396,6 +395,7 @@ public class AdminService {
         DoctorSchedule s = a != null ? a.getSchedule() : null;
         DoctorDetail d = s != null ? s.getDoctor() : null;
         User doctorUser = d != null ? d.getUser() : null;
+        Map<String, Double> aiLabels = analyzeComment(r.getComment());
 
         return ReviewAdminResponse.builder()
                 .reviewId(r.getReviewId())
@@ -405,6 +405,7 @@ public class AdminService {
                 .comment(r.getComment())
                 .createdAt(r.getCreatedAt())
                 .isVisible(r.getIsVisible())
+                .aiLabels(aiLabels.isEmpty() ? null : aiLabels)
                 .build();
     }
 
@@ -449,9 +450,14 @@ public class AdminService {
     public static final String ADVERTISING = "Quảng cáo";
     public static final String PROFANITY = "Thô tục";
     private static final List<String> LABELS = Arrays.asList(POSITIVE, NEGATIVE, ADVERTISING, PROFANITY);
-    
-    private final Map<String, double[]> wordLogProbs = new ConcurrentHashMap<>();
-    private final double[] classPriors = new double[4];
+
+    private volatile AIModel aiModel = AIModel.empty();
+
+    private record AIModel(Map<String, double[]> wordLogProbs, double[] classPriors) {
+        static AIModel empty() {
+            return new AIModel(Collections.emptyMap(), new double[] { Math.log(0.25), Math.log(0.25), Math.log(0.25), Math.log(0.25) });
+        }
+    }
 
     @PostConstruct
     public void trainAIEngine() {
@@ -489,14 +495,23 @@ public class AdminService {
             }
         }
 
-        for (int i = 0; i < 4; i++) classPriors[i] = Math.log((double) (classDocCount[i] + 1) / (totalDocs + 4));
+        double[] priors = new double[4];
+        for (int i = 0; i < 4; i++) {
+            priors[i] = Math.log((double) (classDocCount[i] + 1) / (totalDocs + 4));
+        }
 
-        wordLogProbs.clear();
+        Map<String, double[]> localWordLogProbs = new HashMap<>();
         for (Map.Entry<String, int[]> e : wordCounts.entrySet()) {
             double[] probs = new double[4];
             for (int i = 0; i < 4; i++) probs[i] = Math.log((double) (e.getValue()[i] + 1) / (classTotalWords[i] + vocab.size()));
-            wordLogProbs.put(e.getKey(), probs);
+            localWordLogProbs.put(e.getKey(), probs);
         }
+
+        aiModel = new AIModel(Collections.unmodifiableMap(localWordLogProbs), priors);
+    }
+
+    public synchronized void refreshAIEngine() {
+        trainAIEngine();
     }
 
     public Map<String, Double> analyzeComment(String text) {
@@ -505,11 +520,12 @@ public class AdminService {
         String norm = text.toLowerCase().replaceAll("[^a-z0-9\\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\-]++", " ").replaceAll("\\s++", " ").trim();
         if (norm.isEmpty()) return Collections.emptyMap();
 
+        AIModel snapshot = aiModel;
         String[] tokens = norm.split("\\s+");
-        double[] scores = classPriors.clone();
+        double[] scores = snapshot.classPriors().clone();
 
         for (String t : tokens) {
-            double[] probs = wordLogProbs.get(t);
+            double[] probs = snapshot.wordLogProbs().get(t);
             if (probs != null) {
                 for (int i = 0; i < 4; i++) scores[i] += probs[i];
             }
@@ -532,7 +548,7 @@ public class AdminService {
     }
 
     private List<String> loadSeedsFromFile(String fileName) {
-        InputStream is = getClass().getResourceAsStream("/docbooking/utils/ai/" + fileName);
+        InputStream is = getClass().getResourceAsStream("/ai/" + fileName);
 
         // Fallback: Thử đọc trực tiếp từ file system nếu không tìm thấy trong classpath (hữu ích khi dev)
         if (is == null) {
