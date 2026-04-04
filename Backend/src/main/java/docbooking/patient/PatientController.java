@@ -72,11 +72,15 @@ public class PatientController {
     @GetMapping("/history")
     public ResponseEntity<?> getHistory(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
     ) {
         User currentUser = Security.getCurrentUser();
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(patientService.getPatientHistory(currentUser, pageable));
+        java.time.LocalDate start = startDate != null ? java.time.LocalDate.parse(startDate) : null;
+        java.time.LocalDate end = endDate != null ? java.time.LocalDate.parse(endDate) : null;
+        return ResponseEntity.ok(patientService.getPatientHistory(currentUser, start, end, pageable));
     }
 
     @GetMapping("/history/{id}")

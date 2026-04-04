@@ -113,4 +113,10 @@ public class DoctorController {
         User currentUser = Security.getCurrentUser();
         return ResponseEntity.ok(doctorService.getOverdueConfirmedAppointments(currentUser));
     }
+
+    @PostMapping("/transfer")
+    public ResponseEntity<?> requestTransfer(@RequestBody docbooking.doctor.requests.TransferRequest req) {
+        User currentUser = Security.getCurrentUser();
+        return ResponseEntity.ok(doctorService.requestTransfer(currentUser, req));
+    }
 }

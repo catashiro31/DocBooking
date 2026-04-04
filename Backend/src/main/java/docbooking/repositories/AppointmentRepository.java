@@ -52,6 +52,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             User user, Appointment.BookingStatus status, Pageable pageable
     );
 
+    @EntityGraph(attributePaths = {"schedule", "schedule.doctor", "schedule.doctor.specialty", "schedule.doctor.facility"})
+    Page<Appointment> findByPatient_UserAndBookingStatusAndSchedule_DateWorkingBetweenOrderBySchedule_DateWorkingDesc(
+            User user, Appointment.BookingStatus status, LocalDate startDate, LocalDate endDate, Pageable pageable
+    );
+
     @EntityGraph(attributePaths = {"schedule", "patient"})
     Page<Appointment> findBySchedule_Doctor_UserOrderBySchedule_DateWorkingDescSchedule_TimeSlotAsc(User user, Pageable pageable);
 
@@ -83,10 +88,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "AND a.bookingStatus = 'PENDING'")
     List<Appointment> findPastDueAppointments(@Param("today") LocalDate today);
 
-    @Query("SELECT a FROM Appointment a JOIN a.schedule s " +
-            "WHERE s.dateWorking < :today " +
-            "AND a.bookingStatus = 'CONFIRMED'")
-    List<Appointment> findOverdueConfirmedAppointments(@Param("today") LocalDate today);
+
 
     @Query("SELECT a FROM Appointment a JOIN a.schedule s " +
             "WHERE s.doctor.user.userId = :doctorUserId " +
@@ -100,10 +102,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             Integer userId,
             Collection<Appointment.BookingStatus> statuses
     );
-    long countByPatient_User_UserIdAndBookingStatus(
-            Integer userId,
-            Appointment.BookingStatus status
-    );
+
 
     @Query("SELECT COUNT(a) FROM Appointment a " +
             "WHERE a.patient.user.userId = :userId " +

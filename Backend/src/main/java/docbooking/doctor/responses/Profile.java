@@ -29,4 +29,6 @@ public class Profile {
     private Double ratingAverage;
     private Integer reviewCount;
     private String verificationStatus;
+    private Boolean hasPendingTransfer;
+    private String lastTransferRejectionNote;
 }

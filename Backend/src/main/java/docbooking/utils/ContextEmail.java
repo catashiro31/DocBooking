@@ -152,6 +152,58 @@ public class ContextEmail {
         sendHtmlEmail(toEmail, "[DocBooking] Thông báo: Khóa tài khoản vĩnh viễn", getHtmlContainer("Thông báo khóa tài khoản", content));
     }
 
+    public void sendBookingSuccessNotification(String patientEmail, String patientName, String doctorEmail, String doctorName, String appointmentTime, String location) {
+        try {
+            // 1. Gửi cho Bệnh nhân
+            SimpleMailMessage patientMessage = new SimpleMailMessage();
+            patientMessage.setFrom(senderEmail);
+            patientMessage.setTo(patientEmail);
+            patientMessage.setSubject("[DocBooking] Xác nhận: Bạn đã đặt lịch hẹn thành công");
+
+            String patientBody = String.format(
+                "Xin chào %s,\n\n"
+                + "Bạn đã đặt lịch hẹn thành công trên hệ thống DocBooking. Hiện tại lịch hẹn của bạn đang chờ bác sĩ xác nhận.\n\n"
+                + "--- THÔNG TIN LỊCH HẸN ---\n"
+                + "👨‍⚕️ Bác sĩ: %s\n"
+                + "⏰ Thời gian: %s\n"
+                + "📍 Địa điểm: %s\n"
+                + "---------------------------\n\n"
+                + "Chúng tôi sẽ thông báo cho bạn ngay khi bác sĩ phê duyệt lịch hẹn này.\n\n"
+                + "Trân trọng,\n"
+                + "Đội ngũ DocBooking!",
+                patientName, doctorName, appointmentTime, location
+            );
+            patientMessage.setText(patientBody);
+            mailSender.send(patientMessage);
+
+            // 2. Gửi cho Bác sĩ
+            SimpleMailMessage doctorMessage = new SimpleMailMessage();
+            doctorMessage.setFrom(senderEmail);
+            doctorMessage.setTo(doctorEmail);
+            doctorMessage.setSubject("[DocBooking] Thông báo: Có lịch hẹn mới đang chờ xác nhận");
+
+            String doctorBody = String.format(
+                "Xin chào Bác sĩ %s,\n\n"
+                + "Hệ thống DocBooking ghi nhận một yêu cầu đặt lịch mới từ bệnh nhân.\n\n"
+                + "--- THÔNG TIN YÊU CẦU ---\n"
+                + "👤 Bệnh nhân: %s\n"
+                + "⏰ Thời gian: %s\n"
+                + "-------------------------\n\n"
+                + "Vui lòng đăng nhập vào hệ thống để xem chi tiết và xác nhận lịch hẹn này.\n\n"
+                + "Trân trọng,\n"
+                + "Hệ thống DocBooking!",
+                doctorName, patientName, appointmentTime
+            );
+            doctorMessage.setText(doctorBody);
+            mailSender.send(doctorMessage);
+
+            System.out.println("Đã gửi email thông báo đặt lịch tới bệnh nhân và bác sĩ thành công.");
+
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gửi email thông báo đặt lịch: " + e.getMessage());
+        }
+    }
+
     public void sendPasswordResetEmail(String toEmail, String fullName, String newPassword) {
         String content = "<p>Xin chào <strong>" + fullName + "</strong>,</p>" +
                 "<p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản <strong>DocBooking</strong>.</p>" +

@@ -170,6 +170,11 @@ function DoctorProfile() {
   const [facilities, setFacilities] = useState([])
   const [loadingOptions, setLoadingOptions] = useState(true)
 
+  // Transfer Request States
+  const [showTransferModal, setShowTransferModal] = useState(false)
+  const [transferForm, setTransferForm] = useState({ targetFacilityId: "", reason: "" })
+  const [isSubmittingTransfer, setIsSubmittingTransfer] = useState(false)
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -341,6 +346,26 @@ function DoctorProfile() {
     setLoading(false)
   }
 
+  const handleTransferSubmit = async () => {
+    if (!transferForm.targetFacilityId) {
+      toast.error("Vui lòng chọn cơ sở muốn chuyển đến")
+      return
+    }
+    if (!transferForm.reason.trim()) {
+      toast.error("Vui lòng nhập lý do chuyển công tác")
+      return
+    }
+    setIsSubmittingTransfer(true)
+    try {
+      await api.post("/doctor/transfer", transferForm)
+      toast.success("Yêu cầu chuyển công tác đã được gửi và đang chờ Admin duyệt")
+      setShowTransferModal(false)
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.response?.data || "Đã xảy ra lỗi khi gửi yêu cầu")
+    }
+    setIsSubmittingTransfer(false)
+  }
+
   const pageWrapStyle = {
     minHeight: '100vh',
     background: 'linear-gradient(135deg, #f0fdf8 0%, #f8fafc 50%, #eff6ff 100%)',
@@ -388,29 +413,59 @@ function DoctorProfile() {
                               {profileData.degree} • {profileData.specialty?.specialtyName || profileData.specialtyName}
                           </p>
                       </div>
-                      <div style={{ textAlign: 'right', minWidth: '220px' }}>
+                    <div style={{ textAlign: 'right', minWidth: '380px' }}>
                           {!editMode ? (
-                              <button 
-                                onClick={() => {
-                                  setEditForm({
-                                    bio: profileData.bio || "",
-                                    price: profileData.price ?? "",
-                                  })
-                                  setEditMode(true)
-                                }} 
-                                style={{ 
-                                    padding: '12px 24px', background: 'linear-gradient(135deg, #0ea47a, #059669)', 
-                                    color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', 
-                                    fontWeight: 700, fontSize: '14px', transition: 'all 0.3s', 
-                                    boxShadow: '0 8px 16px rgba(14,164,122,0.2)',
-                                    display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto'
-                                }}
-                                onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                                onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
-                              >
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                                  Chỉnh sửa tiểu sử & giá
-                              </button>
+                              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                                  <button 
+                                    onClick={() => !profileData.hasPendingTransfer && setShowTransferModal(true)}
+                                    disabled={profileData.hasPendingTransfer}
+                                    style={{ 
+                                        padding: '12px 20px', 
+                                        background: profileData.hasPendingTransfer ? '#fff7ed' : '#fff', 
+                                        color: profileData.hasPendingTransfer ? '#c2410c' : '#0ea47a', 
+                                        border: `2px solid ${profileData.hasPendingTransfer ? '#fdba74' : '#0ea47a'}`, 
+                                        borderRadius: '12px', 
+                                        cursor: profileData.hasPendingTransfer ? 'not-allowed' : 'pointer', 
+                                        fontWeight: 700, fontSize: '14px', transition: 'all 0.3s',
+                                        display: 'flex', alignItems: 'center', gap: '8px'
+                                    }}
+                                    onMouseOver={e => !profileData.hasPendingTransfer && (e.currentTarget.style.background = '#f0fdf4')}
+                                    onMouseOut={e => !profileData.hasPendingTransfer && (e.currentTarget.style.background = '#fff')}
+                                  >
+                                      {profileData.hasPendingTransfer ? (
+                                        <>
+                                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                          Đang chờ duyệt chuyển chỗ
+                                        </>
+                                      ) : (
+                                        <>
+                                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/></svg>
+                                          Chuyển công tác
+                                        </>
+                                      )}
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      setEditForm({
+                                        bio: profileData.bio || "",
+                                        price: profileData.price ?? "",
+                                      })
+                                      setEditMode(true)
+                                    }} 
+                                    style={{ 
+                                        padding: '12px 24px', background: 'linear-gradient(135deg, #0ea47a, #059669)', 
+                                        color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', 
+                                        fontWeight: 700, fontSize: '14px', transition: 'all 0.3s', 
+                                        boxShadow: '0 8px 16px rgba(14,164,122,0.2)',
+                                        display: 'flex', alignItems: 'center', gap: '8px'
+                                    }}
+                                    onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                    onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                  >
+                                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                      Chỉnh sửa tiểu sử & giá
+                                  </button>
+                              </div>
                           ) : (
                               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                                   <button 
@@ -475,7 +530,7 @@ function DoctorProfile() {
                                         </span>
                                       </div>
                                       {(profileData.facilityAddress || profileData.facility?.address) && (
-                                      <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+                                      <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#64748b' }}>
                                         {profileData.facilityAddress || profileData.facility?.address}
                                         {profileData.facilityProvince ? `, ${profileData.facilityProvince}` : (profileData.facility?.province ? `, ${profileData.facility.province}` : '')}
                                       </p>
@@ -541,6 +596,62 @@ function DoctorProfile() {
 
                   </div>
               </div>
+
+              {/* Transfer Modal */}
+              {showTransferModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+                  <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '500px', padding: '32px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', position: 'relative' }} className="reveal">
+                    <button onClick={() => setShowTransferModal(false)} style={{ position: 'absolute', top: '24px', right: '24px', background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                    
+                    <h2 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>Yêu cầu chuyển công tác</h2>
+                    <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#64748b', lineHeight: 1.5 }}>
+                      Thông tin này sẽ được Admin xét duyệt. Sau khi duyệt, các ca khám trống của bạn tại cơ sở cũ sẽ bị đóng.
+                    </p>
+
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cơ sở y tế mới</label>
+                      <select 
+                        value={transferForm.targetFacilityId}
+                        onChange={e => setTransferForm({ ...transferForm, targetFacilityId: e.target.value })}
+                        style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '14px', outline: 'none', background: '#f8fafc' }}
+                      >
+                        <option value="">-- Chọn cơ sở --</option>
+                        {facilities.filter(f => f.id !== profileData.facilityId && f.id !== profileData.facility?.id).map(f => (
+                          <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ marginBottom: '28px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Lý do chuyển</label>
+                      <textarea 
+                        value={transferForm.reason}
+                        onChange={e => setTransferForm({ ...transferForm, reason: e.target.value })}
+                        placeholder="Nhập lý do chuyển công tác hoặc ghi chú cho Admin..."
+                        style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '14px', lineHeight: 1.5, minHeight: '120px', outline: 'none', background: '#f8fafc', resize: 'none' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button 
+                        onClick={() => setShowTransferModal(false)}
+                        style={{ flex: 1, padding: '14px', borderRadius: '12px', background: '#f1f5f9', color: '#475569', border: 'none', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        Hủy
+                      </button>
+                      <button 
+                        onClick={handleTransferSubmit}
+                        disabled={isSubmittingTransfer}
+                        style={{ flex: 2, padding: '14px', borderRadius: '12px', background: '#0ea47a', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(14,164,122,0.25)' }}
+                      >
+                        {isSubmittingTransfer ? "Đang gửi..." : "Gửi yêu cầu"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
       )
   }

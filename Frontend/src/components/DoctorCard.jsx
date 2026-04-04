@@ -124,6 +124,12 @@ export default function DoctorCard({ doctor }) {
           <h3 className="doc-name">{name}</h3>
           <p className="doc-spec">{doctor.specialtyName || doctor.specialty || doctor.specialization}</p>
           
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: '500' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18"/><path d="M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7"/><path d="M4 21V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v17"/></svg>
+            <span>{(doctor.facilityName || doctor.facility) || 'Phòng khám riêng'}</span>
+            {doctor.province && <span style={{ color: '#94a3b8' }}>• {doctor.province}</span>}
+          </div>
+
           <div className="meta-row">
             <span className="meta-badge">
               <svg className="badge-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>

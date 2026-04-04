@@ -110,6 +110,32 @@ const css = `
 .pagination button:hover:not(:disabled) { border-color: #6366f1; color: #6366f1; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(99,102,241,0.15); }
 .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
 .pagination button.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border-color: transparent; box-shadow: 0 10px 20px rgba(99,102,241,0.3); }
+ 
+ /* ===== PRICE SLIDER ===== */
+ .price-slider-wrap { padding: 10px 4px 20px; }
+ .slider-labels { display: flex; justify-content: space-between; margin-bottom: 24px; }
+ .slider-label { font-size: 13px; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-radius: 8px; }
+ .range-container { position: relative; height: 6px; background: #e2e8f0; border-radius: 3px; }
+ .range-track { 
+   position: absolute; height: 100%; background: #6366f1; border-radius: 3px; 
+   left: var(--min); right: var(--max);
+ }
+ .range-input {
+   position: absolute; width: 100%; top: -6px; left: 0; background: none; 
+   pointer-events: none; -webkit-appearance: none; appearance: none;
+ }
+ .range-input::-webkit-slider-thumb {
+   height: 20px; width: 20px; border-radius: 50%; background: #fff; border: 2px solid #6366f1;
+   pointer-events: auto; -webkit-appearance: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+   transition: all 0.2s;
+ }
+ .range-input::-webkit-slider-thumb:hover { transform: scale(1.15); box-shadow: 0 6px 15px rgba(99,102,241,0.3); }
+
+ .fac-search-input {
+   width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #e2e8f0;
+   font-size: 13px; margin-bottom: 12px; outline: none; transition: all 0.2s;
+ }
+ .fac-search-input:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
 
 
 @media (max-width: 768px) {
@@ -133,12 +159,29 @@ export default function Doctors() {
 
   const [selectedSpecId, setSelectedSpecId] = useState(() => searchParams.get('specId') ? Number(searchParams.get('specId')) : null);
   const [selectedFacilityId, setSelectedFacilityId] = useState(() => searchParams.get('facilityId') ? Number(searchParams.get('facilityId')) : null);
-  const [minPrice, setMinPrice] = useState(() => searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : null);
-  const [maxPrice, setMaxPrice] = useState(() => searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : null);
   const [search, setSearch] = useState(() => searchParams.get('keyword') || '');
   const [selectedProvince, setSelectedProvince] = useState('');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  
+  // Slider states
+  const [minPrice, setMinPrice] = useState(() => searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : 0);
+  const [maxPrice, setMaxPrice] = useState(() => searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : 2000000);
+  const [facilitySearch, setFacilitySearch] = useState('');
+
+  // Debounced states for performance
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [debouncedMinPrice, setDebouncedMinPrice] = useState(minPrice);
+  const [debouncedMaxPrice, setDebouncedMaxPrice] = useState(maxPrice);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setDebouncedMinPrice(minPrice);
+      setDebouncedMaxPrice(maxPrice);
+    }, 500); // 500ms delay
+    return () => clearTimeout(timer);
+  }, [search, minPrice, maxPrice]);
 
   // UI Expand states
   const [isSpecExpanded, setIsSpecExpanded] = useState(false);
@@ -171,12 +214,12 @@ export default function Doctors() {
       const params = {
         page,
         size: 12,
-        ...(search && { keyword: search }),
+        ...(debouncedSearch && { keyword: debouncedSearch }),
         ...(selectedSpecId && { specId: selectedSpecId }),
         ...(selectedFacilityId && { facilityId: selectedFacilityId }),
         ...(selectedProvince && { province: selectedProvince }),
-        ...(minPrice !== null && { minPrice }),
-        ...(maxPrice !== null && { maxPrice })
+        ...(debouncedMinPrice !== null && { minPrice: debouncedMinPrice }),
+        ...(debouncedMaxPrice !== null && { maxPrice: debouncedMaxPrice })
       };
       const data = await doctorService.getDoctors(params);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -189,7 +232,7 @@ export default function Doctors() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, selectedSpecId, selectedFacilityId, selectedProvince, minPrice, maxPrice]);
+  }, [page, debouncedSearch, selectedSpecId, selectedFacilityId, selectedProvince, debouncedMinPrice, debouncedMaxPrice]);
 
   useEffect(() => {
     fetchDoctors();
@@ -200,11 +243,11 @@ export default function Doctors() {
     if (selectedSpecId) params.specId = selectedSpecId;
     if (selectedFacilityId) params.facilityId = selectedFacilityId;
     if (selectedProvince) params.province = selectedProvince;
-    if (minPrice !== null) params.minPrice = minPrice;
-    if (maxPrice !== null) params.maxPrice = maxPrice;
-    if (search) params.keyword = search;
+    if (debouncedMinPrice !== null) params.minPrice = debouncedMinPrice;
+    if (debouncedMaxPrice !== null) params.maxPrice = debouncedMaxPrice;
+    if (debouncedSearch) params.keyword = debouncedSearch;
     setSearchParams(params);
-  }, [selectedSpecId, selectedFacilityId, selectedProvince, minPrice, maxPrice, search, setSearchParams]);
+  }, [selectedSpecId, selectedFacilityId, selectedProvince, debouncedMinPrice, debouncedMaxPrice, debouncedSearch, setSearchParams]);
 
   const handleSpecialtySelect = (specId) => {
     setSelectedSpecId(specId === selectedSpecId ? null : specId);
@@ -216,23 +259,21 @@ export default function Doctors() {
     setPage(0);
   };
 
-  const handlePriceSelect = (min, max) => {
-    if (min === minPrice && max === maxPrice) {
-      setMinPrice(null);
-      setMaxPrice(null);
+  const handlePriceChange = (e) => {
+    const val = Number(e.target.value);
+    const name = e.target.name;
+    if (name === 'min') {
+      setMinPrice(Math.min(val, maxPrice - 50000));
     } else {
-      setMinPrice(min);
-      setMaxPrice(max);
+      setMaxPrice(Math.max(val, minPrice + 50000));
     }
     setPage(0);
   };
 
-  const PRICE_PRESETS = [
-    { label: 'Dưới 200k', min: 0, max: 200000 },
-    { label: '200k - 500k', min: 200000, max: 500000 },
-    { label: '500k - 1tr', min: 500000, max: 1000000 },
-    { label: 'Trên 1tr', min: 1000000, max: null },
-  ];
+  const formatPrice = (p) => {
+    if (p >= 1000000) return (p/1000000).toFixed(1) + 'tr';
+    return (p/1000).toFixed(0) + 'k';
+  };
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -247,7 +288,9 @@ export default function Doctors() {
   };
 
   const activeProvinces = [...new Set(facilities.map(f => f.province).filter(p => !!p))].sort();
-  const filteredFacilities = facilities.filter(f => !selectedProvince || f.province === selectedProvince);
+  const filteredFacilities = facilities
+    .filter(f => !selectedProvince || f.province === selectedProvince)
+    .filter(f => !facilitySearch || f.name.toLowerCase().includes(facilitySearch.toLowerCase()));
 
   const displaySpecialties = isSpecExpanded ? specialties : specialties.slice(0, 6);
   const displayFacilities = isFacilityExpanded ? filteredFacilities : filteredFacilities.slice(0, 6);
@@ -308,8 +351,15 @@ export default function Doctors() {
             <div className="sidebar-group">
               <h3>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18"/><path d="M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7"/><path d="M4 21V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v17"/></svg>
-                Cơ sở y tế
+                 Cơ sở y tế
               </h3>
+              <input 
+                type="text" 
+                className="fac-search-input" 
+                placeholder="Tìm tên cơ sở..." 
+                value={facilitySearch} 
+                onChange={(e) => setFacilitySearch(e.target.value)}
+              />
               <div className={`spec-list ${isFacilityExpanded ? 'expanded' : ''}`}>
                 <button className={`spec-item ${!selectedFacilityId ? 'active' : ''}`} onClick={() => setSelectedFacilityId(null)}>Tất cả</button>
                 {filteredFacilities.length === 0 ? (
@@ -332,14 +382,45 @@ export default function Doctors() {
             <div className="sidebar-group">
               <h3>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                Giá khám
+                 Giá khám
               </h3>
-              <div className="price-grid">
-                {PRICE_PRESETS.map(p => (
-                  <button key={p.label} className={`price-tag ${minPrice === p.min && maxPrice === p.max ? 'active' : ''}`} onClick={() => handlePriceSelect(p.min, p.max)}>
-                    {p.label}
-                  </button>
-                ))}
+              <div className="price-slider-wrap">
+                <div className="slider-labels">
+                  <span className="slider-label">{formatPrice(minPrice)}</span>
+                  <span className="slider-label">{formatPrice(maxPrice)}</span>
+                </div>
+                <div className="range-container">
+                  <div 
+                    className="range-track" 
+                    style={{ 
+                      '--min': `${(minPrice / 2000000) * 100}%`,
+                      '--max': `${100 - (maxPrice / 2000000) * 100}%`
+                    }}
+                  />
+                  <input 
+                    type="range" 
+                    name="min"
+                    min="0" 
+                    max="2000000" 
+                    step="50000"
+                    value={minPrice} 
+                    onChange={handlePriceChange}
+                    className="range-input"
+                  />
+                  <input 
+                    type="range" 
+                    name="max"
+                    min="0" 
+                    max="2000000" 
+                    step="50000"
+                    value={maxPrice} 
+                    onChange={handlePriceChange}
+                    className="range-input"
+                  />
+                </div>
+                <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '12px', textAlign: 'center', fontWeight: '500' }}>
+                  Khoảng giá tối ưu cho bạn
+                </p>
               </div>
             </div>
           </aside>

@@ -25,6 +25,10 @@ public class DoctorSchedule {
     @JoinColumn(name = "doctor_id")
     private DoctorDetail doctor;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "facility_id")
+    private Facility facility;
+
     @Column(name = "date_working")
     private LocalDate dateWorking;
 
